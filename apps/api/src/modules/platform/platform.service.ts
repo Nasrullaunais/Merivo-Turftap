@@ -1,6 +1,7 @@
 import type { Me } from "@turftap/contract";
 
 import type { Caller } from "../../lib/auth/context";
+import { ROLE_PERMISSIONS } from "../../lib/auth/permissions";
 import { config } from "../../lib/config";
 import { transaction } from "../../lib/db";
 import { httpErrors } from "../../lib/errors";
@@ -98,7 +99,7 @@ export async function me(caller: Caller): Promise<Me> {
     isPlatformAdmin: user.isPlatformAdmin,
     tenants: tenants.flatMap(({ id, slug, name }) => {
       const role = roles.get(id);
-      return role ? [{ id, slug, name, role }] : [];
+      return role ? [{ id, slug, name, role, permissions: [...ROLE_PERMISSIONS[role]] }] : [];
     }),
   };
 }

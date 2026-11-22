@@ -6,7 +6,7 @@ import { staff } from "../staff/staff.tables";
 import { call, createTenant, type TestTenant, uniquePhone } from "../../test/fixtures";
 import { users } from "./platform.tables";
 
-describe("SIG-02 GET /v1/me", () => {
+describe("SIG-02, SIG-05 GET /v1/me", () => {
   let first: TestTenant;
   let second: TestTenant;
 
@@ -27,11 +27,37 @@ describe("SIG-02 GET /v1/me", () => {
     });
     expect(reply.body.data.tenants).toEqual(
       expect.arrayContaining([
-        { id: first.id, slug: first.slug, name: `Tenant ${first.slug}`, role: "OWNER" },
-        { id: second.id, slug: second.slug, name: `Tenant ${second.slug}`, role: "FRONT_DESK" },
+        expect.objectContaining({
+          id: first.id,
+          slug: first.slug,
+          name: `Tenant ${first.slug}`,
+          role: "OWNER",
+        }),
+        expect.objectContaining({
+          id: second.id,
+          slug: second.slug,
+          name: `Tenant ${second.slug}`,
+          role: "FRONT_DESK",
+        }),
       ]),
     );
     expect(reply.body.data.tenants).toHaveLength(2);
+  });
+
+  it("me_listsWhatTheirRoleMayDoAtEachTenant", async () => {
+    const permissionsOf = async (phone: string) =>
+      (await call("GET", "/v1/me", { phone })).body.data.tenants.find(
+        (tenant: { id: number }) => tenant.id === first.id,
+      ).permissions;
+    const owner = await permissionsOf(first.owner.phone);
+    const manager = await permissionsOf(first.manager.phone);
+    const frontDesk = await permissionsOf(first.frontDesk.phone);
+
+    expect(owner).toEqual(expect.arrayContaining(["staff:read", "staff:create", "venues:update"]));
+    expect(manager).toContain("staff:read");
+    expect(manager).not.toContain("staff:create");
+    expect(frontDesk).toContain("venues:read");
+    expect(frontDesk).not.toContain("staff:read");
   });
 
   it("me_listsNoTenantsForSomeoneWhoIsNotStaffAnywhere", async () => {

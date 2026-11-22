@@ -25,6 +25,19 @@ export type ErrorReply = {
     errors?: Array<FieldError>;
 };
 
+export const Permission = {
+    STAFF_READ: 'staff:read',
+    STAFF_CREATE: 'staff:create',
+    STAFF_UPDATE: 'staff:update',
+    STAFF_DELETE: 'staff:delete',
+    VENUES_READ: 'venues:read',
+    VENUES_CREATE: 'venues:create',
+    VENUES_UPDATE: 'venues:update',
+    VENUES_DELETE: 'venues:delete'
+} as const;
+
+export type Permission = typeof Permission[keyof typeof Permission];
+
 export const StaffRole = {
     OWNER: 'OWNER',
     MANAGER: 'MANAGER',
@@ -56,6 +69,7 @@ export type MyTenant = {
     slug: string;
     name: string;
     role: StaffRole;
+    permissions: Array<Permission>;
 };
 
 export type Me = {

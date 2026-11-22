@@ -26,6 +26,11 @@ async function runQueuedInvite(staffId: number) {
   await sendStaffInvite(rows[0]!.data as { tenantId: number; staffId: number });
 }
 
+async function staffIdOf(tenant: TestTenant, who: TestStaff): Promise<number> {
+  const reply = await call("GET", "/v1/staff?size=100", asStaff(tenant));
+  return reply.body.data.content.find((row: { phone: string }) => row.phone === who.phone).id;
+}
+
 const invitesTo = (phone: string) =>
   testPorts.messaging.sent.filter((message) => message.to === phone);
 
@@ -105,8 +110,8 @@ describe("SIG-03 invite staff", () => {
     expect(fields).toEqual(expect.arrayContaining(["phone", "role"]));
   });
 
-  it("list_showsEachPersonsPhoneAndRoleToEveryRole", async () => {
-    for (const who of [tenant.owner, tenant.manager, tenant.frontDesk]) {
+  it("list_showsEachPersonsPhoneAndRoleToOwnersAndManagers", async () => {
+    for (const who of [tenant.owner, tenant.manager]) {
       const reply = await call("GET", "/v1/staff?size=100", asStaff(tenant, who));
       expect(reply.status).toBe(200);
       expect(reply.body.data.content).toContainEqual(
@@ -131,17 +136,13 @@ describe("SIG-04 change or remove staff", () => {
     tenant = await createTenant();
   });
 
-  const staffIdOf = async (who: TestStaff) => {
-    const reply = await call("GET", "/v1/staff?size=100", asStaff(tenant));
-    return reply.body.data.content.find((row: { phone: string }) => row.phone === who.phone).id;
-  };
   const rolesOf = async (who: TestStaff) =>
     (await call("GET", "/v1/me", { phone: who.phone })).body.data.tenants.map(
       (row: { role: string }) => row.role,
     );
 
   it("update_changesTheirRole", async () => {
-    const id = await staffIdOf(tenant.manager);
+    const id = await staffIdOf(tenant, tenant.manager);
     const reply = await call("PATCH", `/v1/staff/${id}`, asStaff(tenant), { role: "FRONT_DESK" });
     expect(reply.status).toBe(200);
     expect(reply.body.data).toMatchObject({ phone: tenant.manager.phone, role: "FRONT_DESK" });
@@ -149,7 +150,7 @@ describe("SIG-04 change or remove staff", () => {
   });
 
   it("update_refusesTheLastOwnerChangingTheirOwnRole", async () => {
-    const id = await staffIdOf(tenant.owner);
+    const id = await staffIdOf(tenant, tenant.owner);
     const reply = await call("PATCH", `/v1/staff/${id}`, asStaff(tenant), { role: "MANAGER" });
     expect(reply.status).toBe(409);
     expect(reply.body.code).toBe("tt_stf_003");
@@ -159,7 +160,7 @@ describe("SIG-04 change or remove staff", () => {
   it("update_withNoFieldsLeavesTheLastOwnerAsTheyAre", async () => {
     const reply = await call(
       "PATCH",
-      `/v1/staff/${await staffIdOf(tenant.owner)}`,
+      `/v1/staff/${await staffIdOf(tenant, tenant.owner)}`,
       asStaff(tenant),
       {},
     );
@@ -168,17 +169,17 @@ describe("SIG-04 change or remove staff", () => {
   });
 
   it("update_letsAnOwnerStepDownWhenAnotherOwnerRemains", async () => {
-    await call("PATCH", `/v1/staff/${await staffIdOf(tenant.manager)}`, asStaff(tenant), {
+    await call("PATCH", `/v1/staff/${await staffIdOf(tenant, tenant.manager)}`, asStaff(tenant), {
       role: "OWNER",
     });
-    const id = await staffIdOf(tenant.owner);
+    const id = await staffIdOf(tenant, tenant.owner);
     const reply = await call("PATCH", `/v1/staff/${id}`, asStaff(tenant), { role: "MANAGER" });
     expect(reply.status).toBe(200);
     expect(await rolesOf(tenant.owner)).toEqual(["MANAGER"]);
   });
 
   it("remove_takesAwayTheirAccessToTheTenant", async () => {
-    const id = await staffIdOf(tenant.manager);
+    const id = await staffIdOf(tenant, tenant.manager);
     expect((await call("DELETE", `/v1/staff/${id}`, asStaff(tenant))).status).toBe(200);
     expect((await call("GET", "/v1/staff", asStaff(tenant, tenant.manager))).status).toBe(403);
     expect(await rolesOf(tenant.manager)).toEqual([]);
@@ -187,7 +188,7 @@ describe("SIG-04 change or remove staff", () => {
   it("remove_refusesTheLastOwnerRemovingThemselves", async () => {
     const reply = await call(
       "DELETE",
-      `/v1/staff/${await staffIdOf(tenant.owner)}`,
+      `/v1/staff/${await staffIdOf(tenant, tenant.owner)}`,
       asStaff(tenant),
     );
     expect(reply.status).toBe(409);
@@ -196,9 +197,9 @@ describe("SIG-04 change or remove staff", () => {
   });
 
   it("remove_leavesOneOwnerWhenTwoOwnersRemoveEachOtherAtOnce", async () => {
-    const managerId = await staffIdOf(tenant.manager);
+    const managerId = await staffIdOf(tenant, tenant.manager);
     await call("PATCH", `/v1/staff/${managerId}`, asStaff(tenant), { role: "OWNER" });
-    const ownerId = await staffIdOf(tenant.owner);
+    const ownerId = await staffIdOf(tenant, tenant.owner);
     const replies = await Promise.all([
       call("DELETE", `/v1/staff/${managerId}`, asStaff(tenant, tenant.owner)),
       call("DELETE", `/v1/staff/${ownerId}`, asStaff(tenant, tenant.manager)),
@@ -211,7 +212,7 @@ describe("SIG-04 change or remove staff", () => {
   });
 
   it("updateAndRemove_areOnlyForOwners", async () => {
-    const id = await staffIdOf(tenant.frontDesk);
+    const id = await staffIdOf(tenant, tenant.frontDesk);
     for (const who of [tenant.manager, tenant.frontDesk]) {
       const as = asStaff(tenant, who);
       expect((await call("PATCH", `/v1/staff/${id}`, as, { role: "MANAGER" })).status).toBe(403);
@@ -227,6 +228,23 @@ describe("SIG-04 change or remove staff", () => {
     for (const reply of [patch, removal]) {
       expect(reply.status).toBe(404);
       expect(reply.body.code).toBe("tt_stf_001");
+    }
+  });
+});
+
+describe("SIG-05 what each role can do with staff", () => {
+  let tenant: TestTenant;
+  beforeAll(async () => {
+    tenant = await createTenant();
+  });
+
+  it("listAndGet_refuseFrontDesk", async () => {
+    const as = asStaff(tenant, tenant.frontDesk);
+    const list = await call("GET", "/v1/staff", as);
+    const one = await call("GET", `/v1/staff/${await staffIdOf(tenant, tenant.owner)}`, as);
+    for (const reply of [list, one]) {
+      expect(reply.status).toBe(403);
+      expect(reply.body.code).toBe("tt_htt_403");
     }
   });
 });

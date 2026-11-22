@@ -5,9 +5,10 @@ import { signInForTesting } from "../../lib/auth/session";
 import { setActiveTenantId } from "../../lib/tenant/activeTenant";
 import { mockApi } from "../../test/mockApi";
 import { renderApp } from "../../test/renderApp";
+import { myTenant } from "../../test/tenants";
 
-const demoSports = { id: 1, slug: "demo", name: "Demo Sports", role: "OWNER" };
-const kickOff = { id: 2, slug: "kickoff", name: "Kick Off Arena", role: "FRONT_DESK" };
+const demoSports = myTenant({ id: 1, slug: "demo", name: "Demo Sports", role: "OWNER" });
+const kickOff = myTenant({ id: 2, slug: "kickoff", name: "Kick Off Arena", role: "FRONT_DESK" });
 const meWith = (tenants: object[], isPlatformAdmin = false) => ({
   id: 5,
   phone: "+94771234567",

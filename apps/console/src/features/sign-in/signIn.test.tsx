@@ -4,8 +4,9 @@ import { describe, expect, it } from "vitest";
 import { signInForTesting } from "../../lib/auth/session";
 import { apiError, mockApi } from "../../test/mockApi";
 import { renderApp } from "../../test/renderApp";
+import { myTenant } from "../../test/tenants";
 
-const demoSports = { id: 1, slug: "demo", name: "Demo Sports", role: "OWNER" };
+const demoSports = myTenant({ id: 1, slug: "demo", name: "Demo Sports", role: "OWNER" });
 const owner = {
   id: 1,
   phone: "+94771234567",

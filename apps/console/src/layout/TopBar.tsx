@@ -2,6 +2,7 @@ import { Button } from "@heroui/react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import type { MyTenant } from "@turftap/contract";
 
+import { canOpen } from "../config/routePermissions";
 import { useSignOut } from "../lib/auth/useSignOut";
 import m from "../i18n/en/shell";
 import tenants from "../i18n/en/tenants";
@@ -23,9 +24,11 @@ export function TopBar({ tenant, canSwitchTenant }: TopBarProps) {
         </span>
       )}
       <nav>
-        <Link to="/staff" className="text-sm" activeProps={{ className: "font-semibold" }}>
-          {m.nav.staff}
-        </Link>
+        {canOpen(tenant, "/staff") && (
+          <Link to="/staff" className="text-sm" activeProps={{ className: "font-semibold" }}>
+            {m.nav.staff}
+          </Link>
+        )}
       </nav>
       <span className="ml-auto flex gap-2">
         {canSwitchTenant && (

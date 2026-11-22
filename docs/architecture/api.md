@@ -89,11 +89,12 @@ Outside services that must call a fixed address use `/hooks/<vendor>/<event>`, e
 
 ## Permissions
 
-Permission names are `<resource>:<action>`, where action is `read`, `create`, `update` or `delete`. The list lives in code. Each role maps to a list of permissions:
+Permission names are `<resource>:<action>`, where action is `read`, `create`, `update` or `delete`. The names live in `packages/contract/src/permissions.ts` and the table below in `apps/api/src/lib/auth/permissions.ts`. `GET /v1/me` sends each tenant's permissions, so the console hides what the API would refuse (`SIG-05`). Each role maps to a list of permissions:
 
 | Area | Owner | Manager | Front Desk |
 |---|---|---|---|
-| `staff`, `venues` (create, update, delete) | ✓ | read | read |
+| `staff` | ✓ | read | |
+| `venues` | ✓ | read | read |
 | `closed-dates`, `resources`, `price-rules`, `blocked-times`, `membership-plans` | ✓ | ✓ | read |
 | `customers`, `bookings`, `payments`, `memberships`, `check-ins` | ✓ | ✓ | read, create, update |
 | `repeat-series` | ✓ | ✓ | read |

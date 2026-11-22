@@ -20,6 +20,18 @@ _Avoid_: Client, organisation, company
 A user who works for a tenant with one of the roles Owner, Manager or Front Desk, and uses the Staff Console.
 _Avoid_: Employee, admin
 
+**Owner**:
+The staff role that runs a tenant. An Owner can do everything in their tenant, including settings and adding, changing or removing staff. A tenant always has at least one Owner.
+_Avoid_: Admin, boss
+
+**Manager**:
+The staff role that runs the venues day to day: venues, prices, bookings, memberships and receipt checks. A Manager can see the staff list but not change it.
+_Avoid_: Supervisor
+
+**Front Desk**:
+The staff role for the person at the counter who serves customers in person or on the phone: bookings, walk-ins, check-ins and receipt checks. Front Desk can't open the settings, prices or staff pages.
+_Avoid_: Receptionist, cashier
+
 **Platform Admin**:
 A person who runs TurfTap itself: creates tenants and connects their WhatsApp numbers.
 _Avoid_: Super admin, root

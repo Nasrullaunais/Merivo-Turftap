@@ -1,10 +1,18 @@
 import { z } from "zod";
 
 import { Id, PhoneNumber } from "./common";
+import { Permission } from "./permissions";
 import { StaffRole } from "./staff";
 
 export const MyTenant = z
-  .object({ id: Id, slug: z.string(), name: z.string(), role: StaffRole })
+  .object({
+    id: Id,
+    slug: z.string(),
+    name: z.string(),
+    role: StaffRole,
+    /** What this role may do here, so the console can hide what the API would refuse. */
+    permissions: z.array(Permission),
+  })
   .meta({ id: "MyTenant" });
 export type MyTenant = z.infer<typeof MyTenant>;
 

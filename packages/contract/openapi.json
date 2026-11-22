@@ -80,6 +80,19 @@
           "traceId"
         ]
       },
+      "Permission": {
+        "type": "string",
+        "enum": [
+          "staff:read",
+          "staff:create",
+          "staff:update",
+          "staff:delete",
+          "venues:read",
+          "venues:create",
+          "venues:update",
+          "venues:delete"
+        ]
+      },
       "StaffRole": {
         "type": "string",
         "enum": [
@@ -168,13 +181,20 @@
           },
           "role": {
             "$ref": "#/components/schemas/StaffRole"
+          },
+          "permissions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Permission"
+            }
           }
         },
         "required": [
           "id",
           "slug",
           "name",
-          "role"
+          "role",
+          "permissions"
         ]
       },
       "Me": {

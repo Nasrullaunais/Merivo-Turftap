@@ -1,9 +1,11 @@
 import { fireEvent, screen, waitFor, within } from "@testing-library/react";
+import type { StaffRole } from "@turftap/contract";
 import { describe, expect, it } from "vitest";
 
 import { signInForTesting } from "../../lib/auth/session";
 import { apiError, mockApi } from "../../test/mockApi";
 import { renderApp } from "../../test/renderApp";
+import { myTenant } from "../../test/tenants";
 
 const OWNER_PHONE = "+94771234567";
 const added = {
@@ -22,12 +24,12 @@ const page = (content: object[]) => ({
   totalElements: content.length,
   totalPages: 1,
 });
-const meAs = (role: string) => ({
+const meAs = (role: StaffRole) => ({
   id: 1,
   phone: OWNER_PHONE,
   name: "Demo Owner",
   isPlatformAdmin: false,
-  tenants: [{ id: 1, slug: "demo", name: "Demo Sports", role }],
+  tenants: [myTenant({ id: 1, slug: "demo", name: "Demo Sports", role })],
 });
 const created = (body: object) =>
   Response.json({ status: 201, message: "success", data: body }, { status: 201 });
@@ -87,9 +89,9 @@ describe("SIG-03 invite staff from the Staff Console", () => {
     expect(methods).not.toContain("POST");
   });
 
-  it.each(["MANAGER", "FRONT_DESK"])("%s_seesTheStaffButCannotAddAnyone", async (role) => {
+  it("manager_seesTheStaffButCannotChangeThem", async () => {
     signInForTesting(OWNER_PHONE);
-    mockApi({ "GET /v1/me": meAs(role), "GET /v1/staff": page([owner]) });
+    mockApi({ "GET /v1/me": meAs("MANAGER"), "GET /v1/staff": page([owner]) });
     renderApp("/staff");
     expect(await screen.findByText("Demo Owner")).toBeInTheDocument();
     expect(screen.queryByRole("heading", { name: "Add staff" })).not.toBeInTheDocument();
@@ -192,5 +194,29 @@ describe("SIG-04 change or remove staff from the Staff Console", () => {
     const dialog = await screen.findByRole("alertdialog", { name: "Remove Demo Owner?" });
     fireEvent.click(within(dialog).getByRole("button", { name: "Remove" }));
     expect(await screen.findByText("You don't have access to any venue yet")).toBeInTheDocument();
+  });
+});
+
+describe("SIG-05 what each role can see in the Staff Console", () => {
+  const staffLink = () => within(screen.getByRole("banner")).queryByRole("link", { name: "Staff" });
+
+  it.each(["OWNER", "MANAGER"] as const)("%s_seesTheStaffLink", async (role) => {
+    signInForTesting(OWNER_PHONE);
+    mockApi({ "GET /v1/me": meAs(role), "GET /v1/staff": page([owner]) });
+    renderApp("/");
+    await screen.findByRole("banner");
+    expect(staffLink()).toBeInTheDocument();
+  });
+
+  it("frontDesk_seesNoStaffLinkAndCannotOpenTheStaffPage", async () => {
+    signInForTesting(OWNER_PHONE);
+    const fetch = mockApi({ "GET /v1/me": meAs("FRONT_DESK"), "GET /v1/staff": page([owner]) });
+    const { router } = renderApp("/staff");
+    await screen.findByRole("banner");
+    await waitFor(() => expect(router.state.location.pathname).toBe("/"));
+    expect(staffLink()).not.toBeInTheDocument();
+    expect(screen.queryByText("Demo Owner")).not.toBeInTheDocument();
+    const paths = fetch.mock.calls.map(([request]) => new URL((request as Request).url).pathname);
+    expect(paths).not.toContain("/v1/staff");
   });
 });

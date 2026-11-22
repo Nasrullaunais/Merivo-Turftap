@@ -1,4 +1,4 @@
-import type { Me, MyTenant } from "@turftap/contract";
+import type { Me, MyTenant, Permission } from "@turftap/contract";
 
 const STORAGE_KEY = "turftap.activeTenantId";
 
@@ -31,3 +31,7 @@ export function chooseTenant(me: Me): TenantChoice {
   if (me.tenants.length > 1) return { kind: "pick" };
   return me.isPlatformAdmin ? { kind: "noTenant" } : { kind: "noAccess" };
 }
+
+/** SIG-05: whether the user's role in this tenant allows it, so pages the API would refuse stay hidden. */
+export const can = (tenant: MyTenant | undefined, permission: Permission): boolean =>
+  tenant?.permissions.includes(permission) ?? false;
