@@ -14,6 +14,8 @@ import { type FormEvent, useState } from "react";
 import m from "../../i18n/en/staff";
 import tenants from "../../i18n/en/tenants";
 import { useAddStaff } from "./useAddStaff";
+import { EVERY_VENUE, type VenueAccess } from "./venueAccess";
+import { VenueAccessFields } from "./VenueAccessFields";
 
 const DEFAULT_ROLE: StaffRole = "FRONT_DESK";
 
@@ -21,10 +23,21 @@ export function AddStaffForm() {
   const addStaff = useAddStaff();
   const [phone, setPhone] = useState("");
   const [role, setRole] = useState<StaffRole>(DEFAULT_ROLE);
+  const [access, setAccess] = useState<VenueAccess>(EVERY_VENUE);
+  const isOwner = role === "OWNER";
 
   const submit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    addStaff.mutate({ body: { phone, role } }, { onSuccess: () => setPhone("") });
+    const body = { phone, role, ...(isOwner ? EVERY_VENUE : access) };
+    addStaff.mutate(
+      { body },
+      {
+        onSuccess: () => {
+          setPhone("");
+          setAccess(EVERY_VENUE);
+        },
+      },
+    );
   };
 
   return (
@@ -60,6 +73,7 @@ export function AddStaffForm() {
           </Radio>
         ))}
       </RadioGroup>
+      {!isOwner && <VenueAccessFields value={access} onChange={setAccess} />}
       <Button type="submit" isPending={addStaff.isPending}>
         {m.submit}
       </Button>

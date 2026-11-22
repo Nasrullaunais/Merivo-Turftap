@@ -172,6 +172,21 @@ describe("architecture (docs/architecture/testing.md)", () => {
     );
     expect(problems).toEqual([]);
   });
+
+  it.each(MODULES)(
+    "13. module %s has a venue-scope test if its tables point at a venue",
+    (module) => {
+      const folder = join(SRC, "modules", module);
+      const names = readdirSync(folder);
+      const pointsAtVenue = names
+        .filter((name) => name.endsWith(".tables.ts"))
+        .some((name) =>
+          /\b(venueId|resourceId)\s*:/.test(readFileSync(join(folder, name), "utf8")),
+        );
+      const hasTest = names.some((name) => name.endsWith(".venue-scope.test.ts"));
+      expect(pointsAtVenue && !hasTest ? `${module} has no *.venue-scope.test.ts` : "").toBe("");
+    },
+  );
 });
 
 describe("error codes", () => {

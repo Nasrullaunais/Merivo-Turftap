@@ -3,9 +3,10 @@ import { Spinner } from "@heroui/react";
 import m from "../../i18n/en/staff";
 import tenants from "../../i18n/en/tenants";
 import { StaffActions } from "./StaffActions";
+import { StaffVenues } from "./StaffVenues";
 import { useStaff } from "./useStaff";
 
-/** Owners can change each person's role or remove them; everyone else only reads the list. */
+/** Owners can change each person's role and venues or remove them; everyone else only reads. */
 export function StaffList({ canManage }: { canManage: boolean }) {
   const { data: staff, isPending } = useStaff();
 
@@ -24,6 +25,9 @@ export function StaffList({ canManage }: { canManage: boolean }) {
               <span className="text-muted">{tenants.roles[person.role]}</span>
             )}
           </span>
+          <div className="basis-full">
+            <StaffVenues person={person} canManage={canManage} />
+          </div>
         </li>
       ))}
     </ul>

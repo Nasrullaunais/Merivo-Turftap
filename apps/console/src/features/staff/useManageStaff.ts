@@ -20,7 +20,7 @@ function useRefreshAfterChange() {
   };
 }
 
-export function useChangeRole() {
+export function useChangeStaff() {
   return useMutation({ ...updateStaffMutation(), onSuccess: useRefreshAfterChange() });
 }
 

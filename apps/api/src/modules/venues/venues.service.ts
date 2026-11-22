@@ -14,11 +14,11 @@ const seesInactive = (auth: AuthContext) =>
 
 export function list(auth: AuthContext, { filters, page }: ListQuery<VenueFilters, VenueSort>) {
   const active = seesInactive(auth) ? filters.active : true;
-  return venuesRepository.list(auth.tenantId, { active }, page);
+  return venuesRepository.list(auth.tenantId, auth.venueIds, { active }, page);
 }
 
 export async function get(auth: AuthContext, id: number) {
-  const venue = await venuesRepository.findById(auth.tenantId, id);
+  const venue = await venuesRepository.findById(auth.tenantId, id, auth.venueIds);
   if (!venue || (!venue.active && !seesInactive(auth))) throw venueErrors.notFound(id);
   return venue;
 }
@@ -30,7 +30,7 @@ export function create(auth: AuthContext, input: CreateVenue) {
 export function update(auth: AuthContext, id: number, input: UpdateVenue) {
   if (Object.keys(input).length === 0) return get(auth, id);
   return transaction(async () => {
-    const venue = await venuesRepository.update(auth.tenantId, id, input);
+    const venue = await venuesRepository.update(auth.tenantId, id, auth.venueIds, input);
     if (!venue) throw venueErrors.notFound(id);
     return venue;
   });
@@ -38,6 +38,14 @@ export function update(auth: AuthContext, id: number, input: UpdateVenue) {
 
 export function remove(auth: AuthContext, id: number) {
   return transaction(async () => {
-    if (!(await venuesRepository.deactivate(auth.tenantId, id))) throw venueErrors.notFound(id);
+    if (!(await venuesRepository.deactivate(auth.tenantId, id, auth.venueIds)))
+      throw venueErrors.notFound(id);
   });
+}
+
+/** Refuses the first id that isn't a venue in this tenant, the same way `get` would. */
+export async function checkExist(auth: AuthContext, ids: number[]) {
+  const existing = await venuesRepository.findExistingIds(auth.tenantId, auth.venueIds, ids);
+  const missing = ids.find((id) => !existing.has(id));
+  if (missing !== undefined) throw venueErrors.notFound(missing);
 }

@@ -151,6 +151,17 @@
           "role": {
             "$ref": "#/components/schemas/StaffRole"
           },
+          "allVenues": {
+            "type": "boolean"
+          },
+          "venueIds": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "exclusiveMinimum": 0,
+              "maximum": 9007199254740991
+            }
+          },
           "createdAt": {
             "type": "string",
             "format": "date-time",
@@ -167,6 +178,8 @@
           "phone",
           "name",
           "role",
+          "allVenues",
+          "venueIds",
           "createdAt",
           "updatedAt"
         ]
@@ -179,6 +192,20 @@
           },
           "role": {
             "$ref": "#/components/schemas/StaffRole"
+          },
+          "allVenues": {
+            "default": true,
+            "type": "boolean"
+          },
+          "venueIds": {
+            "default": [],
+            "maxItems": 100,
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "exclusiveMinimum": 0,
+              "maximum": 9007199254740991
+            }
           }
         },
         "required": [
@@ -191,6 +218,18 @@
         "properties": {
           "role": {
             "$ref": "#/components/schemas/StaffRole"
+          },
+          "allVenues": {
+            "type": "boolean"
+          },
+          "venueIds": {
+            "maxItems": 100,
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "exclusiveMinimum": 0,
+              "maximum": 9007199254740991
+            }
           }
         }
       },

@@ -13,7 +13,7 @@ const PHONE_DIGITS = 7;
 export const uniquePhone = () =>
   `+9477${String(Math.floor(Math.random() * 10 ** PHONE_DIGITS)).padStart(PHONE_DIGITS, "0")}`;
 
-export type TestStaff = { phone: string; userId: number; auth: AuthContext };
+export type TestStaff = { phone: string; userId: number; staffId: number; auth: AuthContext };
 
 /** A new tenant, with one staff member per role. */
 export async function createTenant() {
@@ -27,8 +27,13 @@ export async function createTenant() {
   const addStaff = async (role: StaffRole): Promise<TestStaff> => {
     const phone = uniquePhone();
     const [user] = await db().insert(users).values({ phone }).returning();
-    await db().insert(staff).values({ tenantId, userId: user!.id, role });
-    return { phone, userId: user!.id, auth: { actor: "staff", tenantId, userId: user!.id, role } };
+    const [row] = await db().insert(staff).values({ tenantId, userId: user!.id, role }).returning();
+    return {
+      phone,
+      userId: user!.id,
+      staffId: row!.id,
+      auth: { actor: "staff", tenantId, userId: user!.id, role },
+    };
   };
 
   return {
@@ -98,6 +103,13 @@ export async function call(method: string, path: string, as: As = {}, body?: unk
     // oxlint-disable-next-line typescript/no-explicit-any -- tests read whatever the reply holds
     body: (await response.json()) as any,
   };
+}
+
+/** SIG-06: has the tenant's Owner limit this staff member to these venues. */
+export async function limitToVenues(tenant: TestTenant, who: TestStaff, venueIds: number[]) {
+  const body = { allVenues: false, venueIds };
+  const reply = await call("PATCH", `/v1/staff/${who.staffId}`, asStaff(tenant), body);
+  if (reply.status !== 200) throw new Error(`Could not limit staff: ${JSON.stringify(reply.body)}`);
 }
 
 export const asStaff = (tenant: TestTenant, who: TestStaff = tenant.owner): As => ({

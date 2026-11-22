@@ -58,9 +58,9 @@ async function staffCaller(token: string, tenantId?: number): Promise<Caller> {
     return { actor: "platform_admin", userId: user.id, tenantId };
   }
   if (tenantId === undefined) return { actor: "staff", userId: user.id };
-  const role = await staffService.roleOf(tenantId, user.id);
-  if (!role) throw platformErrors.notStaffHere();
-  return { actor: "staff", userId: user.id, tenantId, role };
+  const access = await staffService.accessOf(tenantId, user.id);
+  if (!access) throw platformErrors.notStaffHere();
+  return { actor: "staff", userId: user.id, tenantId, ...access };
 }
 
 const RESEND_BY_SMS_WITHIN_MINUTES = 10;

@@ -29,3 +29,11 @@ As an **Owner**, I want to change a staff member's role or remove them, so that 
 As an **Owner**, I want roles to limit what staff can do, so that front desk staff can't change prices or settings.
 - Given a Front Desk user, when they open settings, prices or staff pages, then those pages are hidden and the API refuses the requests.
 - The permission list for each role is in [docs/architecture/api.md](../architecture/api.md).
+
+## SIG-06 Choose which venues staff work at
+As an **Owner** with several venues, I want to limit a Manager or Front Desk to some of them, so that each branch's staff only see and change their own branch.
+- Given I add or change a Manager or Front Desk, when I pick "All venues" or a list of venues, then they only see and change what belongs to those venues. Something at another venue looks as if it doesn't exist.
+- An Owner always has every venue.
+- Given I pick no venues and turn off "All venues", when I save, then I'm told to pick at least one.
+- Given a limited Manager opens the staff list, when it loads, then they see the staff who share one of their venues and the staff at every venue.
+- Customers can book at any venue, whoever the staff are.

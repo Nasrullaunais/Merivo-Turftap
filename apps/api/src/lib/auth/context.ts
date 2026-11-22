@@ -10,6 +10,8 @@ export type Caller = {
   tenantId?: number;
   userId?: number;
   role?: StaffRole;
+  /** Set only for staff limited to some venues. Missing means every venue in the tenant. */
+  venueIds?: number[];
   customerId?: number;
 };
 

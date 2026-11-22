@@ -14,11 +14,11 @@ export function list(
   auth: AuthContext,
   { filters, page }: ListQuery<PriceRuleFilters, PriceRuleSort>,
 ) {
-  return priceRulesRepository.list(auth.tenantId, filters, page);
+  return priceRulesRepository.list(auth.tenantId, auth.venueIds, filters, page);
 }
 
 export async function get(auth: AuthContext, id: number) {
-  const rule = await priceRulesRepository.findById(auth.tenantId, id);
+  const rule = await priceRulesRepository.findById(auth.tenantId, id, auth.venueIds);
   if (!rule) throw venueErrors.priceRuleNotFound(id);
   return rule;
 }
@@ -45,7 +45,7 @@ export function update(auth: AuthContext, id: number, input: UpdatePriceRule) {
       id,
     );
     if (clashing) throw venueErrors.priceRuleClash(clashing);
-    const updated = await priceRulesRepository.update(auth.tenantId, id, changed);
+    const updated = await priceRulesRepository.update(auth.tenantId, id, auth.venueIds, changed);
     if (!updated) throw venueErrors.priceRuleNotFound(id);
     return updated;
   });
@@ -53,7 +53,7 @@ export function update(auth: AuthContext, id: number, input: UpdatePriceRule) {
 
 export function remove(auth: AuthContext, id: number) {
   return transaction(async () => {
-    if (!(await priceRulesRepository.remove(auth.tenantId, id)))
+    if (!(await priceRulesRepository.remove(auth.tenantId, id, auth.venueIds)))
       throw venueErrors.priceRuleNotFound(id);
   });
 }

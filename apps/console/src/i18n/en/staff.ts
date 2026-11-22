@@ -15,4 +15,11 @@ export default {
   removeTitle: (who: string) => `Remove ${who}?`,
   removeHint: "They lose access to this tenant within a few minutes.",
   cancel: "Cancel",
+  save: "Save",
+  allVenues: "All venues",
+  venuesLabel: "Venues",
+  venuesMissing: "Pick at least one venue",
+  unknownVenue: (id: number) => `Venue ${id}`,
+  changeVenues: "Change venues",
+  changeVenuesFor: (who: string) => `Change venues for ${who}`,
 };

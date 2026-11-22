@@ -54,14 +54,14 @@ Resources that customers or the Assistant may call list those operations in `for
 ```ts
 export function update(auth: AuthContext, id: number, input: UpdateVenue) {
   return transaction(async () => {
-    const venue = await venuesRepository.update(auth.tenantId, id, input);
+    const venue = await venuesRepository.update(auth.tenantId, id, auth.venueIds, input);
     if (!venue) throw venueErrors.notFound(id);
     return venue;
   });
 }
 ```
 
-- A service function takes `auth` first. The tenant is always `auth.tenantId`.
+- A service function takes `auth` first. The tenant is always `auth.tenantId`, and the venues the caller may use are `auth.venueIds` ([tenancy.md](tenancy.md#staff-limited-to-some-venues)).
 - **Writes run inside `transaction()`.** Every repository call and queued job inside it shares one connection, and database rule violations (duplicate name, overlapping booking) come out as our own errors. Calling `transaction()` inside another one just joins it.
 - Reads can skip the transaction.
 - Other modules are reached through their service: `import * as staffService from "../staff/staff.service"`.
@@ -71,13 +71,14 @@ export function update(auth: AuthContext, id: number, input: UpdateVenue) {
 ## Repositories
 
 ```ts
-export async function findById(tenantId: number, id: number) {
-  const [venue] = await db().select().from(venues).where(and(eq(venues.tenantId, tenantId), eq(venues.id, id)));
+export async function findById(tenantId: number, id: number, venueIds: number[] | undefined) {
+  const [venue] = await db().select().from(venues).where(ownedBy(tenantId, id, venueIds));
   return venue;
 }
 ```
 
 - `tenantId` is the first parameter of every exported function (except in `modules/platform/`, whose tables have no tenant, and the rare `*AcrossTenants` function described in [tenancy.md](tenancy.md#queries-across-tenants)).
+- Functions that read or change venue data take a required `venueIds` and put it in the `WHERE` next to `tenant_id` (`inVenues()` in each venues repository).
 - Use `db()`, never a connection passed in: it is the open transaction if there is one.
 - "Find" functions return `undefined` when nothing matches. The service decides that this is a 404.
 - Lists use `pageOf()` and `sortBy()` from `lib/db`. Sort text columns by `sql\`lower(column)\`` so names sort the way people expect.

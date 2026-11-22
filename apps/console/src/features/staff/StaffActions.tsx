@@ -4,10 +4,10 @@ import type { Staff } from "@turftap/contract/client";
 
 import m from "../../i18n/en/staff";
 import tenants from "../../i18n/en/tenants";
-import { useChangeRole, useRemoveStaff } from "./useManageStaff";
+import { useChangeStaff, useRemoveStaff } from "./useManageStaff";
 
 export function StaffActions({ person }: { person: Staff }) {
-  const changeRole = useChangeRole();
+  const changeRole = useChangeStaff();
   const removeStaff = useRemoveStaff();
   const who = person.name ?? person.phone;
   const path = { id: person.id };

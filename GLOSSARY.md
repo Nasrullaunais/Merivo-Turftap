@@ -17,7 +17,7 @@ A business that uses TurfTap, such as a sports company with one or more branches
 _Avoid_: Client, organisation, company
 
 **Staff**:
-A user who works for a tenant with one of the roles Owner, Manager or Front Desk, and uses the Staff Console.
+A user who works for a tenant with one of the roles Owner, Manager or Front Desk, and uses the Staff Console. Managers and Front Desk work at every venue of the tenant or only at the venues the Owner picks; Owners always have every venue.
 _Avoid_: Employee, admin
 
 **Owner**:

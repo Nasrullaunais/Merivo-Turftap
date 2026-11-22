@@ -64,6 +64,8 @@ export type Staff = {
     phone: string;
     name: string | null;
     role: StaffRole;
+    allVenues: boolean;
+    venueIds: Array<number>;
     createdAt: string;
     updatedAt: string;
 };
@@ -71,10 +73,14 @@ export type Staff = {
 export type CreateStaff = {
     phone: string;
     role: StaffRole;
+    allVenues?: boolean;
+    venueIds?: Array<number>;
 };
 
 export type UpdateStaff = {
     role?: StaffRole;
+    allVenues?: boolean;
+    venueIds?: Array<number>;
 };
 
 export type MyTenant = {

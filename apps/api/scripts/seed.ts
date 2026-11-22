@@ -4,12 +4,13 @@ import { and, eq } from "drizzle-orm";
 
 import { closeDb, db } from "../src/lib/db";
 import { tenants, users } from "../src/modules/platform/platform.tables";
-import { staff } from "../src/modules/staff/staff.tables";
+import { staff, staffVenues } from "../src/modules/staff/staff.tables";
 import { priceRules, resources, venues } from "../src/modules/venues/venues.tables";
 
 const DEMO_SLUG = "demo";
 const PLATFORM_ADMIN_PHONE = "+94770000000";
 const OWNER_PHONE = "+94770000001";
+const KANDY_MANAGER_PHONE = "+94770000002";
 
 await db().insert(tenants).values({ slug: DEMO_SLUG, name: "Demo Sports" }).onConflictDoNothing();
 const [tenant] = await db().select().from(tenants).where(eq(tenants.slug, DEMO_SLUG));
@@ -20,6 +21,7 @@ await db()
   .values([
     { phone: PLATFORM_ADMIN_PHONE, name: "Platform Admin", isPlatformAdmin: true },
     { phone: OWNER_PHONE, name: "Demo Owner" },
+    { phone: KANDY_MANAGER_PHONE, name: "Kandy Manager" },
   ])
   .onConflictDoNothing();
 const [owner] = await db().select().from(users).where(eq(users.phone, OWNER_PHONE));
@@ -65,6 +67,21 @@ const venueIds = new Map(
 );
 const kickOff = venueIds.get("Kick Off Arena")!;
 const cueClub = venueIds.get("Cue Club Kandy")!;
+
+// SIG-06: a Manager who works only at the Kandy venue.
+const [kandyManager] = await db().select().from(users).where(eq(users.phone, KANDY_MANAGER_PHONE));
+await db()
+  .insert(staff)
+  .values({ tenantId: tenant.id, userId: kandyManager!.id, role: "MANAGER", allVenues: false })
+  .onConflictDoNothing();
+const [kandyManagerStaff] = await db()
+  .select()
+  .from(staff)
+  .where(and(eq(staff.tenantId, tenant.id), eq(staff.userId, kandyManager!.id)));
+await db()
+  .insert(staffVenues)
+  .values({ tenantId: tenant.id, staffId: kandyManagerStaff!.id, venueId: cueClub })
+  .onConflictDoNothing();
 
 const RUPEES = 100;
 const lkr = (rupees: number) => ({ priceAmount: rupees * RUPEES, priceCurrency: "LKR" as const });
@@ -144,4 +161,5 @@ await db()
   .onConflictDoNothing();
 
 console.log(`Seeded tenant "${DEMO_SLUG}". Sign in as owner with: Bearer fake:${OWNER_PHONE}`);
+console.log(`Kandy-only Manager: Bearer fake:${KANDY_MANAGER_PHONE}`);
 await closeDb();

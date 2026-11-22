@@ -36,6 +36,13 @@
       "when": 1795341169163,
       "tag": "0004_price_rules_no_overlap",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1795355997226,
+      "tag": "0005_staff_venues",
+      "breakpoints": true
     }
   ]
 }

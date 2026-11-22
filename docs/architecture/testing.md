@@ -32,6 +32,7 @@
 10. No circular imports.
 11. Only `lib/`, `hooks/` and `app.ts` import `hono`, so a module can't add a route of its own.
 12. Nothing under `modules/` uses `try`/`catch` or `.catch()`: business code throws and the central handler replies.
+13. A module whose tables have a `venueId` or `resourceId` column has a `*.venue-scope.test.ts`, which signs in as staff limited to venue A and tries to read, list, change and delete venue B's data.
 
 The same file checks error codes: every code is `tt_<area>_<nnn>`, a module's codes live in its `<module>.errors.ts` and use its area, and no code is used by two module errors.
 

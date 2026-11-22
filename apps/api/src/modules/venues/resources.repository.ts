@@ -1,5 +1,5 @@
 import type { CreateResource, UpdateResource } from "@turftap/contract";
-import { and, eq, type SQL, sql } from "drizzle-orm";
+import { and, eq, inArray, type SQL, sql } from "drizzle-orm";
 
 import { db, pageOf, type PageRequest, sortBy } from "../../lib/db";
 import { priceFields, priceOf } from "../../lib/db/columns";
@@ -9,20 +9,28 @@ const SORTABLE = { name: sql`lower(${resources.name})`, createdAt: resources.cre
 
 const toResource = (row: ResourceRow) => ({ ...row, price: priceOf(row) });
 
-const ownedBy = (tenantId: number, id: number) =>
-  and(eq(resources.tenantId, tenantId), eq(resources.id, id));
+/** No list means the caller may use every venue in the tenant. */
+const inVenues = (venueIds: number[] | undefined) =>
+  venueIds && inArray(resources.venueId, venueIds);
 
-export async function findById(tenantId: number, id: number) {
-  const [resource] = await db().select().from(resources).where(ownedBy(tenantId, id));
+const ownedBy = (tenantId: number, id: number, venueIds: number[] | undefined) =>
+  and(eq(resources.tenantId, tenantId), eq(resources.id, id), inVenues(venueIds));
+
+export async function findById(tenantId: number, id: number, venueIds: number[] | undefined) {
+  const [resource] = await db()
+    .select()
+    .from(resources)
+    .where(ownedBy(tenantId, id, venueIds));
   return resource && toResource(resource);
 }
 
 export function list(
   tenantId: number,
+  venueIds: number[] | undefined,
   filters: { venueId?: number; active?: boolean },
   page: PageRequest<keyof typeof SORTABLE>,
 ) {
-  const conditions: (SQL | undefined)[] = [eq(resources.tenantId, tenantId)];
+  const conditions: (SQL | undefined)[] = [eq(resources.tenantId, tenantId), inVenues(venueIds)];
   if (filters.venueId !== undefined) conditions.push(eq(resources.venueId, filters.venueId));
   if (filters.active !== undefined) conditions.push(eq(resources.active, filters.active));
   const where = and(...conditions);
@@ -48,21 +56,26 @@ export async function insert(tenantId: number, { price, ...values }: CreateResou
   return toResource(resource!);
 }
 
-export async function update(tenantId: number, id: number, { price, ...values }: UpdateResource) {
+export async function update(
+  tenantId: number,
+  id: number,
+  venueIds: number[] | undefined,
+  { price, ...values }: UpdateResource,
+) {
   const [resource] = await db()
     .update(resources)
     .set({ ...values, ...(price && priceFields(price)) })
-    .where(ownedBy(tenantId, id))
+    .where(ownedBy(tenantId, id, venueIds))
     .returning();
   return resource && toResource(resource);
 }
 
 /** Turns the resource off instead of deleting it, so its past bookings stay. */
-export async function deactivate(tenantId: number, id: number) {
+export async function deactivate(tenantId: number, id: number, venueIds: number[] | undefined) {
   const changed = await db()
     .update(resources)
     .set({ active: false })
-    .where(ownedBy(tenantId, id))
+    .where(ownedBy(tenantId, id, venueIds))
     .returning({ id: resources.id });
   return changed.length > 0;
 }

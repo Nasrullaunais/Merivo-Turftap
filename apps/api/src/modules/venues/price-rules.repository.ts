@@ -1,9 +1,9 @@
 import type { CreatePriceRule } from "@turftap/contract";
-import { and, eq, ne, type SQL, sql } from "drizzle-orm";
+import { and, eq, inArray, ne, type SQL, sql } from "drizzle-orm";
 
 import { db, pageOf, type PageRequest, sortBy } from "../../lib/db";
 import { priceFields, priceOf } from "../../lib/db/columns";
-import { type PriceRuleRow, priceRules } from "./venues.tables";
+import { type PriceRuleRow, priceRules, resources } from "./venues.tables";
 
 const MINUTES_PER_HOUR = 60;
 const SORTABLE = { startTime: priceRules.startMinute, createdAt: priceRules.createdAt };
@@ -33,20 +33,32 @@ const toPriceRule = (row: PriceRuleRow) => ({
   price: priceOf(row),
 });
 
-const ownedBy = (tenantId: number, id: number) =>
-  and(eq(priceRules.tenantId, tenantId), eq(priceRules.id, id));
+/** Rules for resources at these venues. No list means the caller may use every venue. */
+const inVenues = (venueIds: number[] | undefined) =>
+  venueIds &&
+  inArray(
+    priceRules.resourceId,
+    db().select({ id: resources.id }).from(resources).where(inArray(resources.venueId, venueIds)),
+  );
 
-export async function findById(tenantId: number, id: number) {
-  const [rule] = await db().select().from(priceRules).where(ownedBy(tenantId, id));
+const ownedBy = (tenantId: number, id: number, venueIds: number[] | undefined) =>
+  and(eq(priceRules.tenantId, tenantId), eq(priceRules.id, id), inVenues(venueIds));
+
+export async function findById(tenantId: number, id: number, venueIds: number[] | undefined) {
+  const [rule] = await db()
+    .select()
+    .from(priceRules)
+    .where(ownedBy(tenantId, id, venueIds));
   return rule && toPriceRule(rule);
 }
 
 export function list(
   tenantId: number,
+  venueIds: number[] | undefined,
   filters: { resourceId?: number },
   page: PageRequest<keyof typeof SORTABLE>,
 ) {
-  const conditions: (SQL | undefined)[] = [eq(priceRules.tenantId, tenantId)];
+  const conditions: (SQL | undefined)[] = [eq(priceRules.tenantId, tenantId), inVenues(venueIds)];
   if (filters.resourceId !== undefined)
     conditions.push(eq(priceRules.resourceId, filters.resourceId));
   const where = and(...conditions);
@@ -96,19 +108,24 @@ export async function insert(tenantId: number, { resourceId, ...fields }: Create
   return toPriceRule(rule!);
 }
 
-export async function update(tenantId: number, id: number, fields: PriceRuleFields) {
+export async function update(
+  tenantId: number,
+  id: number,
+  venueIds: number[] | undefined,
+  fields: PriceRuleFields,
+) {
   const [rule] = await db()
     .update(priceRules)
     .set(toColumns(fields))
-    .where(ownedBy(tenantId, id))
+    .where(ownedBy(tenantId, id, venueIds))
     .returning();
   return rule && toPriceRule(rule);
 }
 
-export async function remove(tenantId: number, id: number) {
+export async function remove(tenantId: number, id: number, venueIds: number[] | undefined) {
   const removed = await db()
     .delete(priceRules)
-    .where(ownedBy(tenantId, id))
+    .where(ownedBy(tenantId, id, venueIds))
     .returning({ id: priceRules.id });
   return removed.length > 0;
 }

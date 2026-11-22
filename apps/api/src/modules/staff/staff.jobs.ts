@@ -16,7 +16,7 @@ type InviteData = { tenantId: number; staffId: number };
 
 /** SIG-03: tells a new staff member where the console is. Sent from the TurfTap number. */
 export async function sendStaffInvite({ tenantId, staffId }: InviteData) {
-  const row = await staffRepository.findById(tenantId, staffId);
+  const row = await staffRepository.findById(tenantId, staffId, undefined);
   if (!row) return;
   const [[user], tenant] = await Promise.all([
     usersService.usersByIds([row.userId]),

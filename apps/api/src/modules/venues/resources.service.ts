@@ -18,11 +18,11 @@ export function list(
   { filters, page }: ListQuery<ResourceFilters, ResourceSort>,
 ) {
   const active = seesInactive(auth) ? filters.active : true;
-  return resourcesRepository.list(auth.tenantId, { ...filters, active }, page);
+  return resourcesRepository.list(auth.tenantId, auth.venueIds, { ...filters, active }, page);
 }
 
 export async function get(auth: AuthContext, id: number) {
-  const resource = await resourcesRepository.findById(auth.tenantId, id);
+  const resource = await resourcesRepository.findById(auth.tenantId, id, auth.venueIds);
   if (!resource || (!resource.active && !seesInactive(auth)))
     throw venueErrors.resourceNotFound(id);
   return resource;
@@ -38,7 +38,7 @@ export function create(auth: AuthContext, input: CreateResource) {
 export function update(auth: AuthContext, id: number, input: UpdateResource) {
   if (Object.keys(input).length === 0) return get(auth, id);
   return transaction(async () => {
-    const resource = await resourcesRepository.update(auth.tenantId, id, input);
+    const resource = await resourcesRepository.update(auth.tenantId, id, auth.venueIds, input);
     if (!resource) throw venueErrors.resourceNotFound(id);
     return resource;
   });
@@ -46,7 +46,7 @@ export function update(auth: AuthContext, id: number, input: UpdateResource) {
 
 export function remove(auth: AuthContext, id: number) {
   return transaction(async () => {
-    if (!(await resourcesRepository.deactivate(auth.tenantId, id)))
+    if (!(await resourcesRepository.deactivate(auth.tenantId, id, auth.venueIds)))
       throw venueErrors.resourceNotFound(id);
   });
 }

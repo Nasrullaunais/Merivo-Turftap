@@ -31,6 +31,7 @@ type Caller = {
   tenantId?: number;    // missing until the caller names a tenant
   userId?: number;      // staff, customer, platform_admin
   role?: StaffRole;     // staff only
+  venueIds?: number[];  // staff limited to some venues; missing means every venue
   customerId?: number;  // customer, assistant (acting for a customer)
 };
 
@@ -50,6 +51,18 @@ type AuthContext = Caller & { tenantId: number }; // what services receive
 The Assistant may act for any customer phone in a tenant. That's acceptable because WhatsApp has already proved the customer owns that phone. The assistant key is therefore as sensitive as a database password.
 
 The user, tenant and role lookup is cached for a few minutes per token, so a removed staff member loses access within minutes (`SIG-04`).
+
+## Staff limited to some venues
+
+Inside a tenant, a Manager or Front Desk can be limited to some venues (`SIG-06`, [ADR 0011](../adr/0011-staff-limited-to-venues.md)). It works like the tenant rules, one level down:
+
+1. `resolveCaller` puts the list on the caller as `venueIds`. Owners, Platform Admins, customers and the public have no list, which means every venue.
+2. Every repository function for venue data takes `venueIds` right after its other ids and adds it to the `WHERE`. It is a required argument, so a new call can't forget it; pass `undefined` only where no caller is involved (jobs).
+3. Data that hangs off a resource (Price Rules, bookings) checks the resource's venue with a subquery.
+4. Something at another venue replies 404, the same as a missing row.
+5. Every module whose tables point at a venue or resource has a `*.venue-scope.test.ts` (architecture rule 13).
+
+Customers are tenant-wide: they can book at any venue, and any staff member can find them.
 
 ## Queries across tenants
 

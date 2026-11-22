@@ -13,6 +13,8 @@ const added = {
   phone: "+94770001111",
   name: null,
   role: "MANAGER",
+  allVenues: true,
+  venueIds: [] as number[],
   createdAt: "2026-11-22T04:00:00.000Z",
   updatedAt: "2026-11-22T04:00:00.000Z",
 };
@@ -60,7 +62,9 @@ describe("SIG-03 invite staff from the Staff Console", () => {
     expect(await screen.findByRole("status")).toHaveTextContent(
       "+94770001111 was added. They'll get a WhatsApp message with the console link.",
     );
-    expect(sent).toEqual([{ phone: "077 000 1111", role: "MANAGER" }]);
+    expect(sent).toEqual([
+      { phone: "077 000 1111", role: "MANAGER", allVenues: true, venueIds: [] },
+    ]);
     expect(await screen.findByText("Hasn't signed in yet")).toBeInTheDocument();
   });
 
@@ -218,5 +222,110 @@ describe("SIG-05 what each role can see in the Staff Console", () => {
     expect(screen.queryByText("Demo Owner")).not.toBeInTheDocument();
     const paths = fetch.mock.calls.map(([request]) => new URL((request as Request).url).pathname);
     expect(paths).not.toContain("/v1/staff");
+  });
+});
+
+describe("SIG-06 choose which venues staff work at", () => {
+  const venue = (id: number, name: string) => ({
+    id,
+    name,
+    description: null,
+    address: "12 Galle Road, Colombo 03",
+    phone: "+94112345678",
+    timeZone: "Asia/Colombo",
+    openingHours: [],
+    active: true,
+    createdAt: "2026-11-22T04:00:00.000Z",
+    updatedAt: "2026-11-22T04:00:00.000Z",
+  });
+  const venues = page([venue(2, "Colombo Arena"), venue(3, "Kandy Arena")]);
+  const limited = { ...added, allVenues: false, venueIds: [3] };
+
+  it("owner_limitsANewManagerToOneVenue", async () => {
+    signInForTesting(OWNER_PHONE);
+    const sent: unknown[] = [];
+    mockApi({
+      "GET /v1/me": meAs("OWNER"),
+      "GET /v1/staff": page([owner]),
+      "GET /v1/venues": venues,
+      "POST /v1/staff": async (request: Request) => {
+        sent.push(await request.json());
+        return created(limited);
+      },
+    });
+    renderApp("/staff");
+    await screen.findByText("Demo Owner");
+    fireEvent.click(screen.getByRole("checkbox", { name: "All venues" }));
+    fireEvent.click(await screen.findByRole("checkbox", { name: "Kandy Arena" }));
+    addStaff("077 000 1111", "Manager");
+    await waitFor(() =>
+      expect(sent).toEqual([
+        { phone: "077 000 1111", role: "MANAGER", allVenues: false, venueIds: [3] },
+      ]),
+    );
+  });
+
+  it("owner_isToldToPickAVenue", async () => {
+    signInForTesting(OWNER_PHONE);
+    const fetch = mockApi({
+      "GET /v1/me": meAs("OWNER"),
+      "GET /v1/staff": page([owner]),
+      "GET /v1/venues": venues,
+    });
+    renderApp("/staff");
+    await screen.findByText("Demo Owner");
+    fireEvent.click(screen.getByRole("checkbox", { name: "All venues" }));
+    addStaff("077 000 1111", "Manager");
+    expect(await screen.findByText("Pick at least one venue")).toBeInTheDocument();
+    const methods = fetch.mock.calls.map(([request]) => (request as Request).method);
+    expect(methods).not.toContain("POST");
+  });
+
+  it("owner_addingAnOwnerHasNoVenueChoice", async () => {
+    signInForTesting(OWNER_PHONE);
+    mockApi({ "GET /v1/me": meAs("OWNER"), "GET /v1/staff": page([]), "GET /v1/venues": venues });
+    renderApp("/staff");
+    fireEvent.click(await screen.findByRole("radio", { name: "Owner" }));
+    expect(screen.queryByRole("checkbox", { name: "All venues" })).not.toBeInTheDocument();
+  });
+
+  it("list_showsWhereEachPersonWorks", async () => {
+    signInForTesting(OWNER_PHONE);
+    mockApi({
+      "GET /v1/me": meAs("MANAGER"),
+      "GET /v1/staff": page([owner, limited]),
+      "GET /v1/venues": venues,
+    });
+    renderApp("/staff");
+    expect(await screen.findByText("Kandy Arena")).toBeInTheDocument();
+    expect(screen.getByText("All venues")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /^Change venues/ })).not.toBeInTheDocument();
+  });
+
+  it("owner_changesSomeonesVenues", async () => {
+    signInForTesting(OWNER_PHONE);
+    const sent: unknown[] = [];
+    let person: object = added;
+    mockApi({
+      "GET /v1/me": meAs("OWNER"),
+      "GET /v1/staff": () =>
+        Response.json({ status: 200, message: "success", data: page([owner, person]) }),
+      "GET /v1/venues": venues,
+      "PATCH /v1/staff/9": async (request: Request) => {
+        sent.push(await request.json());
+        person = limited;
+        return Response.json({ status: 200, message: "success", data: person });
+      },
+    });
+    renderApp("/staff");
+    const change = await screen.findByRole("button", { name: "Change venues for +94770001111" });
+    expect(screen.queryByRole("button", { name: "Change venues for Demo Owner" })).toBeNull();
+    fireEvent.click(change);
+    const row = screen.getByText("+94770001111").closest("li")!;
+    fireEvent.click(within(row).getByRole("checkbox", { name: "All venues" }));
+    fireEvent.click(await within(row).findByRole("checkbox", { name: "Kandy Arena" }));
+    fireEvent.click(within(row).getByRole("button", { name: "Save" }));
+    await waitFor(() => expect(sent).toEqual([{ allVenues: false, venueIds: [3] }]));
+    expect(await within(row).findByText("Kandy Arena")).toBeInTheDocument();
   });
 });

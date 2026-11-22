@@ -33,7 +33,6 @@ TurfTap lets sports and fitness venues in Sri Lanka take bookings and sell gym m
 - Repeat series created by customers
 - Gym classes and personal-trainer slots
 - QR code check-in
-- Staff limited to one venue
 - Custom staff roles
 - Sinhala and Tamil screens (the Assistant already replies in the customer's language)
 - Charging tenants through TurfTap (invoiced by hand for now)
