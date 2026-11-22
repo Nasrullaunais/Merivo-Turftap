@@ -1,4 +1,4 @@
-import { and, desc, eq, gte } from "drizzle-orm";
+import { and, asc, desc, eq, gte, inArray, sql } from "drizzle-orm";
 
 import { db } from "../../lib/db";
 import { type LoginCodeChannel, loginCodeSends, tenants, users } from "./platform.tables";
@@ -35,4 +35,18 @@ export async function findLoginCodeSendSince(phone: string, since: Date) {
 
 export async function recordLoginCodeSend(phone: string, channel: LoginCodeChannel) {
   await db().insert(loginCodeSends).values({ phone, channel });
+}
+
+export async function findUserById(id: number) {
+  const [user] = await db().select().from(users).where(eq(users.id, id));
+  return user;
+}
+
+export async function findTenantsByIds(ids: number[]) {
+  if (!ids.length) return [];
+  return db()
+    .select()
+    .from(tenants)
+    .where(inArray(tenants.id, ids))
+    .orderBy(asc(sql`lower(${tenants.name})`));
 }

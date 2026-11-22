@@ -129,7 +129,7 @@ describe("architecture (docs/architecture/testing.md)", () => {
     expect(problems).toEqual([]);
   });
 
-  it("8. every repository function takes tenantId first (platform excepted)", () => {
+  it("8. every repository function takes tenantId first (platform and *AcrossTenants excepted)", () => {
     const problems = failures(({ path, text }) => {
       if (!path.endsWith(".repository.ts") || path.startsWith("modules/platform/"))
         return undefined;
@@ -138,7 +138,7 @@ describe("architecture (docs/architecture/testing.md)", () => {
         ...text.matchAll(/export\s+const\s+(\w+)\s*=\s*(?:async\s*)?\(\s*([^,)]*)/g),
       ];
       const bad = exported
-        .filter((match) => !/^tenantId\s*:/.test(match[2]!))
+        .filter((match) => !/^tenantId\s*:/.test(match[2]!) && !match[1]!.endsWith("AcrossTenants"))
         .map((match) => match[1]);
       return bad.length ? `${path}: ${bad.join(", ")}` : undefined;
     });

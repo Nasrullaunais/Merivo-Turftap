@@ -53,7 +53,7 @@ These are still resources, with only the operations that make sense:
 | Resource | Operations | Why |
 |---|---|---|
 | `availability` | list | Free slots, computed on each request (`?resourceId=&date=`) |
-| `me` | get (`/v1/me`) | The signed-in user, their tenants and roles |
+| `me` | get (`/v1/me`) | The signed-in user, their tenants and roles. Declared with `defineSingleton()`: one GET about the caller, with no id and no tenant header. |
 | `files` | create, get | Create uploads a file (multipart) and returns its id. Get returns a short-lived download link. |
 | `events` | list | A Server-Sent Events stream (the server keeps the connection open and pushes events), so the console updates without refreshing. Events carry only a type and an id; the screen refetches. |
 

@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { CreateVenueData, CreateVenueErrors, CreateVenueResponses, DeleteVenueData, DeleteVenueErrors, DeleteVenueResponses, GetVenueData, GetVenueErrors, GetVenueResponses, ListVenuesData, ListVenuesErrors, ListVenuesResponses, UpdateVenueData, UpdateVenueErrors, UpdateVenueResponses } from './types.gen';
+import type { CreateVenueData, CreateVenueErrors, CreateVenueResponses, DeleteVenueData, DeleteVenueErrors, DeleteVenueResponses, GetMeData, GetMeErrors, GetMeResponses, GetVenueData, GetVenueErrors, GetVenueResponses, ListVenuesData, ListVenuesErrors, ListVenuesResponses, UpdateVenueData, UpdateVenueErrors, UpdateVenueResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -17,6 +17,12 @@ export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends 
      */
     meta?: keyof ClientMeta extends never ? Record<string, unknown> : ClientMeta;
 };
+
+export const getMe = <ThrowOnError extends boolean = true>(options?: Options<GetMeData, ThrowOnError>): RequestResult<GetMeResponses, GetMeErrors, ThrowOnError> => (options?.client ?? client).get<GetMeResponses, GetMeErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/v1/me',
+    ...options
+});
 
 export const listVenues = <ThrowOnError extends boolean = true>(options?: Options<ListVenuesData, ThrowOnError>): RequestResult<ListVenuesResponses, ListVenuesErrors, ThrowOnError> => (options?.client ?? client).get<ListVenuesResponses, ListVenuesErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],

@@ -3,8 +3,8 @@
 import { type InfiniteData, infiniteQueryOptions, queryOptions, type UseMutationOptions } from '@tanstack/react-query';
 
 import { client } from '../client.gen';
-import { createVenue, deleteVenue, getVenue, listVenues, type Options, updateVenue } from '../sdk.gen';
-import type { CreateVenueData, CreateVenueError, CreateVenueResponse, DeleteVenueData, DeleteVenueError, DeleteVenueResponse, GetVenueData, GetVenueError, GetVenueResponse, ListVenuesData, ListVenuesError, ListVenuesResponse, UpdateVenueData, UpdateVenueError, UpdateVenueResponse } from '../types.gen';
+import { createVenue, deleteVenue, getMe, getVenue, listVenues, type Options, updateVenue } from '../sdk.gen';
+import type { CreateVenueData, CreateVenueError, CreateVenueResponse, DeleteVenueData, DeleteVenueError, DeleteVenueResponse, GetMeData, GetMeError, GetMeResponse, GetVenueData, GetVenueError, GetVenueResponse, ListVenuesData, ListVenuesError, ListVenuesResponse, UpdateVenueData, UpdateVenueError, UpdateVenueResponse } from '../types.gen';
 
 export type QueryKey<TOptions extends Options> = [
     Pick<TOptions, 'baseUrl' | 'body' | 'headers' | 'path' | 'query'> & {
@@ -38,6 +38,21 @@ const createQueryKey = <TOptions extends Options>(id: string, options?: TOptions
     }
     return [params];
 };
+
+export const getMeQueryKey = (options?: Options<GetMeData>) => createQueryKey('getMe', options);
+
+export const getMeOptions = (options?: Options<GetMeData>) => queryOptions<GetMeResponse, GetMeError, GetMeResponse, ReturnType<typeof getMeQueryKey>>({
+    queryFn: async ({ queryKey, signal }) => {
+        const { data } = await getMe({
+            ...options,
+            ...queryKey[0],
+            signal,
+            throwOnError: true
+        });
+        return data;
+    },
+    queryKey: getMeQueryKey(options)
+});
 
 export const listVenuesQueryKey = (options?: Options<ListVenuesData>) => createQueryKey('listVenues', options);
 

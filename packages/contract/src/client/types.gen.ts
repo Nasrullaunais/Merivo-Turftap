@@ -25,6 +25,29 @@ export type ErrorReply = {
     errors?: Array<FieldError>;
 };
 
+export const StaffRole = {
+    OWNER: 'OWNER',
+    MANAGER: 'MANAGER',
+    FRONT_DESK: 'FRONT_DESK'
+} as const;
+
+export type StaffRole = typeof StaffRole[keyof typeof StaffRole];
+
+export type MyTenant = {
+    id: number;
+    slug: string;
+    name: string;
+    role: StaffRole;
+};
+
+export type Me = {
+    id: number;
+    phone: string;
+    name: string | null;
+    isPlatformAdmin: boolean;
+    tenants: Array<MyTenant>;
+};
+
 /**
  * A weekday that is not listed is closed.
  */
@@ -62,6 +85,35 @@ export type UpdateVenue = {
     phone?: string;
     openingHours?: Array<OpeningHours>;
 };
+
+export type GetMeData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/v1/me';
+};
+
+export type GetMeErrors = {
+    /**
+     * Error
+     */
+    default: ErrorReply;
+};
+
+export type GetMeError = GetMeErrors[keyof GetMeErrors];
+
+export type GetMeResponses = {
+    /**
+     * Found
+     */
+    200: {
+        status: number;
+        message: string;
+        data: Me;
+    };
+};
+
+export type GetMeResponse = GetMeResponses[keyof GetMeResponses];
 
 export type ListVenuesData = {
     body?: never;

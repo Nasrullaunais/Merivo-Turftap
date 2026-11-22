@@ -50,3 +50,7 @@ type AuthContext = Caller & { tenantId: number }; // what services receive
 The Assistant may act for any customer phone in a tenant. That's acceptable because WhatsApp has already proved the customer owns that phone. The assistant key is therefore as sensitive as a database password.
 
 The user, tenant and role lookup is cached for a few minutes per token, so a removed staff member loses access within minutes (`SIG-04`).
+
+## Queries across tenants
+
+A few questions are about a person, not a tenant: "which tenants is this user staff at?" for `/v1/me` (`SIG-02`). Their repository function has no `tenantId` and its name ends in `AcrossTenants` (`staff.repository.ts: findRolesAcrossTenants`), so it stands out in review. Such a function only ever filters by the signed-in user's own id.
