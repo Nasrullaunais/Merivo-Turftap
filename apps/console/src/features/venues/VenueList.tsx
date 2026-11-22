@@ -1,4 +1,5 @@
 import { Chip, Spinner } from "@heroui/react";
+import { Link } from "@tanstack/react-router";
 
 import m from "../../i18n/en/venues";
 import { useVenues } from "./useVenues";
@@ -13,7 +14,13 @@ export function VenueList() {
     <ul className="grid divide-y divide-separator">
       {venues.map((venue) => (
         <li key={venue.id} className="flex flex-wrap items-center gap-x-3 py-2">
-          <span className="font-medium">{venue.name}</span>
+          <Link
+            to="/venues/$venueId"
+            params={{ venueId: venue.id }}
+            className="font-medium underline-offset-4 hover:underline"
+          >
+            {venue.name}
+          </Link>
           <span className="text-muted">{venue.address}</span>
           <span>{venue.phone}</span>
           {!venue.active && <Chip size="sm">{m.turnedOff}</Chip>}

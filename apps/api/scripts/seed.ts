@@ -1,10 +1,11 @@
 // Demo data for local development. Safe to run again: existing rows are left as they are.
+import type { ResourceType } from "@turftap/contract";
 import { eq } from "drizzle-orm";
 
 import { closeDb, db } from "../src/lib/db";
 import { tenants, users } from "../src/modules/platform/platform.tables";
 import { staff } from "../src/modules/staff/staff.tables";
-import { venues } from "../src/modules/venues/venues.tables";
+import { resources, venues } from "../src/modules/venues/venues.tables";
 
 const DEMO_SLUG = "demo";
 const PLATFORM_ADMIN_PHONE = "+94770000000";
@@ -51,6 +52,35 @@ await db()
       phone: "+94812345678",
       openingHours: everyDay("10:00", "22:00"),
     },
+  ])
+  .onConflictDoNothing();
+
+const venueIds = new Map(
+  (
+    await db()
+      .select({ id: venues.id, name: venues.name })
+      .from(venues)
+      .where(eq(venues.tenantId, tenant.id))
+  ).map((venue) => [venue.name, venue.id]),
+);
+const kickOff = venueIds.get("Kick Off Arena")!;
+const cueClub = venueIds.get("Cue Club Kandy")!;
+
+const resource = (
+  venueId: number,
+  name: string,
+  type: ResourceType,
+  slotMinutes: number,
+): typeof resources.$inferInsert => ({ tenantId: tenant.id, venueId, name, type, slotMinutes });
+
+await db()
+  .insert(resources)
+  .values([
+    resource(kickOff, "Futsal Court 1", "FUTSAL_COURT", 60),
+    resource(kickOff, "Futsal Court 2", "FUTSAL_COURT", 60),
+    resource(cueClub, "Pool Table 1", "POOL_TABLE", 30),
+    resource(cueClub, "Pool Table 2", "POOL_TABLE", 30),
+    resource(cueClub, "Table Tennis 1", "TABLE_TENNIS_TABLE", 30),
   ])
   .onConflictDoNothing();
 

@@ -1,4 +1,4 @@
-import type { CreateVenue } from "@turftap/contract";
+import type { CreateResource, CreateVenue } from "@turftap/contract";
 
 import { fakeTokenFor } from "../adapters/auth-provider/fake/fake-auth-provider";
 import { createApp } from "../app";
@@ -49,6 +49,17 @@ export const venueInput = (overrides: Partial<CreateVenue> = {}): CreateVenue =>
   address: "12 Galle Road, Colombo 03",
   phone: "+94112345678",
   openingHours: [{ weekday: 1, opens: "06:00", closes: "23:00" }],
+  ...overrides,
+});
+
+export const resourceInput = (
+  venueId: number,
+  overrides: Partial<CreateResource> = {},
+): CreateResource => ({
+  venueId,
+  name: `Court ${crypto.randomUUID().slice(0, 6)}`,
+  type: "FUTSAL_COURT",
+  slotMinutes: 60,
   ...overrides,
 });
 

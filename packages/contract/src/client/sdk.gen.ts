@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { CreateStaffData, CreateStaffErrors, CreateStaffResponses, CreateVenueData, CreateVenueErrors, CreateVenueResponses, DeleteStaffData, DeleteStaffErrors, DeleteStaffResponses, DeleteVenueData, DeleteVenueErrors, DeleteVenueResponses, GetMeData, GetMeErrors, GetMeResponses, GetStaffData, GetStaffErrors, GetStaffResponses, GetVenueData, GetVenueErrors, GetVenueResponses, ListStaffData, ListStaffErrors, ListStaffResponses, ListVenuesData, ListVenuesErrors, ListVenuesResponses, UpdateStaffData, UpdateStaffErrors, UpdateStaffResponses, UpdateVenueData, UpdateVenueErrors, UpdateVenueResponses } from './types.gen';
+import type { CreateResourceData, CreateResourceErrors, CreateResourceResponses, CreateStaffData, CreateStaffErrors, CreateStaffResponses, CreateVenueData, CreateVenueErrors, CreateVenueResponses, DeleteResourceData, DeleteResourceErrors, DeleteResourceResponses, DeleteStaffData, DeleteStaffErrors, DeleteStaffResponses, DeleteVenueData, DeleteVenueErrors, DeleteVenueResponses, GetMeData, GetMeErrors, GetMeResponses, GetResourceData, GetResourceErrors, GetResourceResponses, GetStaffData, GetStaffErrors, GetStaffResponses, GetVenueData, GetVenueErrors, GetVenueResponses, ListResourcesData, ListResourcesErrors, ListResourcesResponses, ListStaffData, ListStaffErrors, ListStaffResponses, ListVenuesData, ListVenuesErrors, ListVenuesResponses, UpdateResourceData, UpdateResourceErrors, UpdateResourceResponses, UpdateStaffData, UpdateStaffErrors, UpdateStaffResponses, UpdateVenueData, UpdateVenueErrors, UpdateVenueResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -93,6 +93,44 @@ export const getVenue = <ThrowOnError extends boolean = true>(options: Options<G
 export const updateVenue = <ThrowOnError extends boolean = true>(options: Options<UpdateVenueData, ThrowOnError>): RequestResult<UpdateVenueResponses, UpdateVenueErrors, ThrowOnError> => (options.client ?? client).patch<UpdateVenueResponses, UpdateVenueErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/v1/venues/{id}',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+export const listResources = <ThrowOnError extends boolean = true>(options?: Options<ListResourcesData, ThrowOnError>): RequestResult<ListResourcesResponses, ListResourcesErrors, ThrowOnError> => (options?.client ?? client).get<ListResourcesResponses, ListResourcesErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/v1/resources',
+    ...options
+});
+
+export const createResource = <ThrowOnError extends boolean = true>(options: Options<CreateResourceData, ThrowOnError>): RequestResult<CreateResourceResponses, CreateResourceErrors, ThrowOnError> => (options.client ?? client).post<CreateResourceResponses, CreateResourceErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/v1/resources',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+export const deleteResource = <ThrowOnError extends boolean = true>(options: Options<DeleteResourceData, ThrowOnError>): RequestResult<DeleteResourceResponses, DeleteResourceErrors, ThrowOnError> => (options.client ?? client).delete<DeleteResourceResponses, DeleteResourceErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/v1/resources/{id}',
+    ...options
+});
+
+export const getResource = <ThrowOnError extends boolean = true>(options: Options<GetResourceData, ThrowOnError>): RequestResult<GetResourceResponses, GetResourceErrors, ThrowOnError> => (options.client ?? client).get<GetResourceResponses, GetResourceErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/v1/resources/{id}',
+    ...options
+});
+
+export const updateResource = <ThrowOnError extends boolean = true>(options: Options<UpdateResourceData, ThrowOnError>): RequestResult<UpdateResourceResponses, UpdateResourceErrors, ThrowOnError> => (options.client ?? client).patch<UpdateResourceResponses, UpdateResourceErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/v1/resources/{id}',
     ...options,
     headers: {
         'Content-Type': 'application/json',

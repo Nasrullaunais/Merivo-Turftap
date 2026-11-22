@@ -1,0 +1,31 @@
+import { Chip, Spinner } from "@heroui/react";
+
+import m from "../../i18n/en/resources";
+import { TurnOffResource } from "./TurnOffResource";
+import { useResources } from "./useResources";
+
+type Props = { venueId: number; canTurnOff: boolean };
+
+export function ResourceList({ venueId, canTurnOff }: Props) {
+  const { data: resources, isPending } = useResources(venueId);
+
+  if (isPending) return <Spinner aria-label={m.loading} />;
+  if (!resources?.length) return <p className="text-muted">{m.none}</p>;
+
+  return (
+    <ul className="grid divide-y divide-separator">
+      {resources.map((resource) => (
+        <li key={resource.id} className="flex flex-wrap items-center gap-x-3 py-2">
+          <span className="font-medium">{resource.name}</span>
+          <span className="text-muted">
+            {m.details(m.types[resource.type], resource.slotMinutes)}
+          </span>
+          <span className="ml-auto">
+            {!resource.active && <Chip size="sm">{m.turnedOff}</Chip>}
+            {resource.active && canTurnOff && <TurnOffResource resource={resource} />}
+          </span>
+        </li>
+      ))}
+    </ul>
+  );
+}

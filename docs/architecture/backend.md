@@ -10,7 +10,7 @@ How code inside `apps/api` is written. The `venues` module is the working exampl
 4. **Errors** (`<module>.errors.ts`): the module's error codes and English messages.
 5. **Repository** (`<module>.repository.ts`): one function per query, `tenantId` first.
 6. **Service** (`<module>.service.ts`): business rules and transactions.
-7. **Routes** (`<module>.routes.ts`): one `defineResource()` call, added to `src/resources.ts`.
+7. **Routes** (`<module>.routes.ts`): one `defineResource()` call per resource, each added to `src/resources.ts`. A module with several resources keeps each one's service and repository in its own files: `venues/resources.service.ts` and `venues/resources.repository.ts`.
 8. **Permissions**: add the resource to `STAFF_RESOURCES` and `ROLE_PERMISSIONS` in `lib/auth/permissions.ts`, matching the table in [api.md](api.md#permissions).
 9. **Generate**: `bun run gen` rewrites `openapi.json` and the frontend client. Commit both.
 10. **Tests**: service tests, route tests and a tenant-isolation test (see `venues.*.test.ts`).

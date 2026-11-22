@@ -3,8 +3,8 @@
 import { type InfiniteData, infiniteQueryOptions, queryOptions, type UseMutationOptions } from '@tanstack/react-query';
 
 import { client } from '../client.gen';
-import { createStaff, createVenue, deleteStaff, deleteVenue, getMe, getStaff, getVenue, listStaff, listVenues, type Options, updateStaff, updateVenue } from '../sdk.gen';
-import type { CreateStaffData, CreateStaffError, CreateStaffResponse, CreateVenueData, CreateVenueError, CreateVenueResponse, DeleteStaffData, DeleteStaffError, DeleteStaffResponse, DeleteVenueData, DeleteVenueError, DeleteVenueResponse, GetMeData, GetMeError, GetMeResponse, GetStaffData, GetStaffError, GetStaffResponse, GetVenueData, GetVenueError, GetVenueResponse, ListStaffData, ListStaffError, ListStaffResponse, ListVenuesData, ListVenuesError, ListVenuesResponse, UpdateStaffData, UpdateStaffError, UpdateStaffResponse, UpdateVenueData, UpdateVenueError, UpdateVenueResponse } from '../types.gen';
+import { createResource, createStaff, createVenue, deleteResource, deleteStaff, deleteVenue, getMe, getResource, getStaff, getVenue, listResources, listStaff, listVenues, type Options, updateResource, updateStaff, updateVenue } from '../sdk.gen';
+import type { CreateResourceData, CreateResourceError, CreateResourceResponse, CreateStaffData, CreateStaffError, CreateStaffResponse, CreateVenueData, CreateVenueError, CreateVenueResponse, DeleteResourceData, DeleteResourceError, DeleteResourceResponse, DeleteStaffData, DeleteStaffError, DeleteStaffResponse, DeleteVenueData, DeleteVenueError, DeleteVenueResponse, GetMeData, GetMeError, GetMeResponse, GetResourceData, GetResourceError, GetResourceResponse, GetStaffData, GetStaffError, GetStaffResponse, GetVenueData, GetVenueError, GetVenueResponse, ListResourcesData, ListResourcesError, ListResourcesResponse, ListStaffData, ListStaffError, ListStaffResponse, ListVenuesData, ListVenuesError, ListVenuesResponse, UpdateResourceData, UpdateResourceError, UpdateResourceResponse, UpdateStaffData, UpdateStaffError, UpdateStaffResponse, UpdateVenueData, UpdateVenueError, UpdateVenueResponse } from '../types.gen';
 
 export type QueryKey<TOptions extends Options> = [
     Pick<TOptions, 'baseUrl' | 'body' | 'headers' | 'path' | 'query'> & {
@@ -271,6 +271,105 @@ export const updateVenueMutation = (options?: Partial<Options<UpdateVenueData>>)
     const mutationOptions: UseMutationOptions<UpdateVenueResponse, UpdateVenueError, Options<UpdateVenueData>> = {
         mutationFn: async (fnOptions) => {
             const { data } = await updateVenue({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+export const listResourcesQueryKey = (options?: Options<ListResourcesData>) => createQueryKey('listResources', options);
+
+export const listResourcesOptions = (options?: Options<ListResourcesData>) => queryOptions<ListResourcesResponse, ListResourcesError, ListResourcesResponse, ReturnType<typeof listResourcesQueryKey>>({
+    queryFn: async ({ queryKey, signal }) => {
+        const { data } = await listResources({
+            ...options,
+            ...queryKey[0],
+            signal,
+            throwOnError: true
+        });
+        return data;
+    },
+    queryKey: listResourcesQueryKey(options)
+});
+
+export const listResourcesInfiniteQueryKey = (options?: Options<ListResourcesData>): QueryKey<Options<ListResourcesData>> => createQueryKey('listResources', options, true);
+
+export const listResourcesInfiniteOptions = (options?: Options<ListResourcesData>) => {
+    const opts = infiniteQueryOptions<ListResourcesResponse, ListResourcesError, InfiniteData<ListResourcesResponse>, QueryKey<Options<ListResourcesData>>, number | Pick<QueryKey<Options<ListResourcesData>>[0], 'body' | 'headers' | 'path' | 'query'>>(
+    // @ts-ignore
+    {
+        queryFn: async ({ pageParam, queryKey, signal }) => {
+            // @ts-ignore
+            const page: Pick<QueryKey<Options<ListResourcesData>>[0], 'body' | 'headers' | 'path' | 'query'> = typeof pageParam === 'object' ? pageParam : {
+                query: {
+                    page: pageParam
+                }
+            };
+            const params = createInfiniteParams(queryKey, page);
+            const { data } = await listResources({
+                ...options,
+                ...params,
+                signal,
+                throwOnError: true
+            });
+            return data;
+        },
+        queryKey: listResourcesInfiniteQueryKey(options)
+    });
+    return opts as Omit<typeof opts, 'initialData'>;
+};
+
+export const createResourceMutation = (options?: Partial<Options<CreateResourceData>>): UseMutationOptions<CreateResourceResponse, CreateResourceError, Options<CreateResourceData>> => {
+    const mutationOptions: UseMutationOptions<CreateResourceResponse, CreateResourceError, Options<CreateResourceData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await createResource({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+export const deleteResourceMutation = (options?: Partial<Options<DeleteResourceData>>): UseMutationOptions<DeleteResourceResponse, DeleteResourceError, Options<DeleteResourceData>> => {
+    const mutationOptions: UseMutationOptions<DeleteResourceResponse, DeleteResourceError, Options<DeleteResourceData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await deleteResource({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+export const getResourceQueryKey = (options: Options<GetResourceData>) => createQueryKey('getResource', options);
+
+export const getResourceOptions = (options: Options<GetResourceData>) => queryOptions<GetResourceResponse, GetResourceError, GetResourceResponse, ReturnType<typeof getResourceQueryKey>>({
+    queryFn: async ({ queryKey, signal }) => {
+        const { data } = await getResource({
+            ...options,
+            ...queryKey[0],
+            signal,
+            throwOnError: true
+        });
+        return data;
+    },
+    queryKey: getResourceQueryKey(options)
+});
+
+export const updateResourceMutation = (options?: Partial<Options<UpdateResourceData>>): UseMutationOptions<UpdateResourceResponse, UpdateResourceError, Options<UpdateResourceData>> => {
+    const mutationOptions: UseMutationOptions<UpdateResourceResponse, UpdateResourceError, Options<UpdateResourceData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await updateResource({
                 ...options,
                 ...fnOptions,
                 throwOnError: true

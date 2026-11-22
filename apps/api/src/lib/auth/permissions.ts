@@ -11,8 +11,8 @@ const readOnly = (resource: StaffResource): Permission[] => [`${resource}:read`]
 /** The permission table from docs/architecture/api.md. */
 export const ROLE_PERMISSIONS: Record<StaffRole, ReadonlySet<Permission>> = {
   OWNER: new Set(STAFF_RESOURCES.flatMap(all)),
-  MANAGER: new Set([...readOnly("staff"), ...readOnly("venues")]),
-  FRONT_DESK: new Set(readOnly("venues")),
+  MANAGER: new Set([...readOnly("staff"), ...readOnly("venues"), ...all("resources")]),
+  FRONT_DESK: new Set([...readOnly("venues"), ...readOnly("resources")]),
 };
 
 export const isStaffResource = (name: string): name is StaffResource =>

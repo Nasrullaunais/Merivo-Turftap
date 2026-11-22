@@ -1,0 +1,22 @@
+export default {
+  loading: "Loading resources",
+  none: "No resources yet.",
+  turnedOff: "Turned off",
+  types: {
+    FUTSAL_COURT: "Futsal court",
+    TABLE_TENNIS_TABLE: "Table tennis table",
+    POOL_TABLE: "Pool table",
+  },
+  details: (type: string, minutes: number) => `${type} · ${minutes} min slots`,
+  addTitle: "Add a resource",
+  nameLabel: "Name",
+  typeLabel: "Type",
+  slotLabel: "Slot length (minutes)",
+  slotInvalid: "Use 15, 30, 45 … up to 240 minutes",
+  submit: "Add resource",
+  turnOff: "Turn off",
+  turnOffFor: (name: string) => `Turn off ${name}`,
+  turnOffTitle: (name: string) => `Turn off ${name}?`,
+  turnOffHint: "Customers can no longer book it. Its past bookings stay.",
+  cancel: "Cancel",
+};

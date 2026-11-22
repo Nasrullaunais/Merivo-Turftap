@@ -11,9 +11,20 @@ const PERMISSIONS: Record<StaffRole, Permission[]> = {
     "venues:create",
     "venues:update",
     "venues:delete",
+    "resources:read",
+    "resources:create",
+    "resources:update",
+    "resources:delete",
   ],
-  MANAGER: ["staff:read", "venues:read"],
-  FRONT_DESK: ["venues:read"],
+  MANAGER: [
+    "staff:read",
+    "venues:read",
+    "resources:read",
+    "resources:create",
+    "resources:update",
+    "resources:delete",
+  ],
+  FRONT_DESK: ["venues:read", "resources:read"],
 };
 
 /** One entry of `tenants` in GET /v1/me. */

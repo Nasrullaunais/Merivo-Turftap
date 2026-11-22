@@ -33,7 +33,11 @@ export const Permission = {
     VENUES_READ: 'venues:read',
     VENUES_CREATE: 'venues:create',
     VENUES_UPDATE: 'venues:update',
-    VENUES_DELETE: 'venues:delete'
+    VENUES_DELETE: 'venues:delete',
+    RESOURCES_READ: 'resources:read',
+    RESOURCES_CREATE: 'resources:create',
+    RESOURCES_UPDATE: 'resources:update',
+    RESOURCES_DELETE: 'resources:delete'
 } as const;
 
 export type Permission = typeof Permission[keyof typeof Permission];
@@ -78,6 +82,38 @@ export type Me = {
     name: string | null;
     isPlatformAdmin: boolean;
     tenants: Array<MyTenant>;
+};
+
+export const ResourceType = {
+    FUTSAL_COURT: 'FUTSAL_COURT',
+    TABLE_TENNIS_TABLE: 'TABLE_TENNIS_TABLE',
+    POOL_TABLE: 'POOL_TABLE'
+} as const;
+
+export type ResourceType = typeof ResourceType[keyof typeof ResourceType];
+
+export type Resource = {
+    id: number;
+    venueId: number;
+    name: string;
+    type: ResourceType;
+    slotMinutes: number;
+    active: boolean;
+    createdAt: string;
+    updatedAt: string;
+};
+
+export type CreateResource = {
+    venueId: number;
+    name: string;
+    type: ResourceType;
+    slotMinutes: number;
+};
+
+export type UpdateResource = {
+    name?: string;
+    type?: ResourceType;
+    slotMinutes?: number;
 };
 
 /**
@@ -469,3 +505,166 @@ export type UpdateVenueResponses = {
 };
 
 export type UpdateVenueResponse = UpdateVenueResponses[keyof UpdateVenueResponses];
+
+export type ListResourcesData = {
+    body?: never;
+    path?: never;
+    query?: {
+        page?: number;
+        size?: number;
+        sort?: 'name,asc' | 'name,desc' | 'createdAt,asc' | 'createdAt,desc';
+        venueId?: number;
+        active?: 'true' | 'false';
+    };
+    url: '/v1/resources';
+};
+
+export type ListResourcesErrors = {
+    /**
+     * Error
+     */
+    default: ErrorReply;
+};
+
+export type ListResourcesError = ListResourcesErrors[keyof ListResourcesErrors];
+
+export type ListResourcesResponses = {
+    /**
+     * One page
+     */
+    200: {
+        status: number;
+        message: string;
+        data: {
+            content: Array<Resource>;
+            page: number;
+            size: number;
+            totalElements: number;
+            totalPages: number;
+        };
+    };
+};
+
+export type ListResourcesResponse = ListResourcesResponses[keyof ListResourcesResponses];
+
+export type CreateResourceData = {
+    body: CreateResource;
+    path?: never;
+    query?: never;
+    url: '/v1/resources';
+};
+
+export type CreateResourceErrors = {
+    /**
+     * Error
+     */
+    default: ErrorReply;
+};
+
+export type CreateResourceError = CreateResourceErrors[keyof CreateResourceErrors];
+
+export type CreateResourceResponses = {
+    /**
+     * Created
+     */
+    201: {
+        status: number;
+        message: string;
+        data: Resource;
+    };
+};
+
+export type CreateResourceResponse = CreateResourceResponses[keyof CreateResourceResponses];
+
+export type DeleteResourceData = {
+    body?: never;
+    path: {
+        id: number;
+    };
+    query?: never;
+    url: '/v1/resources/{id}';
+};
+
+export type DeleteResourceErrors = {
+    /**
+     * Error
+     */
+    default: ErrorReply;
+};
+
+export type DeleteResourceError = DeleteResourceErrors[keyof DeleteResourceErrors];
+
+export type DeleteResourceResponses = {
+    /**
+     * Deleted
+     */
+    200: {
+        status: number;
+        message: string;
+        data: null;
+    };
+};
+
+export type DeleteResourceResponse = DeleteResourceResponses[keyof DeleteResourceResponses];
+
+export type GetResourceData = {
+    body?: never;
+    path: {
+        id: number;
+    };
+    query?: never;
+    url: '/v1/resources/{id}';
+};
+
+export type GetResourceErrors = {
+    /**
+     * Error
+     */
+    default: ErrorReply;
+};
+
+export type GetResourceError = GetResourceErrors[keyof GetResourceErrors];
+
+export type GetResourceResponses = {
+    /**
+     * Found
+     */
+    200: {
+        status: number;
+        message: string;
+        data: Resource;
+    };
+};
+
+export type GetResourceResponse = GetResourceResponses[keyof GetResourceResponses];
+
+export type UpdateResourceData = {
+    body: UpdateResource;
+    path: {
+        id: number;
+    };
+    query?: never;
+    url: '/v1/resources/{id}';
+};
+
+export type UpdateResourceErrors = {
+    /**
+     * Error
+     */
+    default: ErrorReply;
+};
+
+export type UpdateResourceError = UpdateResourceErrors[keyof UpdateResourceErrors];
+
+export type UpdateResourceResponses = {
+    /**
+     * Changed
+     */
+    200: {
+        status: number;
+        message: string;
+        data: Resource;
+    };
+};
+
+export type UpdateResourceResponse = UpdateResourceResponses[keyof UpdateResourceResponses];

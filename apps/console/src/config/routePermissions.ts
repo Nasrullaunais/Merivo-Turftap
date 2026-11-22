@@ -6,6 +6,7 @@ import { can } from "../lib/tenant/activeTenant";
 const ROUTE_PERMISSIONS = {
   "/staff": "staff:read",
   "/venues": "venues:read",
+  "/venues/$venueId": "resources:read",
 } as const satisfies Record<string, Permission>;
 
 export type GuardedRoute = keyof typeof ROUTE_PERMISSIONS;
