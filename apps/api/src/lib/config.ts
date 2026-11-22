@@ -22,6 +22,7 @@ const Env = z.object({
   AUTH0_DOMAIN: z.string().optional(),
   AUTH0_AUDIENCE: z.string().optional(),
   AUTH0_PHONE_CLAIM: z.string().default("phone_number"),
+  AUTH0_HOOK_SECRET: z.string().optional(),
 
   STORAGE_PROVIDER: z.enum(["fake", "s3"]).default("fake"),
   S3_ENDPOINT: z.url().optional(),
@@ -31,6 +32,7 @@ const Env = z.object({
   S3_SECRET_ACCESS_KEY: z.string().optional(),
 
   MESSAGING_PROVIDER: z.enum(["fake"]).default("fake"),
+  SMS_PROVIDER: z.enum(["fake"]).default("fake"),
   RECEIPT_READER: z.enum(["fake"]).default("fake"),
 });
 
@@ -57,6 +59,7 @@ export function loadConfig(source: Record<string, string | undefined> = process.
     env.AUTH_PROVIDER,
     env.STORAGE_PROVIDER,
     env.MESSAGING_PROVIDER,
+    env.SMS_PROVIDER,
     env.RECEIPT_READER,
   ];
   if (env.NODE_ENV === "production" && providers.includes("fake")) {
@@ -69,16 +72,25 @@ export function loadConfig(source: Record<string, string | undefined> = process.
     logLevel: env.LOG_LEVEL,
     databaseUrl: env.DATABASE_URL,
     corsOrigins: env.CORS_ORIGINS,
-    auth: { cacheSeconds: env.AUTH_CACHE_SECONDS, provider: authProvider(env) },
+    auth: {
+      cacheSeconds: env.AUTH_CACHE_SECONDS,
+      provider: authProvider(env),
+      hookSecret: env.AUTH0_HOOK_SECRET,
+    },
     storage: storage(env),
     messaging: { kind: env.MESSAGING_PROVIDER },
+    sms: { kind: env.SMS_PROVIDER },
     receiptReader: { kind: env.RECEIPT_READER },
   };
 }
 
 function authProvider(env: Env) {
   if (env.AUTH_PROVIDER === "fake") return { kind: "fake" as const };
-  const auth0 = required(env, ["AUTH0_DOMAIN", "AUTH0_AUDIENCE"], "AUTH_PROVIDER=auth0");
+  const auth0 = required(
+    env,
+    ["AUTH0_DOMAIN", "AUTH0_AUDIENCE", "AUTH0_HOOK_SECRET"],
+    "AUTH_PROVIDER=auth0",
+  );
   return {
     kind: "auth0" as const,
     domain: auth0.AUTH0_DOMAIN,

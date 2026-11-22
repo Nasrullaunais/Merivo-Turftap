@@ -3,6 +3,7 @@ process.env.DATABASE_URL =
   process.env.TEST_DATABASE_URL ?? "postgres://turftap:turftap@127.0.0.1:5433/turftap_test";
 process.env.LOG_LEVEL ??= "silent";
 process.env.AUTH_CACHE_SECONDS = "0";
+process.env.AUTH0_HOOK_SECRET = "test-hook-secret";
 
 const { runMigrations } = await import("../lib/db/migrate");
 const { installPorts } = await import("../ports");

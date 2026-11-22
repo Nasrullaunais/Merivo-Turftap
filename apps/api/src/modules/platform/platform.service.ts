@@ -1,10 +1,12 @@
 import type { Caller } from "../../lib/auth/context";
 import { config } from "../../lib/config";
+import { transaction } from "../../lib/db";
 import { ttlCache } from "../../lib/ttl-cache";
 import { ports } from "../../ports";
 import * as staffService from "../staff/staff.service";
 import { platformErrors } from "./platform.errors";
 import * as platformRepository from "./platform.repository";
+import type { LoginCodeChannel } from "./platform.tables";
 
 export type CallerHeaders = {
   authorization?: string;
@@ -55,4 +57,25 @@ async function staffCaller(token: string, tenantId?: number): Promise<Caller> {
   const role = await staffService.roleOf(tenantId, user.id);
   if (!role) throw platformErrors.notStaffHere();
   return { actor: "staff", userId: user.id, tenantId, role };
+}
+
+const RESEND_BY_SMS_WITHIN_MINUTES = 10;
+const MINUTE_MS = 60_000;
+
+const LOGIN_CODE_SENDERS: Record<LoginCodeChannel, (to: string, code: string) => Promise<void>> = {
+  WHATSAPP: (to, code) => ports().messaging.send({ kind: "login-code", to, code }),
+  SMS: (to, code) =>
+    ports().sms.send({ to, text: `Your TurfTap sign-in code is ${code}. Don't share it.` }),
+};
+
+/** A resend soon after a code goes by SMS, so a user whose WhatsApp code never came still gets in. */
+export async function sendLoginCode(phone: string, code: string): Promise<void> {
+  const since = new Date(Date.now() - RESEND_BY_SMS_WITHIN_MINUTES * MINUTE_MS);
+  const channel = await transaction(async () => {
+    const recent = await platformRepository.findLoginCodeSendSince(phone, since);
+    const chosen: LoginCodeChannel = recent ? "SMS" : "WHATSAPP";
+    await platformRepository.recordLoginCodeSend(phone, chosen);
+    return chosen;
+  });
+  await LOGIN_CODE_SENDERS[channel](phone, code);
 }

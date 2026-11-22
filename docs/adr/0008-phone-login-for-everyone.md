@@ -5,4 +5,4 @@ Staff and customers both sign in through Auth0's passwordless phone login, so th
 ## Consequences
 
 - Auth0 stays behind our `AuthProvider` interface; the backend only checks tokens and reads the phone number.
-- If WhatsApp is down, nobody can sign in until an SMS backup is added.
+- Codes that don't arrive by WhatsApp are resent by SMS ([ADR 0010](0010-login-codes-fall-back-to-sms.md)).

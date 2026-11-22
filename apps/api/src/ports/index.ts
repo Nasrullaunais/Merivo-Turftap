@@ -2,11 +2,13 @@ import type { AuthProvider } from "./auth-provider";
 import type { MessagingChannel } from "./messaging-channel";
 import type { ObjectStorage } from "./object-storage";
 import type { ReceiptReader } from "./receipt-reader";
+import type { SmsChannel } from "./sms-channel";
 
 export type Ports = {
   auth: AuthProvider;
   storage: ObjectStorage;
   messaging: MessagingChannel;
+  sms: SmsChannel;
   receiptReader: ReceiptReader;
 };
 

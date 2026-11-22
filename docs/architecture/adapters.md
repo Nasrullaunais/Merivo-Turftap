@@ -22,6 +22,7 @@ apps/api/src/
 | `AuthProvider` | Checks a sign-in token and returns the phone number | `auth0` | Yes |
 | `ObjectStorage` | Saves, reads and deletes files; makes short-lived download links | `s3` (pointed at SeaweedFS) | Yes |
 | `MessagingChannel` | Sends a WhatsApp message (text, template or login code) from a given number | `whatsapp-cloud` (Meta) | Yes, records sent messages |
+| `SmsChannel` | Sends an SMS (login codes when WhatsApp didn't work) | not chosen yet | Yes, records sent messages |
 | `ReceiptReader` | Reads amount, date, bank and reference from a receipt image | `gemini` | Yes, returns set answers |
 | `PaymentProvider` | Online payments | none in v1 (interface only) | n/a |
 

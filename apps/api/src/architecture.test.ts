@@ -45,10 +45,9 @@ const failures = (check: (file: { path: string; text: string }) => string | unde
 describe("architecture (docs/architecture/testing.md)", () => {
   it("1. lib imports nothing from modules, adapters, hooks or the app wiring", async () => {
     for (const target of ["src/modules/**", "src/adapters/**", "src/hooks/**"]) {
-      // hooks/ may still be empty; the rule holds either way.
       await expect(
         files().inFolder("src/lib/**", prod).shouldNot().dependOnFiles().inFolder(target),
-      ).toPassAsync({ allowEmptyTests: true });
+      ).toPassAsync();
     }
     for (const target of ["src/app.ts", "src/wiring.ts", "src/resources.ts", "src/main.ts"]) {
       await expect(

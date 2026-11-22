@@ -8,6 +8,10 @@ A booking platform for sports and fitness venues. Businesses rent out courts and
 A person who can sign in, identified by their phone number. One user can be staff at one tenant and a customer at others.
 _Avoid_: Account, login, member
 
+**Login Code**:
+The 6-digit code a user receives to sign in. It goes by WhatsApp first; a resend soon after goes by SMS.
+_Avoid_: OTP, PIN, verification code
+
 **Tenant**:
 A business that uses TurfTap, such as a sports company with one or more branches. All of its data is kept apart from every other tenant.
 _Avoid_: Client, organisation, company

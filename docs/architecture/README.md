@@ -20,6 +20,7 @@ flowchart LR
   end
 
   meta[Meta WhatsApp<br/>Cloud API]
+  sms[SMS provider]
   auth0[Auth0]
   gemini[Gemini API]
 
@@ -36,6 +37,7 @@ flowchart LR
   api --> pg
   api -- ObjectStorage --> seaweed
   api -- MessagingChannel --> meta
+  api -- SmsChannel --> sms
   api -- ReceiptReader --> gemini
   api -- AuthProvider --> auth0
   auth0 -- "send this login code" --> api
@@ -58,7 +60,7 @@ One folder per business area (a **module**) under `apps/api/src/modules/`:
 
 | Module | Owns |
 |---|---|
-| `platform` | Tenants, users, WhatsApp numbers |
+| `platform` | Tenants, users, WhatsApp numbers, sending Login Codes |
 | `staff` | Staff and their roles |
 | `venues` | Venues, opening hours, closed dates, resources, price rules, blocked times, photos |
 | `customers` | Each tenant's customer records |

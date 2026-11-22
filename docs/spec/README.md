@@ -36,7 +36,6 @@ TurfTap lets sports and fitness venues in Sri Lanka take bookings and sell gym m
 - Staff limited to one venue
 - Custom staff roles
 - Sinhala and Tamil screens (the Assistant already replies in the customer's language)
-- SMS backup for login codes
 - Charging tenants through TurfTap (invoiced by hand for now)
 - A shared marketplace across tenants
 
@@ -55,3 +54,4 @@ These came up while writing the spec and were approved afterwards:
 5. **Resource types are a fixed list in code** (futsal court, table tennis table, pool table), easy to extend. `VEN-04`.
 6. **Booking reminders** go out 3 hours before start, fixed for v1. `BKG-10`.
 7. **Customers can browse free slots without signing in**, and sign in only when they book. `POR-02`.
+8. **Login codes fall back to SMS**: a resend within 10 minutes goes by SMS instead of WhatsApp ([ADR 0010](../adr/0010-login-codes-fall-back-to-sms.md)). `SIG-01`.

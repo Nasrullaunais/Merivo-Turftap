@@ -16,7 +16,7 @@ describe("config", () => {
 
   it("loadConfig_refusesAuth0WithoutItsSettings", () => {
     expect(() => loadConfig({ ...base, AUTH_PROVIDER: "auth0" })).toThrow(
-      "AUTH0_DOMAIN, AUTH0_AUDIENCE must be set",
+      "AUTH0_DOMAIN, AUTH0_AUDIENCE, AUTH0_HOOK_SECRET must be set",
     );
   });
 

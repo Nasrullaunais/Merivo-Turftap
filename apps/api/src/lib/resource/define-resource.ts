@@ -7,6 +7,7 @@ import { type Action, isStaffResource, ROLE_PERMISSIONS } from "../auth/permissi
 import { httpErrors } from "../errors";
 import type { AppEnv } from "../http/env";
 import { ok } from "../http/envelope";
+import { jsonBody, parse } from "../http/input";
 import { describeResource } from "./openapi";
 import type { AnyDefinition, Handlers, Operation, Resource, ResourceDefinition } from "./types";
 
@@ -17,22 +18,6 @@ const ACTION_OF: Record<Operation, Action> = {
   update: "update",
   delete: "delete",
 };
-
-function parse<S extends z.ZodType>(schema: S, value: unknown): z.output<S> {
-  const result = schema.safeParse(value);
-  if (result.success) return result.data;
-  throw httpErrors.invalidRequest(
-    result.error.issues.map((issue) => ({ field: issue.path.join("."), message: issue.message })),
-  );
-}
-
-async function jsonBody(c: Context): Promise<unknown> {
-  try {
-    return await c.req.json();
-  } catch {
-    throw httpErrors.invalidJson();
-  }
-}
 
 function authorize(
   name: string,

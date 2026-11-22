@@ -1,8 +1,9 @@
 # Sign-in and staff
 
 ## SIG-01 Sign in with a phone number
-As a **User**, I want to sign in with my phone number and a code sent on WhatsApp, so that I don't need a password.
+As a **User**, I want to sign in with my phone number and a **Login Code**, so that I don't need a password.
 - Given I enter my phone number, when I ask for a code, then a 6-digit code arrives on WhatsApp from the TurfTap number.
+- Given a code was sent to my number in the last 10 minutes, when I ask for another one ("Send by SMS"), then it arrives by SMS instead, so I can still sign in without WhatsApp or when WhatsApp is down.
 - Given a correct code within 3 minutes, when I submit it, then I am signed in.
 - Given 3 wrong codes, when I try again, then I must ask for a new code.
 - Phone numbers are stored in one format (`+94771234567`), whatever way the user types them.

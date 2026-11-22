@@ -3,6 +3,7 @@ import { sql } from "drizzle-orm";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 
+import { auth0Hooks } from "./hooks/auth0";
 import { config } from "./lib/config";
 import { db } from "./lib/db";
 import type { AppEnv } from "./lib/http/env";
@@ -44,6 +45,7 @@ export function createApp() {
   });
 
   for (const resource of RESOURCES) app.route(`/v1/${resource.name}`, resource.routes);
+  app.route("/hooks/auth0", auth0Hooks);
 
   app.get("/health", (c) => ok(c, { process: "up" }));
   app.get("/health/ready", async (c) => {
