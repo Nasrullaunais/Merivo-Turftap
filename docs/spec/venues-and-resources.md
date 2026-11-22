@@ -7,7 +7,11 @@ As an **Owner**, I want to add a venue with its address, phone number and openin
 
 ## VEN-02 Close a venue for a day
 As a **Manager**, I want to mark a date as closed (a holiday), so that nobody can book it.
-- Given existing bookings on that date, when I close it, then I see the list of affected bookings before confirming. Staff contact those customers themselves.
+- A **Closed Date** can have a short reason customers see, such as "Vesak Poya".
+- Given a date before today in the venue's time zone, when I save, then I'm told it must be today or later.
+- Given the venue is already closed that day, when I save, then I'm told so.
+- Given I reopen a Closed Date, then the venue follows its opening hours that day again.
+- Given existing bookings on that date, when I close it, then I see the list of affected bookings before confirming. Staff contact those customers themselves. _Built with bookings (`BKG-02`), since there are no bookings yet._
 
 ## VEN-03 Venue payment settings
 As an **Owner**, I want to set how customers pay at each venue, so that online bookings match how we take money.

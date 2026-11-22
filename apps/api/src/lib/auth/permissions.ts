@@ -14,11 +14,13 @@ export const ROLE_PERMISSIONS: Record<StaffRole, ReadonlySet<Permission>> = {
   MANAGER: new Set([
     ...readOnly("staff"),
     ...readOnly("venues"),
+    ...all("closed-dates"),
     ...all("resources"),
     ...all("price-rules"),
   ]),
   FRONT_DESK: new Set([
     ...readOnly("venues"),
+    ...readOnly("closed-dates"),
     ...readOnly("resources"),
     ...readOnly("price-rules"),
   ]),

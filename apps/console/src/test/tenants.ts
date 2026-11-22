@@ -11,6 +11,10 @@ const PERMISSIONS: Record<StaffRole, Permission[]> = {
     "venues:create",
     "venues:update",
     "venues:delete",
+    "closed-dates:read",
+    "closed-dates:create",
+    "closed-dates:update",
+    "closed-dates:delete",
     "resources:read",
     "resources:create",
     "resources:update",
@@ -23,6 +27,10 @@ const PERMISSIONS: Record<StaffRole, Permission[]> = {
   MANAGER: [
     "staff:read",
     "venues:read",
+    "closed-dates:read",
+    "closed-dates:create",
+    "closed-dates:update",
+    "closed-dates:delete",
     "resources:read",
     "resources:create",
     "resources:update",
@@ -32,7 +40,7 @@ const PERMISSIONS: Record<StaffRole, Permission[]> = {
     "price-rules:update",
     "price-rules:delete",
   ],
-  FRONT_DESK: ["venues:read", "resources:read", "price-rules:read"],
+  FRONT_DESK: ["venues:read", "closed-dates:read", "resources:read", "price-rules:read"],
 };
 
 /** One entry of `tenants` in GET /v1/me. */

@@ -21,10 +21,13 @@ export const venueErrors = {
         ? `This overlaps the Price Rule for ${describeRule(clashing)}`
         : "This overlaps another Price Rule for this resource",
     ),
+  closedDateNotFound: (id: number) => new NotFound("tt_ven_007", `Closed Date ${id} was not found`),
+  alreadyClosed: () => new Conflict("tt_ven_008", "This venue is already closed on that date"),
 };
 
 constraintErrors({
   venues_tenant_name_unique: venueErrors.nameTaken,
   resources_venue_name_unique: venueErrors.resourceNameTaken,
   price_rules_no_overlap: () => venueErrors.priceRuleClash(),
+  closed_dates_venue_date_unique: venueErrors.alreadyClosed,
 });

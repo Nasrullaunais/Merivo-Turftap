@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { CreatePriceRuleData, CreatePriceRuleErrors, CreatePriceRuleResponses, CreateResourceData, CreateResourceErrors, CreateResourceResponses, CreateStaffData, CreateStaffErrors, CreateStaffResponses, CreateVenueData, CreateVenueErrors, CreateVenueResponses, DeletePriceRuleData, DeletePriceRuleErrors, DeletePriceRuleResponses, DeleteResourceData, DeleteResourceErrors, DeleteResourceResponses, DeleteStaffData, DeleteStaffErrors, DeleteStaffResponses, DeleteVenueData, DeleteVenueErrors, DeleteVenueResponses, GetMeData, GetMeErrors, GetMeResponses, GetPriceRuleData, GetPriceRuleErrors, GetPriceRuleResponses, GetResourceData, GetResourceErrors, GetResourceResponses, GetStaffData, GetStaffErrors, GetStaffResponses, GetVenueData, GetVenueErrors, GetVenueResponses, ListPriceRulesData, ListPriceRulesErrors, ListPriceRulesResponses, ListResourcesData, ListResourcesErrors, ListResourcesResponses, ListStaffData, ListStaffErrors, ListStaffResponses, ListVenuesData, ListVenuesErrors, ListVenuesResponses, UpdatePriceRuleData, UpdatePriceRuleErrors, UpdatePriceRuleResponses, UpdateResourceData, UpdateResourceErrors, UpdateResourceResponses, UpdateStaffData, UpdateStaffErrors, UpdateStaffResponses, UpdateVenueData, UpdateVenueErrors, UpdateVenueResponses } from './types.gen';
+import type { CreateClosedDateData, CreateClosedDateErrors, CreateClosedDateResponses, CreatePriceRuleData, CreatePriceRuleErrors, CreatePriceRuleResponses, CreateResourceData, CreateResourceErrors, CreateResourceResponses, CreateStaffData, CreateStaffErrors, CreateStaffResponses, CreateVenueData, CreateVenueErrors, CreateVenueResponses, DeleteClosedDateData, DeleteClosedDateErrors, DeleteClosedDateResponses, DeletePriceRuleData, DeletePriceRuleErrors, DeletePriceRuleResponses, DeleteResourceData, DeleteResourceErrors, DeleteResourceResponses, DeleteStaffData, DeleteStaffErrors, DeleteStaffResponses, DeleteVenueData, DeleteVenueErrors, DeleteVenueResponses, GetClosedDateData, GetClosedDateErrors, GetClosedDateResponses, GetMeData, GetMeErrors, GetMeResponses, GetPriceRuleData, GetPriceRuleErrors, GetPriceRuleResponses, GetResourceData, GetResourceErrors, GetResourceResponses, GetStaffData, GetStaffErrors, GetStaffResponses, GetVenueData, GetVenueErrors, GetVenueResponses, ListClosedDatesData, ListClosedDatesErrors, ListClosedDatesResponses, ListPriceRulesData, ListPriceRulesErrors, ListPriceRulesResponses, ListResourcesData, ListResourcesErrors, ListResourcesResponses, ListStaffData, ListStaffErrors, ListStaffResponses, ListVenuesData, ListVenuesErrors, ListVenuesResponses, UpdateClosedDateData, UpdateClosedDateErrors, UpdateClosedDateResponses, UpdatePriceRuleData, UpdatePriceRuleErrors, UpdatePriceRuleResponses, UpdateResourceData, UpdateResourceErrors, UpdateResourceResponses, UpdateStaffData, UpdateStaffErrors, UpdateStaffResponses, UpdateVenueData, UpdateVenueErrors, UpdateVenueResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -93,6 +93,44 @@ export const getVenue = <ThrowOnError extends boolean = true>(options: Options<G
 export const updateVenue = <ThrowOnError extends boolean = true>(options: Options<UpdateVenueData, ThrowOnError>): RequestResult<UpdateVenueResponses, UpdateVenueErrors, ThrowOnError> => (options.client ?? client).patch<UpdateVenueResponses, UpdateVenueErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/v1/venues/{id}',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+export const listClosedDates = <ThrowOnError extends boolean = true>(options?: Options<ListClosedDatesData, ThrowOnError>): RequestResult<ListClosedDatesResponses, ListClosedDatesErrors, ThrowOnError> => (options?.client ?? client).get<ListClosedDatesResponses, ListClosedDatesErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/v1/closed-dates',
+    ...options
+});
+
+export const createClosedDate = <ThrowOnError extends boolean = true>(options: Options<CreateClosedDateData, ThrowOnError>): RequestResult<CreateClosedDateResponses, CreateClosedDateErrors, ThrowOnError> => (options.client ?? client).post<CreateClosedDateResponses, CreateClosedDateErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/v1/closed-dates',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+export const deleteClosedDate = <ThrowOnError extends boolean = true>(options: Options<DeleteClosedDateData, ThrowOnError>): RequestResult<DeleteClosedDateResponses, DeleteClosedDateErrors, ThrowOnError> => (options.client ?? client).delete<DeleteClosedDateResponses, DeleteClosedDateErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/v1/closed-dates/{id}',
+    ...options
+});
+
+export const getClosedDate = <ThrowOnError extends boolean = true>(options: Options<GetClosedDateData, ThrowOnError>): RequestResult<GetClosedDateResponses, GetClosedDateErrors, ThrowOnError> => (options.client ?? client).get<GetClosedDateResponses, GetClosedDateErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/v1/closed-dates/{id}',
+    ...options
+});
+
+export const updateClosedDate = <ThrowOnError extends boolean = true>(options: Options<UpdateClosedDateData, ThrowOnError>): RequestResult<UpdateClosedDateResponses, UpdateClosedDateErrors, ThrowOnError> => (options.client ?? client).patch<UpdateClosedDateResponses, UpdateClosedDateErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/v1/closed-dates/{id}',
     ...options,
     headers: {
         'Content-Type': 'application/json',

@@ -30,6 +30,26 @@ export type ErrorReply = {
     errors?: Array<FieldError>;
 };
 
+export type ClosedDate = {
+    id: number;
+    venueId: number;
+    date: string;
+    reason: string | null;
+    createdAt: string;
+    updatedAt: string;
+};
+
+export type CreateClosedDate = {
+    venueId: number;
+    date: string;
+    reason?: string | null;
+};
+
+export type UpdateClosedDate = {
+    date?: string;
+    reason?: string | null;
+};
+
 export const Permission = {
     STAFF_READ: 'staff:read',
     STAFF_CREATE: 'staff:create',
@@ -39,6 +59,10 @@ export const Permission = {
     VENUES_CREATE: 'venues:create',
     VENUES_UPDATE: 'venues:update',
     VENUES_DELETE: 'venues:delete',
+    CLOSED_DATES_READ: 'closed-dates:read',
+    CLOSED_DATES_CREATE: 'closed-dates:create',
+    CLOSED_DATES_UPDATE: 'closed-dates:update',
+    CLOSED_DATES_DELETE: 'closed-dates:delete',
     RESOURCES_READ: 'resources:read',
     RESOURCES_CREATE: 'resources:create',
     RESOURCES_UPDATE: 'resources:update',
@@ -549,6 +573,170 @@ export type UpdateVenueResponses = {
 };
 
 export type UpdateVenueResponse = UpdateVenueResponses[keyof UpdateVenueResponses];
+
+export type ListClosedDatesData = {
+    body?: never;
+    path?: never;
+    query?: {
+        page?: number;
+        size?: number;
+        sort?: 'date,asc' | 'date,desc' | 'createdAt,asc' | 'createdAt,desc';
+        venueId?: number;
+        from?: string;
+        to?: string;
+    };
+    url: '/v1/closed-dates';
+};
+
+export type ListClosedDatesErrors = {
+    /**
+     * Error
+     */
+    default: ErrorReply;
+};
+
+export type ListClosedDatesError = ListClosedDatesErrors[keyof ListClosedDatesErrors];
+
+export type ListClosedDatesResponses = {
+    /**
+     * One page
+     */
+    200: {
+        status: number;
+        message: string;
+        data: {
+            content: Array<ClosedDate>;
+            page: number;
+            size: number;
+            totalElements: number;
+            totalPages: number;
+        };
+    };
+};
+
+export type ListClosedDatesResponse = ListClosedDatesResponses[keyof ListClosedDatesResponses];
+
+export type CreateClosedDateData = {
+    body: CreateClosedDate;
+    path?: never;
+    query?: never;
+    url: '/v1/closed-dates';
+};
+
+export type CreateClosedDateErrors = {
+    /**
+     * Error
+     */
+    default: ErrorReply;
+};
+
+export type CreateClosedDateError = CreateClosedDateErrors[keyof CreateClosedDateErrors];
+
+export type CreateClosedDateResponses = {
+    /**
+     * Created
+     */
+    201: {
+        status: number;
+        message: string;
+        data: ClosedDate;
+    };
+};
+
+export type CreateClosedDateResponse = CreateClosedDateResponses[keyof CreateClosedDateResponses];
+
+export type DeleteClosedDateData = {
+    body?: never;
+    path: {
+        id: number;
+    };
+    query?: never;
+    url: '/v1/closed-dates/{id}';
+};
+
+export type DeleteClosedDateErrors = {
+    /**
+     * Error
+     */
+    default: ErrorReply;
+};
+
+export type DeleteClosedDateError = DeleteClosedDateErrors[keyof DeleteClosedDateErrors];
+
+export type DeleteClosedDateResponses = {
+    /**
+     * Deleted
+     */
+    200: {
+        status: number;
+        message: string;
+        data: null;
+    };
+};
+
+export type DeleteClosedDateResponse = DeleteClosedDateResponses[keyof DeleteClosedDateResponses];
+
+export type GetClosedDateData = {
+    body?: never;
+    path: {
+        id: number;
+    };
+    query?: never;
+    url: '/v1/closed-dates/{id}';
+};
+
+export type GetClosedDateErrors = {
+    /**
+     * Error
+     */
+    default: ErrorReply;
+};
+
+export type GetClosedDateError = GetClosedDateErrors[keyof GetClosedDateErrors];
+
+export type GetClosedDateResponses = {
+    /**
+     * Found
+     */
+    200: {
+        status: number;
+        message: string;
+        data: ClosedDate;
+    };
+};
+
+export type GetClosedDateResponse = GetClosedDateResponses[keyof GetClosedDateResponses];
+
+export type UpdateClosedDateData = {
+    body: UpdateClosedDate;
+    path: {
+        id: number;
+    };
+    query?: never;
+    url: '/v1/closed-dates/{id}';
+};
+
+export type UpdateClosedDateErrors = {
+    /**
+     * Error
+     */
+    default: ErrorReply;
+};
+
+export type UpdateClosedDateError = UpdateClosedDateErrors[keyof UpdateClosedDateErrors];
+
+export type UpdateClosedDateResponses = {
+    /**
+     * Changed
+     */
+    200: {
+        status: number;
+        message: string;
+        data: ClosedDate;
+    };
+};
+
+export type UpdateClosedDateResponse = UpdateClosedDateResponses[keyof UpdateClosedDateResponses];
 
 export type ListResourcesData = {
     body?: never;

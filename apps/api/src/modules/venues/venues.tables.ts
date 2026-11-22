@@ -3,6 +3,7 @@ import { sql } from "drizzle-orm";
 import {
   bigint,
   boolean,
+  date,
   index,
   integer,
   jsonb,
@@ -40,6 +41,24 @@ export const venues = pgTable(
 );
 
 export type VenueRow = typeof venues.$inferSelect;
+
+export const closedDates = pgTable(
+  "closed_dates",
+  {
+    id: idColumn(),
+    tenantId: tenantIdColumn(),
+    venueId: bigint("venue_id", { mode: "number" })
+      .notNull()
+      .references(() => venues.id),
+    date: date("date", { mode: "string" }).notNull(),
+    reason: text("reason"),
+    ...timestampColumns(),
+  },
+  (table) => [
+    index("closed_dates_tenant_idx").on(table.tenantId),
+    uniqueIndex("closed_dates_venue_date_unique").on(table.venueId, table.date),
+  ],
+);
 
 export const resourceType = pgEnum("resource_type", RESOURCE_TYPES);
 

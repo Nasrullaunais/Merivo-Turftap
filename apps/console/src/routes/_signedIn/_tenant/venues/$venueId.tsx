@@ -2,6 +2,8 @@ import { createFileRoute, redirect } from "@tanstack/react-router";
 import { Id } from "@turftap/contract";
 
 import { canOpen } from "../../../../config/routePermissions";
+import { ClosedDateList } from "../../../../features/closed-dates/ClosedDateList";
+import { CloseDateForm } from "../../../../features/closed-dates/CloseDateForm";
 import { AddResourceForm } from "../../../../features/resources/AddResourceForm";
 import { ResourceList } from "../../../../features/resources/ResourceList";
 import { VenueHeading } from "../../../../features/venues/VenueHeading";
@@ -27,6 +29,8 @@ function VenuePage() {
       <VenueHeading venueId={venueId} />
       <ResourceList venueId={venueId} canTurnOff={can(tenant, "resources:delete")} />
       {can(tenant, "resources:create") && <AddResourceForm venueId={venueId} />}
+      <ClosedDateList venueId={venueId} canReopen={can(tenant, "closed-dates:delete")} />
+      {can(tenant, "closed-dates:create") && <CloseDateForm venueId={venueId} />}
     </main>
   );
 }

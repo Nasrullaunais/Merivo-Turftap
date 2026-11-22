@@ -1,5 +1,6 @@
 import { beforeAll, describe, expect, it } from "bun:test";
 
+import { todayIn } from "../../lib/time";
 import {
   asStaff,
   call,
@@ -10,6 +11,9 @@ import {
   type TestTenant,
   venueInput,
 } from "../../test/fixtures";
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+const nextWeek = () => todayIn("Asia/Colombo", new Date(Date.now() + 7 * DAY_MS));
 
 const idsOf = (reply: { body: { data: { content: { id: number }[] } } }) =>
   reply.body.data.content.map((row) => row.id);
@@ -22,6 +26,8 @@ describe("SIG-06 staff limited to some venues", () => {
   let resourceB: number;
   let ruleA: number;
   let ruleB: number;
+  let closedA: number;
+  let closedB: number;
   const asManager = () => asStaff(tenant, tenant.manager);
 
   beforeAll(async () => {
@@ -40,6 +46,11 @@ describe("SIG-06 staff limited to some venues", () => {
     resourceB = await addResource(venueB);
     ruleA = await addRule(resourceA);
     ruleB = await addRule(resourceB);
+    const addClosedDate = async (venueId: number) =>
+      (await call("POST", "/v1/closed-dates", asStaff(tenant), { venueId, date: nextWeek() })).body
+        .data.id as number;
+    closedA = await addClosedDate(venueA);
+    closedB = await addClosedDate(venueB);
     await limitToVenues(tenant, tenant.manager, [venueA]);
     await limitToVenues(tenant, tenant.frontDesk, [venueB]);
   });
@@ -129,6 +140,32 @@ describe("SIG-06 staff limited to some venues", () => {
       const path = `/v1/price-rules/${ruleB}`;
       expect((await call("DELETE", path, asManager())).status).toBe(404);
       expect((await call("GET", path, asStaff(tenant))).status).toBe(200);
+    });
+  });
+
+  describe("Closed Dates", () => {
+    it("list_showsOnlyClosedDatesAtTheirVenues", async () => {
+      expect(idsOf(await call("GET", "/v1/closed-dates", asManager()))).toEqual([closedA]);
+    });
+
+    it("get_repliesNotFoundForAnotherVenuesClosedDate", async () => {
+      const reply = await call("GET", `/v1/closed-dates/${closedB}`, asManager());
+      expect(reply).toMatchObject({ status: 404, body: { code: "tt_ven_007" } });
+    });
+
+    it("create_cannotCloseAnotherVenue", async () => {
+      const reply = await call("POST", "/v1/closed-dates", asManager(), {
+        venueId: venueB,
+        date: todayIn("Asia/Colombo", new Date(Date.now() + 8 * DAY_MS)),
+      });
+      expect(reply).toMatchObject({ status: 404, body: { code: "tt_ven_001" } });
+    });
+
+    it("updateAndDelete_cannotTouchAnotherVenuesClosedDate", async () => {
+      const path = `/v1/closed-dates/${closedB}`;
+      expect((await call("PATCH", path, asManager(), { reason: "Taken" })).status).toBe(404);
+      expect((await call("DELETE", path, asManager())).status).toBe(404);
+      expect((await call("GET", path, asStaff(tenant))).body.data.reason).toBeNull();
     });
   });
 });

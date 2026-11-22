@@ -3,8 +3,8 @@
 import { type InfiniteData, infiniteQueryOptions, queryOptions, type UseMutationOptions } from '@tanstack/react-query';
 
 import { client } from '../client.gen';
-import { createPriceRule, createResource, createStaff, createVenue, deletePriceRule, deleteResource, deleteStaff, deleteVenue, getMe, getPriceRule, getResource, getStaff, getVenue, listPriceRules, listResources, listStaff, listVenues, type Options, updatePriceRule, updateResource, updateStaff, updateVenue } from '../sdk.gen';
-import type { CreatePriceRuleData, CreatePriceRuleError, CreatePriceRuleResponse, CreateResourceData, CreateResourceError, CreateResourceResponse, CreateStaffData, CreateStaffError, CreateStaffResponse, CreateVenueData, CreateVenueError, CreateVenueResponse, DeletePriceRuleData, DeletePriceRuleError, DeletePriceRuleResponse, DeleteResourceData, DeleteResourceError, DeleteResourceResponse, DeleteStaffData, DeleteStaffError, DeleteStaffResponse, DeleteVenueData, DeleteVenueError, DeleteVenueResponse, GetMeData, GetMeError, GetMeResponse, GetPriceRuleData, GetPriceRuleError, GetPriceRuleResponse, GetResourceData, GetResourceError, GetResourceResponse, GetStaffData, GetStaffError, GetStaffResponse, GetVenueData, GetVenueError, GetVenueResponse, ListPriceRulesData, ListPriceRulesError, ListPriceRulesResponse, ListResourcesData, ListResourcesError, ListResourcesResponse, ListStaffData, ListStaffError, ListStaffResponse, ListVenuesData, ListVenuesError, ListVenuesResponse, UpdatePriceRuleData, UpdatePriceRuleError, UpdatePriceRuleResponse, UpdateResourceData, UpdateResourceError, UpdateResourceResponse, UpdateStaffData, UpdateStaffError, UpdateStaffResponse, UpdateVenueData, UpdateVenueError, UpdateVenueResponse } from '../types.gen';
+import { createClosedDate, createPriceRule, createResource, createStaff, createVenue, deleteClosedDate, deletePriceRule, deleteResource, deleteStaff, deleteVenue, getClosedDate, getMe, getPriceRule, getResource, getStaff, getVenue, listClosedDates, listPriceRules, listResources, listStaff, listVenues, type Options, updateClosedDate, updatePriceRule, updateResource, updateStaff, updateVenue } from '../sdk.gen';
+import type { CreateClosedDateData, CreateClosedDateError, CreateClosedDateResponse, CreatePriceRuleData, CreatePriceRuleError, CreatePriceRuleResponse, CreateResourceData, CreateResourceError, CreateResourceResponse, CreateStaffData, CreateStaffError, CreateStaffResponse, CreateVenueData, CreateVenueError, CreateVenueResponse, DeleteClosedDateData, DeleteClosedDateError, DeleteClosedDateResponse, DeletePriceRuleData, DeletePriceRuleError, DeletePriceRuleResponse, DeleteResourceData, DeleteResourceError, DeleteResourceResponse, DeleteStaffData, DeleteStaffError, DeleteStaffResponse, DeleteVenueData, DeleteVenueError, DeleteVenueResponse, GetClosedDateData, GetClosedDateError, GetClosedDateResponse, GetMeData, GetMeError, GetMeResponse, GetPriceRuleData, GetPriceRuleError, GetPriceRuleResponse, GetResourceData, GetResourceError, GetResourceResponse, GetStaffData, GetStaffError, GetStaffResponse, GetVenueData, GetVenueError, GetVenueResponse, ListClosedDatesData, ListClosedDatesError, ListClosedDatesResponse, ListPriceRulesData, ListPriceRulesError, ListPriceRulesResponse, ListResourcesData, ListResourcesError, ListResourcesResponse, ListStaffData, ListStaffError, ListStaffResponse, ListVenuesData, ListVenuesError, ListVenuesResponse, UpdateClosedDateData, UpdateClosedDateError, UpdateClosedDateResponse, UpdatePriceRuleData, UpdatePriceRuleError, UpdatePriceRuleResponse, UpdateResourceData, UpdateResourceError, UpdateResourceResponse, UpdateStaffData, UpdateStaffError, UpdateStaffResponse, UpdateVenueData, UpdateVenueError, UpdateVenueResponse } from '../types.gen';
 
 export type QueryKey<TOptions extends Options> = [
     Pick<TOptions, 'baseUrl' | 'body' | 'headers' | 'path' | 'query'> & {
@@ -271,6 +271,105 @@ export const updateVenueMutation = (options?: Partial<Options<UpdateVenueData>>)
     const mutationOptions: UseMutationOptions<UpdateVenueResponse, UpdateVenueError, Options<UpdateVenueData>> = {
         mutationFn: async (fnOptions) => {
             const { data } = await updateVenue({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+export const listClosedDatesQueryKey = (options?: Options<ListClosedDatesData>) => createQueryKey('listClosedDates', options);
+
+export const listClosedDatesOptions = (options?: Options<ListClosedDatesData>) => queryOptions<ListClosedDatesResponse, ListClosedDatesError, ListClosedDatesResponse, ReturnType<typeof listClosedDatesQueryKey>>({
+    queryFn: async ({ queryKey, signal }) => {
+        const { data } = await listClosedDates({
+            ...options,
+            ...queryKey[0],
+            signal,
+            throwOnError: true
+        });
+        return data;
+    },
+    queryKey: listClosedDatesQueryKey(options)
+});
+
+export const listClosedDatesInfiniteQueryKey = (options?: Options<ListClosedDatesData>): QueryKey<Options<ListClosedDatesData>> => createQueryKey('listClosedDates', options, true);
+
+export const listClosedDatesInfiniteOptions = (options?: Options<ListClosedDatesData>) => {
+    const opts = infiniteQueryOptions<ListClosedDatesResponse, ListClosedDatesError, InfiniteData<ListClosedDatesResponse>, QueryKey<Options<ListClosedDatesData>>, number | Pick<QueryKey<Options<ListClosedDatesData>>[0], 'body' | 'headers' | 'path' | 'query'>>(
+    // @ts-ignore
+    {
+        queryFn: async ({ pageParam, queryKey, signal }) => {
+            // @ts-ignore
+            const page: Pick<QueryKey<Options<ListClosedDatesData>>[0], 'body' | 'headers' | 'path' | 'query'> = typeof pageParam === 'object' ? pageParam : {
+                query: {
+                    page: pageParam
+                }
+            };
+            const params = createInfiniteParams(queryKey, page);
+            const { data } = await listClosedDates({
+                ...options,
+                ...params,
+                signal,
+                throwOnError: true
+            });
+            return data;
+        },
+        queryKey: listClosedDatesInfiniteQueryKey(options)
+    });
+    return opts as Omit<typeof opts, 'initialData'>;
+};
+
+export const createClosedDateMutation = (options?: Partial<Options<CreateClosedDateData>>): UseMutationOptions<CreateClosedDateResponse, CreateClosedDateError, Options<CreateClosedDateData>> => {
+    const mutationOptions: UseMutationOptions<CreateClosedDateResponse, CreateClosedDateError, Options<CreateClosedDateData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await createClosedDate({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+export const deleteClosedDateMutation = (options?: Partial<Options<DeleteClosedDateData>>): UseMutationOptions<DeleteClosedDateResponse, DeleteClosedDateError, Options<DeleteClosedDateData>> => {
+    const mutationOptions: UseMutationOptions<DeleteClosedDateResponse, DeleteClosedDateError, Options<DeleteClosedDateData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await deleteClosedDate({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+export const getClosedDateQueryKey = (options: Options<GetClosedDateData>) => createQueryKey('getClosedDate', options);
+
+export const getClosedDateOptions = (options: Options<GetClosedDateData>) => queryOptions<GetClosedDateResponse, GetClosedDateError, GetClosedDateResponse, ReturnType<typeof getClosedDateQueryKey>>({
+    queryFn: async ({ queryKey, signal }) => {
+        const { data } = await getClosedDate({
+            ...options,
+            ...queryKey[0],
+            signal,
+            throwOnError: true
+        });
+        return data;
+    },
+    queryKey: getClosedDateQueryKey(options)
+});
+
+export const updateClosedDateMutation = (options?: Partial<Options<UpdateClosedDateData>>): UseMutationOptions<UpdateClosedDateResponse, UpdateClosedDateError, Options<UpdateClosedDateData>> => {
+    const mutationOptions: UseMutationOptions<UpdateClosedDateResponse, UpdateClosedDateError, Options<UpdateClosedDateData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await updateClosedDate({
                 ...options,
                 ...fnOptions,
                 throwOnError: true

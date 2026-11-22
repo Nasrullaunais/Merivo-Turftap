@@ -43,6 +43,13 @@
       "when": 1795355997226,
       "tag": "0005_staff_venues",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1795356517402,
+      "tag": "0006_closed_dates",
+      "breakpoints": true
     }
   ]
 }

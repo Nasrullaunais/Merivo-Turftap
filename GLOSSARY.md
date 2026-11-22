@@ -60,8 +60,12 @@ _Avoid_: Period, session
 A price per slot for one resource on chosen weekdays between a start and end time, such as evenings and weekends. Any slot no Price Rule covers costs the resource's default price.
 _Avoid_: Rate, tariff, peak pricing
 
+**Closed Date**:
+A date when a whole venue is closed, such as a public holiday, so none of its resources can be booked that day. It can carry a short reason customers see, like "Vesak Poya".
+_Avoid_: Holiday, closure, day off
+
 **Blocked Time**:
-A time window when staff have stopped one resource from being booked, such as for maintenance or a private event. A whole venue closing for a day is a closed date, not Blocked Time.
+A time window when staff have stopped one resource from being booked, such as for maintenance or a private event. A whole venue closing for a day is a Closed Date, not Blocked Time.
 _Avoid_: Block, closure, maintenance window
 
 **Booking**:

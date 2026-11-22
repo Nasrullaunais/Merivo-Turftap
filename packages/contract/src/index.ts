@@ -1,3 +1,4 @@
+export * from "./closed-dates";
 export * from "./common";
 export * from "./me";
 export * from "./permissions";

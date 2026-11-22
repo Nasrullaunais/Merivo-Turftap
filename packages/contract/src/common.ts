@@ -16,6 +16,9 @@ export const Timestamp = z.codec(z.iso.datetime(), z.date(), {
 /** A wall-clock time in the venue's time zone, such as "18:30". "24:00" means midnight at day end. */
 export const LocalTime = z.string().regex(/^(([01]\d|2[0-3]):[0-5]\d|24:00)$/, "Must be HH:MM");
 
+/** A calendar date in the venue's time zone, such as "2026-12-25". */
+export const LocalDate = z.iso.date();
+
 export const Currency = z.enum(["LKR"]);
 const CENTS_PER_RUPEE = 100;
 
