@@ -1,4 +1,4 @@
-import type { CreateResource, CreateVenue } from "@turftap/contract";
+import type { CreatePriceRule, CreateResource, CreateVenue } from "@turftap/contract";
 
 import { fakeTokenFor } from "../adapters/auth-provider/fake/fake-auth-provider";
 import { createApp } from "../app";
@@ -60,6 +60,19 @@ export const resourceInput = (
   name: `Court ${crypto.randomUUID().slice(0, 6)}`,
   type: "FUTSAL_COURT",
   slotMinutes: 60,
+  price: { amount: 250_000, currency: "LKR" },
+  ...overrides,
+});
+
+export const priceRuleInput = (
+  resourceId: number,
+  overrides: Partial<CreatePriceRule> = {},
+): CreatePriceRule => ({
+  resourceId,
+  weekdays: [6, 7],
+  startTime: "18:00",
+  endTime: "22:00",
+  price: { amount: 400_000, currency: "LKR" },
   ...overrides,
 });
 

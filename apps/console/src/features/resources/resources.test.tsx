@@ -41,10 +41,18 @@ const court = {
   name: "Court 1",
   type: "FUTSAL_COURT",
   slotMinutes: 60,
+  price: { amount: 450_000, currency: "LKR" },
   active: true,
   ...times,
 };
-const table = { ...court, id: 12, name: "Pool Table 3", type: "POOL_TABLE", slotMinutes: 30 };
+const table = {
+  ...court,
+  id: 12,
+  name: "Pool Table 3",
+  type: "POOL_TABLE",
+  slotMinutes: 30,
+  price: { amount: 60_000, currency: "LKR" },
+};
 
 describe("VEN-04 add resources to a venue", () => {
   it("venueName_opensItsResources", async () => {
@@ -59,7 +67,9 @@ describe("VEN-04 add resources to a venue", () => {
     fireEvent.click(await screen.findByRole("link", { name: "City Arena" }));
     expect(await screen.findByRole("heading", { name: "City Arena" })).toBeInTheDocument();
     expect(await screen.findByText("Court 1")).toBeInTheDocument();
-    expect(screen.getByText("Futsal court · 60 min slots")).toBeInTheDocument();
+    expect(
+      screen.getByText("Futsal court · 60 min slots · LKR 4,500 per slot"),
+    ).toBeInTheDocument();
   });
 
   it("manager_addsAPoolTableWithHalfHourSlots", async () => {
@@ -81,11 +91,18 @@ describe("VEN-04 add resources to a venue", () => {
     fireEvent.change(screen.getByLabelText(/^Name/), { target: { value: "Pool Table 3" } });
     fireEvent.click(screen.getByRole("radio", { name: "Pool table" }));
     fireEvent.change(screen.getByLabelText(/^Slot length/), { target: { value: "30" } });
+    fireEvent.change(screen.getByLabelText(/^Price per slot/), { target: { value: "600" } });
     fireEvent.click(screen.getByRole("button", { name: "Add resource" }));
 
     expect(await screen.findByText("Pool Table 3")).toBeInTheDocument();
     expect(sent).toEqual([
-      { venueId: 3, name: "Pool Table 3", type: "POOL_TABLE", slotMinutes: 30 },
+      {
+        venueId: 3,
+        name: "Pool Table 3",
+        type: "POOL_TABLE",
+        slotMinutes: 30,
+        price: { amount: 60_000, currency: "LKR" },
+      },
     ]);
     const listed = fetch.mock.calls
       .map(([request]) => new URL((request as Request).url))
@@ -122,6 +139,7 @@ describe("VEN-04 add resources to a venue", () => {
     renderApp("/venues/3");
     await screen.findByText("Court 1");
     fireEvent.change(screen.getByLabelText(/^Name/), { target: { value: "court 1" } });
+    fireEvent.change(screen.getByLabelText(/^Price per slot/), { target: { value: "4500" } });
     fireEvent.click(screen.getByRole("button", { name: "Add resource" }));
     expect(
       await screen.findByText("Another resource at this venue already has this name"),

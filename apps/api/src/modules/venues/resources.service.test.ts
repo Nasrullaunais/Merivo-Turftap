@@ -25,6 +25,7 @@ describe("VEN-04 resources", () => {
       name: "Pool Table 3",
       type: "POOL_TABLE",
       slotMinutes: 30,
+      price: { amount: 250_000, currency: "LKR" },
       active: true,
     });
   });
@@ -78,6 +79,16 @@ describe("VEN-04 resources", () => {
       page: FIRST_PAGE,
     });
     expect(page.content.map((row) => row.id)).toEqual([there.id]);
+  });
+
+  it("update_changesTheDefaultPrice", async () => {
+    const resource = await resourcesService.create(tenant.manager.auth, resourceInput(venueId));
+    const changed = await resourcesService.update(tenant.manager.auth, resource.id, {
+      price: { amount: 300_000, currency: "LKR" },
+    });
+    expect(changed.price).toEqual({ amount: 300_000, currency: "LKR" });
+    const saved = await resourcesService.get(tenant.publicAuth, resource.id);
+    expect(saved).toMatchObject({ price: { amount: 300_000, currency: "LKR" }, slotMinutes: 60 });
   });
 
   it("update_changesTheSlotLength", async () => {

@@ -16,6 +16,7 @@ import { Route as SignedInChooseTenantRouteImport } from './routes/_signedIn/cho
 import { Route as SignedInNoAccessRouteImport } from './routes/_signedIn/no-access'
 import { Route as SignedInTenantIndexRouteImport } from './routes/_signedIn/_tenant/index'
 import { Route as SignedInTenantStaffRouteImport } from './routes/_signedIn/_tenant/staff'
+import { Route as SignedInTenantResourcesResourceIdRouteImport } from './routes/_signedIn/_tenant/resources/$resourceId'
 import { Route as SignedInTenantVenuesIndexRouteImport } from './routes/_signedIn/_tenant/venues/index'
 import { Route as SignedInTenantVenuesVenueIdRouteImport } from './routes/_signedIn/_tenant/venues/$venueId'
 
@@ -52,6 +53,12 @@ const SignedInTenantStaffRoute = SignedInTenantStaffRouteImport.update({
   path: '/staff',
   getParentRoute: () => SignedInTenantRoute,
 } as any)
+const SignedInTenantResourcesResourceIdRoute =
+  SignedInTenantResourcesResourceIdRouteImport.update({
+    id: '/resources/$resourceId',
+    path: '/resources/$resourceId',
+    getParentRoute: () => SignedInTenantRoute,
+  } as any)
 const SignedInTenantVenuesIndexRoute =
   SignedInTenantVenuesIndexRouteImport.update({
     id: '/venues/',
@@ -71,6 +78,7 @@ export interface FileRoutesByFullPath {
   '/choose-tenant': typeof SignedInChooseTenantRoute
   '/no-access': typeof SignedInNoAccessRoute
   '/staff': typeof SignedInTenantStaffRoute
+  '/resources/$resourceId': typeof SignedInTenantResourcesResourceIdRoute
   '/venues/$venueId': typeof SignedInTenantVenuesVenueIdRoute
   '/venues/': typeof SignedInTenantVenuesIndexRoute
 }
@@ -80,6 +88,7 @@ export interface FileRoutesByTo {
   '/choose-tenant': typeof SignedInChooseTenantRoute
   '/no-access': typeof SignedInNoAccessRoute
   '/staff': typeof SignedInTenantStaffRoute
+  '/resources/$resourceId': typeof SignedInTenantResourcesResourceIdRoute
   '/venues/$venueId': typeof SignedInTenantVenuesVenueIdRoute
   '/venues': typeof SignedInTenantVenuesIndexRoute
 }
@@ -92,6 +101,7 @@ export interface FileRoutesById {
   '/_signedIn/no-access': typeof SignedInNoAccessRoute
   '/_signedIn/_tenant/staff': typeof SignedInTenantStaffRoute
   '/_signedIn/_tenant/': typeof SignedInTenantIndexRoute
+  '/_signedIn/_tenant/resources/$resourceId': typeof SignedInTenantResourcesResourceIdRoute
   '/_signedIn/_tenant/venues/$venueId': typeof SignedInTenantVenuesVenueIdRoute
   '/_signedIn/_tenant/venues/': typeof SignedInTenantVenuesIndexRoute
 }
@@ -103,6 +113,7 @@ export interface FileRouteTypes {
     | '/choose-tenant'
     | '/no-access'
     | '/staff'
+    | '/resources/$resourceId'
     | '/venues/$venueId'
     | '/venues/'
   fileRoutesByTo: FileRoutesByTo
@@ -112,6 +123,7 @@ export interface FileRouteTypes {
     | '/choose-tenant'
     | '/no-access'
     | '/staff'
+    | '/resources/$resourceId'
     | '/venues/$venueId'
     | '/venues'
   id:
@@ -123,6 +135,7 @@ export interface FileRouteTypes {
     | '/_signedIn/no-access'
     | '/_signedIn/_tenant/staff'
     | '/_signedIn/_tenant/'
+    | '/_signedIn/_tenant/resources/$resourceId'
     | '/_signedIn/_tenant/venues/$venueId'
     | '/_signedIn/_tenant/venues/'
   fileRoutesById: FileRoutesById
@@ -183,6 +196,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SignedInTenantStaffRouteImport
       parentRoute: typeof SignedInTenantRoute
     }
+    '/_signedIn/_tenant/resources/$resourceId': {
+      id: '/_signedIn/_tenant/resources/$resourceId'
+      path: '/resources/$resourceId'
+      fullPath: '/resources/$resourceId'
+      preLoaderRoute: typeof SignedInTenantResourcesResourceIdRouteImport
+      parentRoute: typeof SignedInTenantRoute
+    }
     '/_signedIn/_tenant/venues/': {
       id: '/_signedIn/_tenant/venues/'
       path: '/venues'
@@ -203,6 +223,7 @@ declare module '@tanstack/react-router' {
 interface SignedInTenantRouteChildren {
   SignedInTenantStaffRoute: typeof SignedInTenantStaffRoute
   SignedInTenantIndexRoute: typeof SignedInTenantIndexRoute
+  SignedInTenantResourcesResourceIdRoute: typeof SignedInTenantResourcesResourceIdRoute
   SignedInTenantVenuesVenueIdRoute: typeof SignedInTenantVenuesVenueIdRoute
   SignedInTenantVenuesIndexRoute: typeof SignedInTenantVenuesIndexRoute
 }
@@ -210,6 +231,8 @@ interface SignedInTenantRouteChildren {
 const SignedInTenantRouteChildren: SignedInTenantRouteChildren = {
   SignedInTenantStaffRoute: SignedInTenantStaffRoute,
   SignedInTenantIndexRoute: SignedInTenantIndexRoute,
+  SignedInTenantResourcesResourceIdRoute:
+    SignedInTenantResourcesResourceIdRoute,
   SignedInTenantVenuesVenueIdRoute: SignedInTenantVenuesVenueIdRoute,
   SignedInTenantVenuesIndexRoute: SignedInTenantVenuesIndexRoute,
 }

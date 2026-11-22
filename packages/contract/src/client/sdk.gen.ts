@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { CreateResourceData, CreateResourceErrors, CreateResourceResponses, CreateStaffData, CreateStaffErrors, CreateStaffResponses, CreateVenueData, CreateVenueErrors, CreateVenueResponses, DeleteResourceData, DeleteResourceErrors, DeleteResourceResponses, DeleteStaffData, DeleteStaffErrors, DeleteStaffResponses, DeleteVenueData, DeleteVenueErrors, DeleteVenueResponses, GetMeData, GetMeErrors, GetMeResponses, GetResourceData, GetResourceErrors, GetResourceResponses, GetStaffData, GetStaffErrors, GetStaffResponses, GetVenueData, GetVenueErrors, GetVenueResponses, ListResourcesData, ListResourcesErrors, ListResourcesResponses, ListStaffData, ListStaffErrors, ListStaffResponses, ListVenuesData, ListVenuesErrors, ListVenuesResponses, UpdateResourceData, UpdateResourceErrors, UpdateResourceResponses, UpdateStaffData, UpdateStaffErrors, UpdateStaffResponses, UpdateVenueData, UpdateVenueErrors, UpdateVenueResponses } from './types.gen';
+import type { CreatePriceRuleData, CreatePriceRuleErrors, CreatePriceRuleResponses, CreateResourceData, CreateResourceErrors, CreateResourceResponses, CreateStaffData, CreateStaffErrors, CreateStaffResponses, CreateVenueData, CreateVenueErrors, CreateVenueResponses, DeletePriceRuleData, DeletePriceRuleErrors, DeletePriceRuleResponses, DeleteResourceData, DeleteResourceErrors, DeleteResourceResponses, DeleteStaffData, DeleteStaffErrors, DeleteStaffResponses, DeleteVenueData, DeleteVenueErrors, DeleteVenueResponses, GetMeData, GetMeErrors, GetMeResponses, GetPriceRuleData, GetPriceRuleErrors, GetPriceRuleResponses, GetResourceData, GetResourceErrors, GetResourceResponses, GetStaffData, GetStaffErrors, GetStaffResponses, GetVenueData, GetVenueErrors, GetVenueResponses, ListPriceRulesData, ListPriceRulesErrors, ListPriceRulesResponses, ListResourcesData, ListResourcesErrors, ListResourcesResponses, ListStaffData, ListStaffErrors, ListStaffResponses, ListVenuesData, ListVenuesErrors, ListVenuesResponses, UpdatePriceRuleData, UpdatePriceRuleErrors, UpdatePriceRuleResponses, UpdateResourceData, UpdateResourceErrors, UpdateResourceResponses, UpdateStaffData, UpdateStaffErrors, UpdateStaffResponses, UpdateVenueData, UpdateVenueErrors, UpdateVenueResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -131,6 +131,44 @@ export const getResource = <ThrowOnError extends boolean = true>(options: Option
 export const updateResource = <ThrowOnError extends boolean = true>(options: Options<UpdateResourceData, ThrowOnError>): RequestResult<UpdateResourceResponses, UpdateResourceErrors, ThrowOnError> => (options.client ?? client).patch<UpdateResourceResponses, UpdateResourceErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/v1/resources/{id}',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+export const listPriceRules = <ThrowOnError extends boolean = true>(options?: Options<ListPriceRulesData, ThrowOnError>): RequestResult<ListPriceRulesResponses, ListPriceRulesErrors, ThrowOnError> => (options?.client ?? client).get<ListPriceRulesResponses, ListPriceRulesErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/v1/price-rules',
+    ...options
+});
+
+export const createPriceRule = <ThrowOnError extends boolean = true>(options: Options<CreatePriceRuleData, ThrowOnError>): RequestResult<CreatePriceRuleResponses, CreatePriceRuleErrors, ThrowOnError> => (options.client ?? client).post<CreatePriceRuleResponses, CreatePriceRuleErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/v1/price-rules',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+export const deletePriceRule = <ThrowOnError extends boolean = true>(options: Options<DeletePriceRuleData, ThrowOnError>): RequestResult<DeletePriceRuleResponses, DeletePriceRuleErrors, ThrowOnError> => (options.client ?? client).delete<DeletePriceRuleResponses, DeletePriceRuleErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/v1/price-rules/{id}',
+    ...options
+});
+
+export const getPriceRule = <ThrowOnError extends boolean = true>(options: Options<GetPriceRuleData, ThrowOnError>): RequestResult<GetPriceRuleResponses, GetPriceRuleErrors, ThrowOnError> => (options.client ?? client).get<GetPriceRuleResponses, GetPriceRuleErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/v1/price-rules/{id}',
+    ...options
+});
+
+export const updatePriceRule = <ThrowOnError extends boolean = true>(options: Options<UpdatePriceRuleData, ThrowOnError>): RequestResult<UpdatePriceRuleResponses, UpdatePriceRuleErrors, ThrowOnError> => (options.client ?? client).patch<UpdatePriceRuleResponses, UpdatePriceRuleErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/v1/price-rules/{id}',
     ...options,
     headers: {
         'Content-Type': 'application/json',

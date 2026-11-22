@@ -2,7 +2,9 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   createResourceMutation,
   deleteResourceMutation,
+  getResourceQueryKey,
   listResourcesQueryKey,
+  updateResourceMutation,
 } from "@turftap/contract/client/react-query";
 
 function useReloadList() {
@@ -16,4 +18,16 @@ export function useAddResource() {
 
 export function useTurnOffResource() {
   return useMutation({ ...deleteResourceMutation(), onSuccess: useReloadList() });
+}
+
+export function useChangeResource(id: number) {
+  const queryClient = useQueryClient();
+  const reloadList = useReloadList();
+  return useMutation({
+    ...updateResourceMutation(),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: getResourceQueryKey({ path: { id } }) });
+      await reloadList();
+    },
+  });
 }

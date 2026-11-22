@@ -17,11 +17,17 @@ export const Timestamp = z.codec(z.iso.datetime(), z.date(), {
 export const LocalTime = z.string().regex(/^(([01]\d|2[0-3]):[0-5]\d|24:00)$/, "Must be HH:MM");
 
 export const Currency = z.enum(["LKR"]);
+const CENTS_PER_RUPEE = 100;
 
 /** Money is a whole number of cents: `{ amount: 250000, currency: "LKR" }` is LKR 2,500. */
 export const Money = z
   .object({ amount: z.number().int(), currency: Currency })
   .meta({ id: "Money" });
+
+/** A price staff set, such as a resource's price per slot: above zero and in whole rupees. */
+export const PriceInput = Money.extend({
+  amount: z.number().int().positive().multipleOf(CENTS_PER_RUPEE, "Must be whole rupees"),
+}).meta({ id: "PriceInput" });
 
 /** A phone number as stored: `+94771234567`. */
 export const PhoneNumber = z.string().regex(/^\+[1-9]\d{6,14}$/, "Must look like +94771234567");
@@ -36,6 +42,9 @@ export const PhoneInput = z.string().transform((text, ctx) => {
 
 /** A yes/no list filter. Query strings only carry text, so it travels as "true" or "false". */
 export const QueryBoolean = z.enum(["true", "false"]).transform((text) => text === "true");
+
+export type Currency = z.output<typeof Currency>;
+export type Money = z.output<typeof Money>;
 
 export type Page<T> = {
   content: T[];

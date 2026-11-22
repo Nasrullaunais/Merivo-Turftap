@@ -2,16 +2,19 @@ import type { CreateResource, UpdateResource } from "@turftap/contract";
 import { and, eq, type SQL, sql } from "drizzle-orm";
 
 import { db, pageOf, type PageRequest, sortBy } from "../../lib/db";
-import { resources } from "./venues.tables";
+import { priceFields, priceOf } from "../../lib/db/columns";
+import { type ResourceRow, resources } from "./venues.tables";
 
 const SORTABLE = { name: sql`lower(${resources.name})`, createdAt: resources.createdAt };
+
+const toResource = (row: ResourceRow) => ({ ...row, price: priceOf(row) });
 
 const ownedBy = (tenantId: number, id: number) =>
   and(eq(resources.tenantId, tenantId), eq(resources.id, id));
 
 export async function findById(tenantId: number, id: number) {
   const [resource] = await db().select().from(resources).where(ownedBy(tenantId, id));
-  return resource;
+  return resource && toResource(resource);
 }
 
 export function list(
@@ -31,26 +34,27 @@ export function list(
       .where(where)
       .orderBy(...sortBy(page, SORTABLE, resources.id))
       .limit(page.size)
-      .offset(page.page * page.size),
+      .offset(page.page * page.size)
+      .then((rows) => rows.map(toResource)),
     db().$count(resources, where),
   );
 }
 
-export async function insert(tenantId: number, values: CreateResource) {
+export async function insert(tenantId: number, { price, ...values }: CreateResource) {
   const [resource] = await db()
     .insert(resources)
-    .values({ ...values, tenantId })
+    .values({ ...values, ...priceFields(price), tenantId })
     .returning();
-  return resource!;
+  return toResource(resource!);
 }
 
-export async function update(tenantId: number, id: number, values: UpdateResource) {
+export async function update(tenantId: number, id: number, { price, ...values }: UpdateResource) {
   const [resource] = await db()
     .update(resources)
-    .set(values)
+    .set({ ...values, ...(price && priceFields(price)) })
     .where(ownedBy(tenantId, id))
     .returning();
-  return resource;
+  return resource && toResource(resource);
 }
 
 /** Turns the resource off instead of deleting it, so its past bookings stay. */

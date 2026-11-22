@@ -115,7 +115,7 @@ Every reply uses one envelope:
 - **Lists:** `?page=0&size=20&sort=startsAt,asc`. `size` is at most 100. The `data` is `{ content, page, size, totalElements, totalPages }`.
 - **Filters:** only the named filters a resource declares in its Zod `filters` schema. There is no generic filter language.
 - **PATCH:** a field left out means "leave it". `null` means "clear it". There is a test for clearing a field.
-- **Server-owned fields** never appear in create or update schemas: `id`, `tenantId`, `status` on create, prices, `createdBy`, and payment results.
+- **Server-owned fields** never appear in create or update schemas: `id`, `tenantId`, `status` on create, a booking's price, `createdBy`, and payment results. Prices staff set, like a resource's default price, are normal fields.
 - **Times** are ISO strings in UTC with `Z` (`2026-12-01T13:30:00Z`). Screens convert to the venue's time zone.
 - **Money** is a whole number of cents plus a currency: `{ "amount": 250000, "currency": "LKR" }` is LKR 2,500.
 

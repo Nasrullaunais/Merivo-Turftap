@@ -12,7 +12,7 @@ import {
   uniqueIndex,
 } from "drizzle-orm/pg-core";
 
-import { idColumn, timestampColumns } from "../../lib/db/columns";
+import { idColumn, priceColumns, timestampColumns } from "../../lib/db/columns";
 import { tenantIdColumn } from "../platform/platform.tables";
 
 export const DEFAULT_TIME_ZONE = "Asia/Colombo";
@@ -54,6 +54,7 @@ export const resources = pgTable(
     name: text("name").notNull(),
     type: resourceType("type").notNull(),
     slotMinutes: integer("slot_minutes").notNull(),
+    ...priceColumns(),
     active: boolean("active").notNull().default(true),
     ...timestampColumns(),
   },
@@ -67,3 +68,26 @@ export const resources = pgTable(
 );
 
 export type ResourceRow = typeof resources.$inferSelect;
+
+/** A rule may not overlap another for the same resource; see migration 0004_price_rules_no_overlap. */
+export const priceRules = pgTable(
+  "price_rules",
+  {
+    id: idColumn(),
+    tenantId: tenantIdColumn(),
+    resourceId: bigint("resource_id", { mode: "number" })
+      .notNull()
+      .references(() => resources.id),
+    weekdays: integer("weekdays").array().notNull(),
+    startMinute: integer("start_minute").notNull(),
+    endMinute: integer("end_minute").notNull(),
+    ...priceColumns(),
+    ...timestampColumns(),
+  },
+  (table) => [
+    index("price_rules_tenant_idx").on(table.tenantId),
+    index("price_rules_resource_idx").on(table.resourceId),
+  ],
+);
+
+export type PriceRuleRow = typeof priceRules.$inferSelect;

@@ -22,6 +22,20 @@
       "when": 1795337177613,
       "tag": "0002_resources",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1795341168789,
+      "tag": "0003_prices",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1795341169163,
+      "tag": "0004_price_rules_no_overlap",
+      "breakpoints": true
     }
   ]
 }

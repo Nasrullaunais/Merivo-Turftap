@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { Id, QueryBoolean, Timestamp } from "./common";
+import { Id, Money, PriceInput, QueryBoolean, Timestamp } from "./common";
 
 const MAX_NAME_LENGTH = 80;
 const SLOT_STEP_MINUTES = 15;
@@ -23,6 +23,7 @@ export const Resource = z
     name: z.string(),
     type: ResourceType,
     slotMinutes: z.number().int(),
+    price: Money,
     active: z.boolean(),
     createdAt: Timestamp,
     updatedAt: Timestamp,
@@ -33,6 +34,7 @@ const resourceFields = {
   name: z.string().trim().min(1).max(MAX_NAME_LENGTH),
   type: ResourceType,
   slotMinutes: SlotMinutes,
+  price: PriceInput,
 };
 
 export const CreateResource = z

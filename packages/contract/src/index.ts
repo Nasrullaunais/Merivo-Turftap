@@ -1,6 +1,7 @@
 export * from "./common";
 export * from "./me";
 export * from "./permissions";
+export * from "./price-rules";
 export * from "./resources";
 export * from "./staff";
 export * from "./venues";

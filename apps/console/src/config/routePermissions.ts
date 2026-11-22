@@ -7,6 +7,7 @@ const ROUTE_PERMISSIONS = {
   "/staff": "staff:read",
   "/venues": "venues:read",
   "/venues/$venueId": "resources:read",
+  "/resources/$resourceId": "resources:read",
 } as const satisfies Record<string, Permission>;
 
 export type GuardedRoute = keyof typeof ROUTE_PERMISSIONS;

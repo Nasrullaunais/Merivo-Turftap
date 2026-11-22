@@ -29,7 +29,8 @@ export const UpdateVenue = z.object(venueFields).partial().meta({ id: "UpdateVen
 - **Create** and **update** schemas may clean input: `PhoneInput` turns "077 123 4567" into `+94771234567`.
 - **Update** schemas are built from the plain fields, never from the create schema, so a field with a create default isn't reset when a PATCH leaves it out.
 - Shared pieces live in `common.ts`: `Id`, `Timestamp` (ISO text with `Z` on the wire, `Date` in code), `Money`, `PhoneNumber`, `PhoneInput`, `LocalTime`, `QueryBoolean`.
-- Server-owned fields (`id`, `tenantId`, `status` on create, prices, payment results) never appear in create or update schemas.
+- Server-owned fields (`id`, `tenantId`, `status` on create, a booking's price, payment results) never appear in create or update schemas.
+- Prices staff type in use `PriceInput` (whole rupees above zero). Tables store them with `priceColumns()` from `lib/db/columns.ts`, and the repository turns the two columns back into `Money` with `priceOf()`.
 
 ## Routes: `defineResource()`
 
@@ -80,6 +81,7 @@ export async function findById(tenantId: number, id: number) {
 - Use `db()`, never a connection passed in: it is the open transaction if there is one.
 - "Find" functions return `undefined` when nothing matches. The service decides that this is a 404.
 - Lists use `pageOf()` and `sortBy()` from `lib/db`. Sort text columns by `sql\`lower(column)\`` so names sort the way people expect.
+- Rules about overlapping times live in the database as an `EXCLUDE` constraint, written by hand ([ADR 0009](../adr/0009-drizzle-migrations.md)). `price_rules_no_overlap` is the working example; it uses the `btree_gist` and `intarray` Postgres extensions. To name the row that clashes, the service looks for it first, and the constraint still catches two saves at the same moment.
 - State changes are one conditional UPDATE: `.where(and(ownedBy(tenantId, id), eq(bookings.status, expected)))`. No row back means someone else got there first: throw `statusChangedMeanwhile()`.
 
 ## Errors

@@ -9,6 +9,11 @@ export type Money = {
     currency: 'LKR';
 };
 
+export type PriceInput = {
+    amount: number;
+    currency: 'LKR';
+};
+
 export type FieldError = {
     field: string;
     message: string;
@@ -37,7 +42,11 @@ export const Permission = {
     RESOURCES_READ: 'resources:read',
     RESOURCES_CREATE: 'resources:create',
     RESOURCES_UPDATE: 'resources:update',
-    RESOURCES_DELETE: 'resources:delete'
+    RESOURCES_DELETE: 'resources:delete',
+    PRICE_RULES_READ: 'price-rules:read',
+    PRICE_RULES_CREATE: 'price-rules:create',
+    PRICE_RULES_UPDATE: 'price-rules:update',
+    PRICE_RULES_DELETE: 'price-rules:delete'
 } as const;
 
 export type Permission = typeof Permission[keyof typeof Permission];
@@ -84,38 +93,6 @@ export type Me = {
     tenants: Array<MyTenant>;
 };
 
-export const ResourceType = {
-    FUTSAL_COURT: 'FUTSAL_COURT',
-    TABLE_TENNIS_TABLE: 'TABLE_TENNIS_TABLE',
-    POOL_TABLE: 'POOL_TABLE'
-} as const;
-
-export type ResourceType = typeof ResourceType[keyof typeof ResourceType];
-
-export type Resource = {
-    id: number;
-    venueId: number;
-    name: string;
-    type: ResourceType;
-    slotMinutes: number;
-    active: boolean;
-    createdAt: string;
-    updatedAt: string;
-};
-
-export type CreateResource = {
-    venueId: number;
-    name: string;
-    type: ResourceType;
-    slotMinutes: number;
-};
-
-export type UpdateResource = {
-    name?: string;
-    type?: ResourceType;
-    slotMinutes?: number;
-};
-
 /**
  * A weekday that is not listed is closed.
  */
@@ -152,6 +129,67 @@ export type UpdateVenue = {
     address?: string;
     phone?: string;
     openingHours?: Array<OpeningHours>;
+};
+
+export type PriceRule = {
+    id: number;
+    resourceId: number;
+    weekdays: Array<number>;
+    startTime: string;
+    endTime: string;
+    price: Money;
+    createdAt: string;
+    updatedAt: string;
+};
+
+export type CreatePriceRule = {
+    resourceId: number;
+    weekdays: Array<number>;
+    startTime: string;
+    endTime: string;
+    price: PriceInput;
+};
+
+export type UpdatePriceRule = {
+    weekdays?: Array<number>;
+    startTime?: string;
+    endTime?: string;
+    price?: PriceInput;
+};
+
+export const ResourceType = {
+    FUTSAL_COURT: 'FUTSAL_COURT',
+    TABLE_TENNIS_TABLE: 'TABLE_TENNIS_TABLE',
+    POOL_TABLE: 'POOL_TABLE'
+} as const;
+
+export type ResourceType = typeof ResourceType[keyof typeof ResourceType];
+
+export type Resource = {
+    id: number;
+    venueId: number;
+    name: string;
+    type: ResourceType;
+    slotMinutes: number;
+    price: Money;
+    active: boolean;
+    createdAt: string;
+    updatedAt: string;
+};
+
+export type CreateResource = {
+    venueId: number;
+    name: string;
+    type: ResourceType;
+    slotMinutes: number;
+    price: PriceInput;
+};
+
+export type UpdateResource = {
+    name?: string;
+    type?: ResourceType;
+    slotMinutes?: number;
+    price?: PriceInput;
 };
 
 export type GetMeData = {
@@ -668,3 +706,165 @@ export type UpdateResourceResponses = {
 };
 
 export type UpdateResourceResponse = UpdateResourceResponses[keyof UpdateResourceResponses];
+
+export type ListPriceRulesData = {
+    body?: never;
+    path?: never;
+    query?: {
+        page?: number;
+        size?: number;
+        sort?: 'startTime,asc' | 'startTime,desc' | 'createdAt,asc' | 'createdAt,desc';
+        resourceId?: number;
+    };
+    url: '/v1/price-rules';
+};
+
+export type ListPriceRulesErrors = {
+    /**
+     * Error
+     */
+    default: ErrorReply;
+};
+
+export type ListPriceRulesError = ListPriceRulesErrors[keyof ListPriceRulesErrors];
+
+export type ListPriceRulesResponses = {
+    /**
+     * One page
+     */
+    200: {
+        status: number;
+        message: string;
+        data: {
+            content: Array<PriceRule>;
+            page: number;
+            size: number;
+            totalElements: number;
+            totalPages: number;
+        };
+    };
+};
+
+export type ListPriceRulesResponse = ListPriceRulesResponses[keyof ListPriceRulesResponses];
+
+export type CreatePriceRuleData = {
+    body: CreatePriceRule;
+    path?: never;
+    query?: never;
+    url: '/v1/price-rules';
+};
+
+export type CreatePriceRuleErrors = {
+    /**
+     * Error
+     */
+    default: ErrorReply;
+};
+
+export type CreatePriceRuleError = CreatePriceRuleErrors[keyof CreatePriceRuleErrors];
+
+export type CreatePriceRuleResponses = {
+    /**
+     * Created
+     */
+    201: {
+        status: number;
+        message: string;
+        data: PriceRule;
+    };
+};
+
+export type CreatePriceRuleResponse = CreatePriceRuleResponses[keyof CreatePriceRuleResponses];
+
+export type DeletePriceRuleData = {
+    body?: never;
+    path: {
+        id: number;
+    };
+    query?: never;
+    url: '/v1/price-rules/{id}';
+};
+
+export type DeletePriceRuleErrors = {
+    /**
+     * Error
+     */
+    default: ErrorReply;
+};
+
+export type DeletePriceRuleError = DeletePriceRuleErrors[keyof DeletePriceRuleErrors];
+
+export type DeletePriceRuleResponses = {
+    /**
+     * Deleted
+     */
+    200: {
+        status: number;
+        message: string;
+        data: null;
+    };
+};
+
+export type DeletePriceRuleResponse = DeletePriceRuleResponses[keyof DeletePriceRuleResponses];
+
+export type GetPriceRuleData = {
+    body?: never;
+    path: {
+        id: number;
+    };
+    query?: never;
+    url: '/v1/price-rules/{id}';
+};
+
+export type GetPriceRuleErrors = {
+    /**
+     * Error
+     */
+    default: ErrorReply;
+};
+
+export type GetPriceRuleError = GetPriceRuleErrors[keyof GetPriceRuleErrors];
+
+export type GetPriceRuleResponses = {
+    /**
+     * Found
+     */
+    200: {
+        status: number;
+        message: string;
+        data: PriceRule;
+    };
+};
+
+export type GetPriceRuleResponse = GetPriceRuleResponses[keyof GetPriceRuleResponses];
+
+export type UpdatePriceRuleData = {
+    body: UpdatePriceRule;
+    path: {
+        id: number;
+    };
+    query?: never;
+    url: '/v1/price-rules/{id}';
+};
+
+export type UpdatePriceRuleErrors = {
+    /**
+     * Error
+     */
+    default: ErrorReply;
+};
+
+export type UpdatePriceRuleError = UpdatePriceRuleErrors[keyof UpdatePriceRuleErrors];
+
+export type UpdatePriceRuleResponses = {
+    /**
+     * Changed
+     */
+    200: {
+        status: number;
+        message: string;
+        data: PriceRule;
+    };
+};
+
+export type UpdatePriceRuleResponse = UpdatePriceRuleResponses[keyof UpdatePriceRuleResponses];

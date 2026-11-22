@@ -3,8 +3,8 @@
 import { type InfiniteData, infiniteQueryOptions, queryOptions, type UseMutationOptions } from '@tanstack/react-query';
 
 import { client } from '../client.gen';
-import { createResource, createStaff, createVenue, deleteResource, deleteStaff, deleteVenue, getMe, getResource, getStaff, getVenue, listResources, listStaff, listVenues, type Options, updateResource, updateStaff, updateVenue } from '../sdk.gen';
-import type { CreateResourceData, CreateResourceError, CreateResourceResponse, CreateStaffData, CreateStaffError, CreateStaffResponse, CreateVenueData, CreateVenueError, CreateVenueResponse, DeleteResourceData, DeleteResourceError, DeleteResourceResponse, DeleteStaffData, DeleteStaffError, DeleteStaffResponse, DeleteVenueData, DeleteVenueError, DeleteVenueResponse, GetMeData, GetMeError, GetMeResponse, GetResourceData, GetResourceError, GetResourceResponse, GetStaffData, GetStaffError, GetStaffResponse, GetVenueData, GetVenueError, GetVenueResponse, ListResourcesData, ListResourcesError, ListResourcesResponse, ListStaffData, ListStaffError, ListStaffResponse, ListVenuesData, ListVenuesError, ListVenuesResponse, UpdateResourceData, UpdateResourceError, UpdateResourceResponse, UpdateStaffData, UpdateStaffError, UpdateStaffResponse, UpdateVenueData, UpdateVenueError, UpdateVenueResponse } from '../types.gen';
+import { createPriceRule, createResource, createStaff, createVenue, deletePriceRule, deleteResource, deleteStaff, deleteVenue, getMe, getPriceRule, getResource, getStaff, getVenue, listPriceRules, listResources, listStaff, listVenues, type Options, updatePriceRule, updateResource, updateStaff, updateVenue } from '../sdk.gen';
+import type { CreatePriceRuleData, CreatePriceRuleError, CreatePriceRuleResponse, CreateResourceData, CreateResourceError, CreateResourceResponse, CreateStaffData, CreateStaffError, CreateStaffResponse, CreateVenueData, CreateVenueError, CreateVenueResponse, DeletePriceRuleData, DeletePriceRuleError, DeletePriceRuleResponse, DeleteResourceData, DeleteResourceError, DeleteResourceResponse, DeleteStaffData, DeleteStaffError, DeleteStaffResponse, DeleteVenueData, DeleteVenueError, DeleteVenueResponse, GetMeData, GetMeError, GetMeResponse, GetPriceRuleData, GetPriceRuleError, GetPriceRuleResponse, GetResourceData, GetResourceError, GetResourceResponse, GetStaffData, GetStaffError, GetStaffResponse, GetVenueData, GetVenueError, GetVenueResponse, ListPriceRulesData, ListPriceRulesError, ListPriceRulesResponse, ListResourcesData, ListResourcesError, ListResourcesResponse, ListStaffData, ListStaffError, ListStaffResponse, ListVenuesData, ListVenuesError, ListVenuesResponse, UpdatePriceRuleData, UpdatePriceRuleError, UpdatePriceRuleResponse, UpdateResourceData, UpdateResourceError, UpdateResourceResponse, UpdateStaffData, UpdateStaffError, UpdateStaffResponse, UpdateVenueData, UpdateVenueError, UpdateVenueResponse } from '../types.gen';
 
 export type QueryKey<TOptions extends Options> = [
     Pick<TOptions, 'baseUrl' | 'body' | 'headers' | 'path' | 'query'> & {
@@ -370,6 +370,105 @@ export const updateResourceMutation = (options?: Partial<Options<UpdateResourceD
     const mutationOptions: UseMutationOptions<UpdateResourceResponse, UpdateResourceError, Options<UpdateResourceData>> = {
         mutationFn: async (fnOptions) => {
             const { data } = await updateResource({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+export const listPriceRulesQueryKey = (options?: Options<ListPriceRulesData>) => createQueryKey('listPriceRules', options);
+
+export const listPriceRulesOptions = (options?: Options<ListPriceRulesData>) => queryOptions<ListPriceRulesResponse, ListPriceRulesError, ListPriceRulesResponse, ReturnType<typeof listPriceRulesQueryKey>>({
+    queryFn: async ({ queryKey, signal }) => {
+        const { data } = await listPriceRules({
+            ...options,
+            ...queryKey[0],
+            signal,
+            throwOnError: true
+        });
+        return data;
+    },
+    queryKey: listPriceRulesQueryKey(options)
+});
+
+export const listPriceRulesInfiniteQueryKey = (options?: Options<ListPriceRulesData>): QueryKey<Options<ListPriceRulesData>> => createQueryKey('listPriceRules', options, true);
+
+export const listPriceRulesInfiniteOptions = (options?: Options<ListPriceRulesData>) => {
+    const opts = infiniteQueryOptions<ListPriceRulesResponse, ListPriceRulesError, InfiniteData<ListPriceRulesResponse>, QueryKey<Options<ListPriceRulesData>>, number | Pick<QueryKey<Options<ListPriceRulesData>>[0], 'body' | 'headers' | 'path' | 'query'>>(
+    // @ts-ignore
+    {
+        queryFn: async ({ pageParam, queryKey, signal }) => {
+            // @ts-ignore
+            const page: Pick<QueryKey<Options<ListPriceRulesData>>[0], 'body' | 'headers' | 'path' | 'query'> = typeof pageParam === 'object' ? pageParam : {
+                query: {
+                    page: pageParam
+                }
+            };
+            const params = createInfiniteParams(queryKey, page);
+            const { data } = await listPriceRules({
+                ...options,
+                ...params,
+                signal,
+                throwOnError: true
+            });
+            return data;
+        },
+        queryKey: listPriceRulesInfiniteQueryKey(options)
+    });
+    return opts as Omit<typeof opts, 'initialData'>;
+};
+
+export const createPriceRuleMutation = (options?: Partial<Options<CreatePriceRuleData>>): UseMutationOptions<CreatePriceRuleResponse, CreatePriceRuleError, Options<CreatePriceRuleData>> => {
+    const mutationOptions: UseMutationOptions<CreatePriceRuleResponse, CreatePriceRuleError, Options<CreatePriceRuleData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await createPriceRule({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+export const deletePriceRuleMutation = (options?: Partial<Options<DeletePriceRuleData>>): UseMutationOptions<DeletePriceRuleResponse, DeletePriceRuleError, Options<DeletePriceRuleData>> => {
+    const mutationOptions: UseMutationOptions<DeletePriceRuleResponse, DeletePriceRuleError, Options<DeletePriceRuleData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await deletePriceRule({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+export const getPriceRuleQueryKey = (options: Options<GetPriceRuleData>) => createQueryKey('getPriceRule', options);
+
+export const getPriceRuleOptions = (options: Options<GetPriceRuleData>) => queryOptions<GetPriceRuleResponse, GetPriceRuleError, GetPriceRuleResponse, ReturnType<typeof getPriceRuleQueryKey>>({
+    queryFn: async ({ queryKey, signal }) => {
+        const { data } = await getPriceRule({
+            ...options,
+            ...queryKey[0],
+            signal,
+            throwOnError: true
+        });
+        return data;
+    },
+    queryKey: getPriceRuleQueryKey(options)
+});
+
+export const updatePriceRuleMutation = (options?: Partial<Options<UpdatePriceRuleData>>): UseMutationOptions<UpdatePriceRuleResponse, UpdatePriceRuleError, Options<UpdatePriceRuleData>> => {
+    const mutationOptions: UseMutationOptions<UpdatePriceRuleResponse, UpdatePriceRuleError, Options<UpdatePriceRuleData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await updatePriceRule({
                 ...options,
                 ...fnOptions,
                 throwOnError: true

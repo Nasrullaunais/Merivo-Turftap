@@ -9,8 +9,10 @@ import {
   TextField,
 } from "@heroui/react";
 import { CreateResource, RESOURCE_TYPES, type ResourceType } from "@turftap/contract";
+import { lkr } from "@turftap/ui";
 import { type FormEvent, useState } from "react";
 
+import { PriceField } from "../../components/PriceField";
 import m from "../../i18n/en/resources";
 import { useAddResource } from "./useChangeResources";
 
@@ -24,12 +26,20 @@ export function AddResourceForm({ venueId }: { venueId: number }) {
   const [name, setName] = useState("");
   const [type, setType] = useState<ResourceType>(DEFAULT_TYPE);
   const [slotMinutes, setSlotMinutes] = useState(DEFAULT_SLOT_MINUTES);
+  const [rupees, setRupees] = useState("");
 
   const submit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     addResource.mutate(
-      { body: { venueId, name, type, slotMinutes: Number(slotMinutes) } },
-      { onSuccess: () => setName("") },
+      {
+        body: { venueId, name, type, slotMinutes: Number(slotMinutes), price: lkr(Number(rupees)) },
+      },
+      {
+        onSuccess: () => {
+          setName("");
+          setRupees("");
+        },
+      },
     );
   };
 
@@ -71,6 +81,7 @@ export function AddResourceForm({ venueId }: { venueId: number }) {
         <Input />
         <FieldError />
       </TextField>
+      <PriceField label={m.priceLabel} value={rupees} onChange={setRupees} />
       <Button type="submit" isPending={addResource.isPending}>
         {m.submit}
       </Button>

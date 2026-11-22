@@ -1,9 +1,14 @@
 import {
+  CreatePriceRule,
   CreateResource,
   CreateVenue,
+  PRICE_RULE_SORT_FIELDS,
+  PriceRule,
+  PriceRuleFilters,
   Resource,
   RESOURCE_SORT_FIELDS,
   ResourceFilters,
+  UpdatePriceRule,
   UpdateResource,
   UpdateVenue,
   Venue,
@@ -12,6 +17,7 @@ import {
 } from "@turftap/contract";
 
 import { defineResource } from "../../lib/resource";
+import * as priceRulesService from "./price-rules.service";
 import * as resourcesService from "./resources.service";
 import * as venuesService from "./venues.service";
 
@@ -36,4 +42,18 @@ export const resourcesResource = defineResource({
   },
   sort: { fields: RESOURCE_SORT_FIELDS, default: "name,asc" },
   service: resourcesService,
+});
+
+export const priceRulesResource = defineResource({
+  name: "price-rules",
+  operations: ["list", "get", "create", "update", "delete"],
+  public: ["list"],
+  schemas: {
+    item: PriceRule,
+    create: CreatePriceRule,
+    update: UpdatePriceRule,
+    filters: PriceRuleFilters,
+  },
+  sort: { fields: PRICE_RULE_SORT_FIELDS, default: "startTime,asc" },
+  service: priceRulesService,
 });

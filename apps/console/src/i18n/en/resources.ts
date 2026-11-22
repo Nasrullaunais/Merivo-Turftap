@@ -1,5 +1,6 @@
 export default {
   loading: "Loading resources",
+  backToVenue: "Back to the venue",
   none: "No resources yet.",
   turnedOff: "Turned off",
   types: {
@@ -7,7 +8,9 @@ export default {
     TABLE_TENNIS_TABLE: "Table tennis table",
     POOL_TABLE: "Pool table",
   },
-  details: (type: string, minutes: number) => `${type} · ${minutes} min slots`,
+  details: (type: string, minutes: number, price: string) =>
+    `${type} · ${minutes} min slots · ${price} per slot`,
+  priceLabel: "Price per slot (LKR)",
   addTitle: "Add a resource",
   nameLabel: "Name",
   typeLabel: "Type",

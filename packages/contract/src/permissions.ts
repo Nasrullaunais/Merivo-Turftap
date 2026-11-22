@@ -4,7 +4,7 @@ export const ACTIONS = ["read", "create", "update", "delete"] as const;
 export type Action = (typeof ACTIONS)[number];
 
 /** Resources whose access staff roles control. A new staff-facing resource is added here. */
-export const STAFF_RESOURCES = ["staff", "venues", "resources"] as const;
+export const STAFF_RESOURCES = ["staff", "venues", "resources", "price-rules"] as const;
 export type StaffResource = (typeof STAFF_RESOURCES)[number];
 
 export type Permission = `${StaffResource}:${Action}`;
