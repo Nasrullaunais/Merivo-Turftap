@@ -6,6 +6,7 @@ import { ClosedDateList } from "../../../../features/closed-dates/ClosedDateList
 import { CloseDateForm } from "../../../../features/closed-dates/CloseDateForm";
 import { AddResourceForm } from "../../../../features/resources/AddResourceForm";
 import { ResourceList } from "../../../../features/resources/ResourceList";
+import { PaymentSettings } from "../../../../features/venues/PaymentSettings";
 import { VenueHeading } from "../../../../features/venues/VenueHeading";
 import { can } from "../../../../lib/tenant/activeTenant";
 
@@ -31,6 +32,7 @@ function VenuePage() {
       {can(tenant, "resources:create") && <AddResourceForm venueId={venueId} />}
       <ClosedDateList venueId={venueId} canReopen={can(tenant, "closed-dates:delete")} />
       {can(tenant, "closed-dates:create") && <CloseDateForm venueId={venueId} />}
+      <PaymentSettings venueId={venueId} canChange={can(tenant, "venues:update")} />
     </main>
   );
 }

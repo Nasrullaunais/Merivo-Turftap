@@ -62,6 +62,7 @@ sequenceDiagram
 ```
 
 - **Amount due now** = the full price, or the venue's advance percentage rounded up to whole rupees. It's fixed when the booking is created.
+- **Venue settings are copied onto the booking** when it's made: the amount due, the expiry time (now + the venue's Payment Time Limit) and the Cancellation Cut-off. Changing a venue's settings later affects new bookings only (`VEN-03`).
 - **Duplicates:** each receipt stores its image hash and the reference number the AI read. A match on either one, inside the same tenant, shows a warning (`PAY-06`). It's a warning, not a block: staff decide.
 - **AI reading** never changes a status. It only fills `receiptReading` (amount, date, bank, reference, plus "matches" flags) for staff to see.
 - **Jobs are queued inside the same transaction** as the data, so a job can never run for a booking that didn't save.

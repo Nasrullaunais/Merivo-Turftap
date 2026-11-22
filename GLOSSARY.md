@@ -77,7 +77,7 @@ A set of bookings for the same resource and time each week, created together by 
 _Avoid_: Recurring booking, subscription
 
 **Cancellation Cut-off**:
-How long before a booking starts the customer can still cancel it themselves. After that, only staff can cancel.
+How long before a booking starts the customer can still cancel it themselves. After that, only staff can cancel. Each venue sets its own; the default is 6 hours.
 _Avoid_: Cancellation window, deadline
 
 **Walk-in Booking**:
@@ -123,5 +123,9 @@ Staff's decision to accept or reject a transfer receipt, helped by an AI suggest
 _Avoid_: Verification, approval
 
 **Advance**:
-The part of a booking's price a venue asks for before the booking is confirmed; the rest is paid at the venue.
+The part of a booking's price a venue asks for before the booking is confirmed; the rest is paid at the venue. Each venue sets it as a percentage; 100% means the full amount.
 _Avoid_: Deposit, down payment
+
+**Payment Time Limit**:
+How long a customer has, after booking online, to send a Transfer Receipt before the booking expires and its slots are free again. Each venue sets its own; the default is 30 minutes.
+_Avoid_: Hold time, expiry window, grace period

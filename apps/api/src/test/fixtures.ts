@@ -1,4 +1,5 @@
-import type { CreatePriceRule, CreateResource, CreateVenue } from "@turftap/contract";
+import { type CreatePriceRule, type CreateResource, CreateVenue } from "@turftap/contract";
+import type { z } from "zod";
 
 import { fakeTokenFor } from "../adapters/auth-provider/fake/fake-auth-provider";
 import { createApp } from "../app";
@@ -48,14 +49,15 @@ export async function createTenant() {
 
 export type TestTenant = Awaited<ReturnType<typeof createTenant>>;
 
-export const venueInput = (overrides: Partial<CreateVenue> = {}): CreateVenue => ({
-  name: `Arena ${crypto.randomUUID().slice(0, 6)}`,
-  description: null,
-  address: "12 Galle Road, Colombo 03",
-  phone: "+94112345678",
-  openingHours: [{ weekday: 1, opens: "06:00", closes: "23:00" }],
-  ...overrides,
-});
+/** A valid venue, with the defaults CreateVenue fills in, so services can take it as it is. */
+export const venueInput = (overrides: Partial<z.input<typeof CreateVenue>> = {}): CreateVenue =>
+  CreateVenue.parse({
+    name: `Arena ${crypto.randomUUID().slice(0, 6)}`,
+    address: "12 Galle Road, Colombo 03",
+    phone: "+94112345678",
+    openingHours: [{ weekday: 1, opens: "06:00", closes: "23:00" }],
+    ...overrides,
+  });
 
 export const resourceInput = (
   venueId: number,

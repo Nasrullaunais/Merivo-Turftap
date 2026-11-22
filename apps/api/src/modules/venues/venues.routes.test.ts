@@ -9,12 +9,10 @@ describe("venues routes", () => {
   });
 
   it("create_repliesWithTheEnvelopeAndIsoTimes", async () => {
-    const reply = await call(
-      "POST",
-      "/v1/venues",
-      asStaff(tenant),
-      venueInput({ phone: "011 234 5678" }),
-    );
+    const reply = await call("POST", "/v1/venues", asStaff(tenant), {
+      ...venueInput(),
+      phone: "011 234 5678",
+    });
     expect(reply.status).toBe(201);
     expect(reply.body).toMatchObject({ status: 201, message: "success" });
     expect(reply.body.data.phone).toBe("+94112345678");
@@ -160,5 +158,107 @@ describe("POR-02 browsing venues without signing in", () => {
   it("POR-01 anUnknownSlug_isNotFound", async () => {
     const reply = await call("GET", "/v1/venues", { tenantSlug: "no-such-tenant" });
     expect(reply).toMatchObject({ status: 404, body: { code: "tt_plt_001" } });
+  });
+});
+
+describe("VEN-03 venue payment settings", () => {
+  let tenant: TestTenant;
+  let path: string;
+  beforeAll(async () => {
+    tenant = await createTenant();
+    const created = await call("POST", "/v1/venues", asStaff(tenant), venueInput());
+    path = `/v1/venues/${created.body.data.id}`;
+  });
+
+  const bankAccount = {
+    bankName: " Bank of Ceylon ",
+    branch: "Kollupitiya",
+    accountName: "Kick Off Arena (Pvt) Ltd",
+    accountNumber: "0071 2345 678",
+  };
+
+  it("create_startsWithFullPaymentAThirtyMinuteLimitAndASixHourCutOff", async () => {
+    const reply = await call("POST", "/v1/venues", asStaff(tenant), {
+      name: "Fresh Arena",
+      address: "1 Main Street, Galle",
+      phone: "0912345678",
+      openingHours: [],
+    });
+    expect(reply.body.data).toMatchObject({
+      bankAccount: null,
+      advancePercent: 100,
+      paymentTimeLimitMinutes: 30,
+      cancellationCutOffHours: 6,
+    });
+  });
+
+  it("owner_setsTheBankAccountAndHowCustomersPay", async () => {
+    const reply = await call("PATCH", path, asStaff(tenant), {
+      bankAccount,
+      advancePercent: 30,
+      paymentTimeLimitMinutes: 45,
+      cancellationCutOffHours: 12,
+    });
+    expect(reply.status).toBe(200);
+    const saved = (await call("GET", path, asStaff(tenant))).body.data;
+    expect(saved).toMatchObject({
+      bankAccount: { ...bankAccount, bankName: "Bank of Ceylon" },
+      advancePercent: 30,
+      paymentTimeLimitMinutes: 45,
+      cancellationCutOffHours: 12,
+    });
+  });
+
+  it("owner_canLeaveOutTheBranch", async () => {
+    const { branch: _branch, ...withoutBranch } = bankAccount;
+    const reply = await call("PATCH", path, asStaff(tenant), { bankAccount: withoutBranch });
+    expect(reply.body.data.bankAccount.branch).toBeNull();
+  });
+
+  it("owner_canRemoveTheBankAccount", async () => {
+    await call("PATCH", path, asStaff(tenant), { bankAccount });
+    const reply = await call("PATCH", path, asStaff(tenant), { bankAccount: null });
+    expect(reply.body.data.bankAccount).toBeNull();
+  });
+
+  it("update_refusesValuesOutsideTheAllowedRange", async () => {
+    const reply = await call("PATCH", path, asStaff(tenant), {
+      advancePercent: 0,
+      paymentTimeLimitMinutes: 5,
+      cancellationCutOffHours: -1,
+    });
+    expect(reply.status).toBe(400);
+    const fields = reply.body.errors.map((error: { field: string }) => error.field).toSorted();
+    expect(fields).toEqual(
+      ["advancePercent", "cancellationCutOffHours", "paymentTimeLimitMinutes"].toSorted(),
+    );
+    const tooMuch = await call("PATCH", path, asStaff(tenant), { advancePercent: 101 });
+    expect(tooMuch.status).toBe(400);
+  });
+
+  it("update_refusesAnAccountNumberWithLetters", async () => {
+    const reply = await call("PATCH", path, asStaff(tenant), {
+      bankAccount: { ...bankAccount, accountNumber: "ABC-123" },
+    });
+    expect(reply.status).toBe(400);
+    expect(reply.body.errors.map((error: { field: string }) => error.field)).toEqual([
+      "bankAccount.accountNumber",
+    ]);
+  });
+
+  it("manager_cannotChangePaymentSettings", async () => {
+    const reply = await call("PATCH", path, asStaff(tenant, tenant.manager), {
+      advancePercent: 50,
+    });
+    expect(reply).toMatchObject({ status: 403, body: { code: "tt_htt_403" } });
+  });
+
+  it("customers_seeTheBankAccountAndTerms", async () => {
+    await call("PATCH", path, asStaff(tenant), { bankAccount, advancePercent: 30 });
+    const reply = await call("GET", path, { tenantSlug: tenant.slug });
+    expect(reply.body.data).toMatchObject({
+      bankAccount: { accountNumber: "0071 2345 678" },
+      advancePercent: 30,
+    });
   });
 });

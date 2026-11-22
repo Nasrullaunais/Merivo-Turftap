@@ -132,6 +132,20 @@ export type OpeningHours = {
     closes: string;
 };
 
+export type BankAccount = {
+    bankName: string;
+    branch: string | null;
+    accountName: string;
+    accountNumber: string;
+};
+
+export type BankAccountInput = {
+    bankName: string;
+    branch?: string | null;
+    accountName: string;
+    accountNumber: string;
+};
+
 export type Venue = {
     id: number;
     name: string;
@@ -140,6 +154,10 @@ export type Venue = {
     phone: string;
     timeZone: string;
     openingHours: Array<OpeningHours>;
+    bankAccount: BankAccount | null;
+    advancePercent: number;
+    paymentTimeLimitMinutes: number;
+    cancellationCutOffHours: number;
     active: boolean;
     createdAt: string;
     updatedAt: string;
@@ -151,6 +169,10 @@ export type CreateVenue = {
     address: string;
     phone: string;
     openingHours: Array<OpeningHours>;
+    bankAccount?: BankAccountInput | null;
+    advancePercent?: number;
+    paymentTimeLimitMinutes?: number;
+    cancellationCutOffHours?: number;
 };
 
 export type UpdateVenue = {
@@ -159,6 +181,10 @@ export type UpdateVenue = {
     address?: string;
     phone?: string;
     openingHours?: Array<OpeningHours>;
+    bankAccount?: BankAccountInput | null;
+    advancePercent?: number;
+    paymentTimeLimitMinutes?: number;
+    cancellationCutOffHours?: number;
 };
 
 export type PriceRule = {

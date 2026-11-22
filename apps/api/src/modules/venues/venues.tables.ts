@@ -1,4 +1,11 @@
-import { type OpeningHours, RESOURCE_TYPES } from "@turftap/contract";
+import {
+  type BankAccount,
+  DEFAULT_CANCELLATION_CUT_OFF_HOURS,
+  DEFAULT_PAYMENT_TIME_LIMIT_MINUTES,
+  FULL_AMOUNT_PERCENT,
+  type OpeningHours,
+  RESOURCE_TYPES,
+} from "@turftap/contract";
 import { sql } from "drizzle-orm";
 import {
   bigint,
@@ -29,6 +36,14 @@ export const venues = pgTable(
     phone: text("phone").notNull(),
     timeZone: text("time_zone").notNull().default(DEFAULT_TIME_ZONE),
     openingHours: jsonb("opening_hours").$type<OpeningHours[]>().notNull(),
+    bankAccount: jsonb("bank_account").$type<BankAccount>(),
+    advancePercent: integer("advance_percent").notNull().default(FULL_AMOUNT_PERCENT),
+    paymentTimeLimitMinutes: integer("payment_time_limit_minutes")
+      .notNull()
+      .default(DEFAULT_PAYMENT_TIME_LIMIT_MINUTES),
+    cancellationCutOffHours: integer("cancellation_cut_off_hours")
+      .notNull()
+      .default(DEFAULT_CANCELLATION_CUT_OFF_HOURS),
     active: boolean("active").notNull().default(true),
     ...timestampColumns(),
   },

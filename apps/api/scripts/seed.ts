@@ -1,6 +1,6 @@
 // Demo data for local development. Safe to run again: existing rows are left as they are.
 import type { ResourceType } from "@turftap/contract";
-import { and, eq } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
 
 import { closeDb, db } from "../src/lib/db";
 import { tenants, users } from "../src/modules/platform/platform.tables";
@@ -67,6 +67,36 @@ const venueIds = new Map(
 );
 const kickOff = venueIds.get("Kick Off Arena")!;
 const cueClub = venueIds.get("Cue Club Kandy")!;
+
+// VEN-03: venues seeded before payment settings existed get a bank account once.
+const paymentSettings = [
+  {
+    id: kickOff,
+    advancePercent: 50,
+    bankAccount: {
+      bankName: "Bank of Ceylon",
+      branch: "Kollupitiya",
+      accountName: "Kick Off Arena (Pvt) Ltd",
+      accountNumber: "0071 2345 678",
+    },
+  },
+  {
+    id: cueClub,
+    advancePercent: 100,
+    bankAccount: {
+      bankName: "Commercial Bank",
+      branch: "Kandy",
+      accountName: "Cue Club Kandy",
+      accountNumber: "8001 234 567",
+    },
+  },
+];
+for (const { id, ...settings } of paymentSettings) {
+  await db()
+    .update(venues)
+    .set(settings)
+    .where(and(eq(venues.id, id), isNull(venues.bankAccount)));
+}
 
 // SIG-06: a Manager who works only at the Kandy venue.
 const [kandyManager] = await db().select().from(users).where(eq(users.phone, KANDY_MANAGER_PHONE));

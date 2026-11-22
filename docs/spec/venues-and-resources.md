@@ -16,6 +16,9 @@ As a **Manager**, I want to mark a date as closed (a holiday), so that nobody ca
 ## VEN-03 Venue payment settings
 As an **Owner**, I want to set how customers pay at each venue, so that online bookings match how we take money.
 - Settings: bank account details shown to customers; "full amount" or "advance of X%"; time limit to send a receipt (default 30 minutes); cancellation cut-off (default 6 hours).
+- The bank account has a bank name, an optional branch, an account name and an account number (digits, spaces and dashes).
+- The **Advance** is 1% to 100%, where 100% is the full amount. The **Payment Time Limit** is 10 minutes to 24 hours. The **Cancellation Cut-off** is 0 to 168 hours (a week).
+- Managers and Front Desk can see the settings, so they can tell customers, but only Owners change them.
 - Changes affect new bookings only.
 
 ## VEN-04 Add resources

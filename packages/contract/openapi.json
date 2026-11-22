@@ -425,6 +425,68 @@
         ],
         "description": "A weekday that is not listed is closed."
       },
+      "BankAccount": {
+        "type": "object",
+        "properties": {
+          "bankName": {
+            "type": "string"
+          },
+          "branch": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "accountName": {
+            "type": "string"
+          },
+          "accountNumber": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "bankName",
+          "branch",
+          "accountName",
+          "accountNumber"
+        ]
+      },
+      "BankAccountInput": {
+        "type": "object",
+        "properties": {
+          "bankName": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80
+          },
+          "branch": {
+            "default": null,
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 80
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "accountName": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80
+          },
+          "accountNumber": {
+            "type": "string",
+            "pattern": "^\\d[\\d -]{3,29}$"
+          }
+        },
+        "required": [
+          "bankName",
+          "accountName",
+          "accountNumber"
+        ]
+      },
       "Venue": {
         "type": "object",
         "properties": {
@@ -458,6 +520,31 @@
               "$ref": "#/components/schemas/OpeningHours"
             }
           },
+          "bankAccount": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/BankAccount"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "advancePercent": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "paymentTimeLimitMinutes": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "cancellationCutOffHours": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
           "active": {
             "type": "boolean"
           },
@@ -480,6 +567,10 @@
           "phone",
           "timeZone",
           "openingHours",
+          "bankAccount",
+          "advancePercent",
+          "paymentTimeLimitMinutes",
+          "cancellationCutOffHours",
           "active",
           "createdAt",
           "updatedAt"
@@ -519,6 +610,35 @@
             "items": {
               "$ref": "#/components/schemas/OpeningHours"
             }
+          },
+          "bankAccount": {
+            "default": null,
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/BankAccountInput"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "advancePercent": {
+            "default": 100,
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100
+          },
+          "paymentTimeLimitMinutes": {
+            "default": 30,
+            "type": "integer",
+            "minimum": 10,
+            "maximum": 1440
+          },
+          "cancellationCutOffHours": {
+            "default": 6,
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 168
           }
         },
         "required": [
@@ -561,6 +681,31 @@
             "items": {
               "$ref": "#/components/schemas/OpeningHours"
             }
+          },
+          "bankAccount": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/BankAccountInput"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "advancePercent": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100
+          },
+          "paymentTimeLimitMinutes": {
+            "type": "integer",
+            "minimum": 10,
+            "maximum": 1440
+          },
+          "cancellationCutOffHours": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 168
           }
         }
       },
