@@ -27,7 +27,7 @@
 5. Only `adapters/<port>/<vendor>/` imports that vendor's SDK (`@aws-sdk/*`, `@google/genai`, `auth0`, WhatsApp clients).
 6. Only `wiring.ts` and tests import from `adapters/`.
 7. `hooks/` imports only services, ports and `lib/`.
-8. Every exported function in a `*.repository.ts` takes `tenantId` as its first parameter, except in `modules/platform/`.
+8. Every exported function in a `*.repository.ts` takes `tenantId` as its first parameter, except in `modules/platform/` and functions whose name ends in `AcrossTenants` (see [tenancy.md](tenancy.md#queries-across-tenants)).
 9. Transactions (`db.transaction`) are opened only in `*.service.ts`.
 10. No circular imports.
 11. Only `lib/`, `hooks/` and `app.ts` import `hono`, so a module can't add a route of its own.

@@ -2,7 +2,7 @@ import type { Page } from "@turftap/contract";
 import type { Hono } from "hono";
 import type { z } from "zod";
 
-import type { AuthContext } from "../auth/context";
+import type { AuthContext, Caller } from "../auth/context";
 import type { PageRequest } from "../db/paging";
 import type { AppEnv } from "../http/env";
 
@@ -47,6 +47,12 @@ export type ResourceDefinition<
     Handlers<z.output<Item>, z.output<Create>, z.output<Update>, z.output<Filters>, SortField>,
     HandlerName<Op>
   >;
+};
+
+export type SingletonDefinition<Item extends z.ZodType> = {
+  name: string;
+  schemas: { item: Item };
+  service: { get: (caller: Caller) => Promise<z.output<Item>> };
 };
 
 export type Resource = {

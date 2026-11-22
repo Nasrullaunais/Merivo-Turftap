@@ -75,7 +75,7 @@ export async function findById(tenantId: number, id: number) {
 }
 ```
 
-- `tenantId` is the first parameter of every exported function (except in `modules/platform/`, whose tables have no tenant).
+- `tenantId` is the first parameter of every exported function (except in `modules/platform/`, whose tables have no tenant, and the rare `*AcrossTenants` function described in [tenancy.md](tenancy.md#queries-across-tenants)).
 - Use `db()`, never a connection passed in: it is the open transaction if there is one.
 - "Find" functions return `undefined` when nothing matches. The service decides that this is a 404.
 - Lists use `pageOf()` and `sortBy()` from `lib/db`. Sort text columns by `sql\`lower(column)\`` so names sort the way people expect.

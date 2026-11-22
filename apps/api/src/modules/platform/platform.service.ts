@@ -1,5 +1,8 @@
+import type { Me } from "@turftap/contract";
+
 import type { Caller } from "../../lib/auth/context";
 import { config } from "../../lib/config";
+import { httpErrors } from "../../lib/errors";
 import { ttlCache } from "../../lib/ttl-cache";
 import { ports } from "../../ports";
 import * as staffService from "../staff/staff.service";
@@ -55,4 +58,24 @@ async function staffCaller(token: string, tenantId?: number): Promise<Caller> {
   const role = await staffService.roleOf(tenantId, user.id);
   if (!role) throw platformErrors.notStaffHere();
   return { actor: "staff", userId: user.id, tenantId, role };
+}
+
+export async function me(caller: Caller): Promise<Me> {
+  if (caller.userId === undefined) throw httpErrors.notAllowed();
+  const user = await platformRepository.findUserById(caller.userId);
+  if (!user) throw new Error(`User ${caller.userId} signed in but has no row`);
+  const roles = new Map(
+    (await staffService.rolesAcrossTenants(user.id)).map((row) => [row.tenantId, row.role]),
+  );
+  const tenants = await platformRepository.findTenantsByIds([...roles.keys()]);
+  return {
+    id: user.id,
+    phone: user.phone,
+    name: user.name,
+    isPlatformAdmin: user.isPlatformAdmin,
+    tenants: tenants.flatMap(({ id, slug, name }) => {
+      const role = roles.get(id);
+      return role ? [{ id, slug, name, role }] : [];
+    }),
+  };
 }

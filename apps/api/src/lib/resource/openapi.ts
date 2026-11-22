@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import type { AnyDefinition, Operation } from "./types";
+import type { AnyDefinition, Operation, SingletonDefinition } from "./types";
 type JsonSchema = Record<string, unknown>;
 
 const ref = (schema: z.ZodType, what: string) => {
@@ -122,6 +122,19 @@ export function describeResource(def: AnyDefinition) {
   return {
     ...(Object.keys(collection).length && { [`/v1/${def.name}`]: collection }),
     ...(Object.keys(single).length && { [`/v1/${def.name}/{id}`]: single }),
+  };
+}
+
+export function describeSingleton(def: SingletonDefinition<z.ZodType>) {
+  return {
+    [`/v1/${def.name}`]: {
+      get: {
+        tags: [def.name],
+        operationId: `get${pascal(def.name)}`,
+        security: [{ bearerAuth: [] }],
+        responses: { 200: reply("Found", ref(def.schemas.item, `${def.name} item`)), ...ERRORS },
+      },
+    },
   };
 }
 

@@ -1,5 +1,6 @@
-export const STAFF_ROLES = ["OWNER", "MANAGER", "FRONT_DESK"] as const;
-export type StaffRole = (typeof STAFF_ROLES)[number];
+import type { StaffRole } from "@turftap/contract";
+
+export { STAFF_ROLES, type StaffRole } from "@turftap/contract";
 
 export type Actor = "staff" | "customer" | "assistant" | "platform_admin" | "public" | "system";
 
