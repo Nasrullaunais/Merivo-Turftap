@@ -23,7 +23,12 @@ export function TopBar({ tenant, canSwitchTenant }: TopBarProps) {
           {tenant.name} · {tenants.roles[tenant.role]}
         </span>
       )}
-      <nav>
+      <nav className="flex gap-4">
+        {canOpen(tenant, "/venues") && (
+          <Link to="/venues" className="text-sm" activeProps={{ className: "font-semibold" }}>
+            {m.nav.venues}
+          </Link>
+        )}
         {canOpen(tenant, "/staff") && (
           <Link to="/staff" className="text-sm" activeProps={{ className: "font-semibold" }}>
             {m.nav.staff}
