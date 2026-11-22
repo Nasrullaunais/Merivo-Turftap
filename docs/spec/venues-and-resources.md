@@ -38,4 +38,8 @@ As a **Manager**, I want to add photos to a venue and its resources, so that the
 
 ## VEN-07 Block a resource
 As a **Manager**, I want to block a resource for a time window (maintenance, private event), so that nobody books it.
-- Given a booking already exists in that window, when I try to block it, then I'm stopped and shown the booking.
+- A **Blocked Time** has a start, an end (it may run over several days) and an optional reason staff see. Times are typed and shown in the venue's time zone.
+- Given the end is before the start, or already past, when I save, then I'm told so.
+- Given the window overlaps another Blocked Time on the same resource, when I save, then I'm told which one. Back-to-back blocks are fine.
+- Front Desk can see Blocked Times; customers don't see them, only that the slots aren't free.
+- Given a booking already exists in that window, when I try to block it, then I'm stopped and shown the booking. _Built with bookings (`BKG-02`), since there are no bookings yet._

@@ -30,6 +30,29 @@ export type ErrorReply = {
     errors?: Array<FieldError>;
 };
 
+export type BlockedTime = {
+    id: number;
+    resourceId: number;
+    startsAt: string;
+    endsAt: string;
+    reason: string | null;
+    createdAt: string;
+    updatedAt: string;
+};
+
+export type CreateBlockedTime = {
+    resourceId: number;
+    startsAt: string;
+    endsAt: string;
+    reason?: string | null;
+};
+
+export type UpdateBlockedTime = {
+    startsAt?: string;
+    endsAt?: string;
+    reason?: string | null;
+};
+
 export type ClosedDate = {
     id: number;
     venueId: number;
@@ -70,7 +93,11 @@ export const Permission = {
     PRICE_RULES_READ: 'price-rules:read',
     PRICE_RULES_CREATE: 'price-rules:create',
     PRICE_RULES_UPDATE: 'price-rules:update',
-    PRICE_RULES_DELETE: 'price-rules:delete'
+    PRICE_RULES_DELETE: 'price-rules:delete',
+    BLOCKED_TIMES_READ: 'blocked-times:read',
+    BLOCKED_TIMES_CREATE: 'blocked-times:create',
+    BLOCKED_TIMES_UPDATE: 'blocked-times:update',
+    BLOCKED_TIMES_DELETE: 'blocked-times:delete'
 } as const;
 
 export type Permission = typeof Permission[keyof typeof Permission];
@@ -1088,3 +1115,167 @@ export type UpdatePriceRuleResponses = {
 };
 
 export type UpdatePriceRuleResponse = UpdatePriceRuleResponses[keyof UpdatePriceRuleResponses];
+
+export type ListBlockedTimesData = {
+    body?: never;
+    path?: never;
+    query?: {
+        page?: number;
+        size?: number;
+        sort?: 'startsAt,asc' | 'startsAt,desc' | 'createdAt,asc' | 'createdAt,desc';
+        resourceId?: number;
+        from?: string;
+        to?: string;
+    };
+    url: '/v1/blocked-times';
+};
+
+export type ListBlockedTimesErrors = {
+    /**
+     * Error
+     */
+    default: ErrorReply;
+};
+
+export type ListBlockedTimesError = ListBlockedTimesErrors[keyof ListBlockedTimesErrors];
+
+export type ListBlockedTimesResponses = {
+    /**
+     * One page
+     */
+    200: {
+        status: number;
+        message: string;
+        data: {
+            content: Array<BlockedTime>;
+            page: number;
+            size: number;
+            totalElements: number;
+            totalPages: number;
+        };
+    };
+};
+
+export type ListBlockedTimesResponse = ListBlockedTimesResponses[keyof ListBlockedTimesResponses];
+
+export type CreateBlockedTimeData = {
+    body: CreateBlockedTime;
+    path?: never;
+    query?: never;
+    url: '/v1/blocked-times';
+};
+
+export type CreateBlockedTimeErrors = {
+    /**
+     * Error
+     */
+    default: ErrorReply;
+};
+
+export type CreateBlockedTimeError = CreateBlockedTimeErrors[keyof CreateBlockedTimeErrors];
+
+export type CreateBlockedTimeResponses = {
+    /**
+     * Created
+     */
+    201: {
+        status: number;
+        message: string;
+        data: BlockedTime;
+    };
+};
+
+export type CreateBlockedTimeResponse = CreateBlockedTimeResponses[keyof CreateBlockedTimeResponses];
+
+export type DeleteBlockedTimeData = {
+    body?: never;
+    path: {
+        id: number;
+    };
+    query?: never;
+    url: '/v1/blocked-times/{id}';
+};
+
+export type DeleteBlockedTimeErrors = {
+    /**
+     * Error
+     */
+    default: ErrorReply;
+};
+
+export type DeleteBlockedTimeError = DeleteBlockedTimeErrors[keyof DeleteBlockedTimeErrors];
+
+export type DeleteBlockedTimeResponses = {
+    /**
+     * Deleted
+     */
+    200: {
+        status: number;
+        message: string;
+        data: null;
+    };
+};
+
+export type DeleteBlockedTimeResponse = DeleteBlockedTimeResponses[keyof DeleteBlockedTimeResponses];
+
+export type GetBlockedTimeData = {
+    body?: never;
+    path: {
+        id: number;
+    };
+    query?: never;
+    url: '/v1/blocked-times/{id}';
+};
+
+export type GetBlockedTimeErrors = {
+    /**
+     * Error
+     */
+    default: ErrorReply;
+};
+
+export type GetBlockedTimeError = GetBlockedTimeErrors[keyof GetBlockedTimeErrors];
+
+export type GetBlockedTimeResponses = {
+    /**
+     * Found
+     */
+    200: {
+        status: number;
+        message: string;
+        data: BlockedTime;
+    };
+};
+
+export type GetBlockedTimeResponse = GetBlockedTimeResponses[keyof GetBlockedTimeResponses];
+
+export type UpdateBlockedTimeData = {
+    body: UpdateBlockedTime;
+    path: {
+        id: number;
+    };
+    query?: never;
+    url: '/v1/blocked-times/{id}';
+};
+
+export type UpdateBlockedTimeErrors = {
+    /**
+     * Error
+     */
+    default: ErrorReply;
+};
+
+export type UpdateBlockedTimeError = UpdateBlockedTimeErrors[keyof UpdateBlockedTimeErrors];
+
+export type UpdateBlockedTimeResponses = {
+    /**
+     * Changed
+     */
+    200: {
+        status: number;
+        message: string;
+        data: BlockedTime;
+    };
+};
+
+export type UpdateBlockedTimeResponse = UpdateBlockedTimeResponses[keyof UpdateBlockedTimeResponses];

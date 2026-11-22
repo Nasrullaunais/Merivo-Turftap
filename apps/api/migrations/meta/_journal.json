@@ -57,6 +57,20 @@
       "when": 1795356816268,
       "tag": "0007_venue_payment_settings",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1795357065810,
+      "tag": "0008_blocked_times",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1795357066213,
+      "tag": "0009_blocked_times_no_overlap",
+      "breakpoints": true
     }
   ]
 }

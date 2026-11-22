@@ -55,7 +55,8 @@ Code shared by **both** apps goes in `packages/ui` (theme, components, `ApiError
 
 - Every piece of text lives in `i18n/en/<area>.ts`. Sinhala and Tamil are added later as `si` and `ta` with `satisfies Catalog<typeof en>`, so a missing key fails the type check.
 - Sentences built from pieces are one catalog function, so other languages can reorder words.
-- Dates, times and money use the shared formatters in `lib/format` and the venue's time zone.
+- Money uses `formatMoney` from `packages/ui`. Dates and times are shown in the venue's time zone, never the browser's: the catalog function formats them with `Intl.DateTimeFormat({ timeZone })`.
+- A time staff type ("10:00 on 25 Dec") means the venue's clock. `instantInZone(date, time, venue.timeZone)` from `packages/ui` turns it into the instant the API wants. Console tests run in `America/New_York`, so using the browser's time zone by mistake fails them.
 - Neutral backgrounds plus one accent colour. Booking states always show colour **and** an icon: waiting for payment, waiting for check, confirmed, blocked.
 - WCAG AA contrast (4.5:1). The end-to-end tests run axe to check it.
 - Pages over about 300 lines are split: a hook owns the data and state, and small components own each section.

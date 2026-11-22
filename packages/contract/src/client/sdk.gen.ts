@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { CreateClosedDateData, CreateClosedDateErrors, CreateClosedDateResponses, CreatePriceRuleData, CreatePriceRuleErrors, CreatePriceRuleResponses, CreateResourceData, CreateResourceErrors, CreateResourceResponses, CreateStaffData, CreateStaffErrors, CreateStaffResponses, CreateVenueData, CreateVenueErrors, CreateVenueResponses, DeleteClosedDateData, DeleteClosedDateErrors, DeleteClosedDateResponses, DeletePriceRuleData, DeletePriceRuleErrors, DeletePriceRuleResponses, DeleteResourceData, DeleteResourceErrors, DeleteResourceResponses, DeleteStaffData, DeleteStaffErrors, DeleteStaffResponses, DeleteVenueData, DeleteVenueErrors, DeleteVenueResponses, GetClosedDateData, GetClosedDateErrors, GetClosedDateResponses, GetMeData, GetMeErrors, GetMeResponses, GetPriceRuleData, GetPriceRuleErrors, GetPriceRuleResponses, GetResourceData, GetResourceErrors, GetResourceResponses, GetStaffData, GetStaffErrors, GetStaffResponses, GetVenueData, GetVenueErrors, GetVenueResponses, ListClosedDatesData, ListClosedDatesErrors, ListClosedDatesResponses, ListPriceRulesData, ListPriceRulesErrors, ListPriceRulesResponses, ListResourcesData, ListResourcesErrors, ListResourcesResponses, ListStaffData, ListStaffErrors, ListStaffResponses, ListVenuesData, ListVenuesErrors, ListVenuesResponses, UpdateClosedDateData, UpdateClosedDateErrors, UpdateClosedDateResponses, UpdatePriceRuleData, UpdatePriceRuleErrors, UpdatePriceRuleResponses, UpdateResourceData, UpdateResourceErrors, UpdateResourceResponses, UpdateStaffData, UpdateStaffErrors, UpdateStaffResponses, UpdateVenueData, UpdateVenueErrors, UpdateVenueResponses } from './types.gen';
+import type { CreateBlockedTimeData, CreateBlockedTimeErrors, CreateBlockedTimeResponses, CreateClosedDateData, CreateClosedDateErrors, CreateClosedDateResponses, CreatePriceRuleData, CreatePriceRuleErrors, CreatePriceRuleResponses, CreateResourceData, CreateResourceErrors, CreateResourceResponses, CreateStaffData, CreateStaffErrors, CreateStaffResponses, CreateVenueData, CreateVenueErrors, CreateVenueResponses, DeleteBlockedTimeData, DeleteBlockedTimeErrors, DeleteBlockedTimeResponses, DeleteClosedDateData, DeleteClosedDateErrors, DeleteClosedDateResponses, DeletePriceRuleData, DeletePriceRuleErrors, DeletePriceRuleResponses, DeleteResourceData, DeleteResourceErrors, DeleteResourceResponses, DeleteStaffData, DeleteStaffErrors, DeleteStaffResponses, DeleteVenueData, DeleteVenueErrors, DeleteVenueResponses, GetBlockedTimeData, GetBlockedTimeErrors, GetBlockedTimeResponses, GetClosedDateData, GetClosedDateErrors, GetClosedDateResponses, GetMeData, GetMeErrors, GetMeResponses, GetPriceRuleData, GetPriceRuleErrors, GetPriceRuleResponses, GetResourceData, GetResourceErrors, GetResourceResponses, GetStaffData, GetStaffErrors, GetStaffResponses, GetVenueData, GetVenueErrors, GetVenueResponses, ListBlockedTimesData, ListBlockedTimesErrors, ListBlockedTimesResponses, ListClosedDatesData, ListClosedDatesErrors, ListClosedDatesResponses, ListPriceRulesData, ListPriceRulesErrors, ListPriceRulesResponses, ListResourcesData, ListResourcesErrors, ListResourcesResponses, ListStaffData, ListStaffErrors, ListStaffResponses, ListVenuesData, ListVenuesErrors, ListVenuesResponses, UpdateBlockedTimeData, UpdateBlockedTimeErrors, UpdateBlockedTimeResponses, UpdateClosedDateData, UpdateClosedDateErrors, UpdateClosedDateResponses, UpdatePriceRuleData, UpdatePriceRuleErrors, UpdatePriceRuleResponses, UpdateResourceData, UpdateResourceErrors, UpdateResourceResponses, UpdateStaffData, UpdateStaffErrors, UpdateStaffResponses, UpdateVenueData, UpdateVenueErrors, UpdateVenueResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -207,6 +207,44 @@ export const getPriceRule = <ThrowOnError extends boolean = true>(options: Optio
 export const updatePriceRule = <ThrowOnError extends boolean = true>(options: Options<UpdatePriceRuleData, ThrowOnError>): RequestResult<UpdatePriceRuleResponses, UpdatePriceRuleErrors, ThrowOnError> => (options.client ?? client).patch<UpdatePriceRuleResponses, UpdatePriceRuleErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/v1/price-rules/{id}',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+export const listBlockedTimes = <ThrowOnError extends boolean = true>(options?: Options<ListBlockedTimesData, ThrowOnError>): RequestResult<ListBlockedTimesResponses, ListBlockedTimesErrors, ThrowOnError> => (options?.client ?? client).get<ListBlockedTimesResponses, ListBlockedTimesErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/v1/blocked-times',
+    ...options
+});
+
+export const createBlockedTime = <ThrowOnError extends boolean = true>(options: Options<CreateBlockedTimeData, ThrowOnError>): RequestResult<CreateBlockedTimeResponses, CreateBlockedTimeErrors, ThrowOnError> => (options.client ?? client).post<CreateBlockedTimeResponses, CreateBlockedTimeErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/v1/blocked-times',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+export const deleteBlockedTime = <ThrowOnError extends boolean = true>(options: Options<DeleteBlockedTimeData, ThrowOnError>): RequestResult<DeleteBlockedTimeResponses, DeleteBlockedTimeErrors, ThrowOnError> => (options.client ?? client).delete<DeleteBlockedTimeResponses, DeleteBlockedTimeErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/v1/blocked-times/{id}',
+    ...options
+});
+
+export const getBlockedTime = <ThrowOnError extends boolean = true>(options: Options<GetBlockedTimeData, ThrowOnError>): RequestResult<GetBlockedTimeResponses, GetBlockedTimeErrors, ThrowOnError> => (options.client ?? client).get<GetBlockedTimeResponses, GetBlockedTimeErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/v1/blocked-times/{id}',
+    ...options
+});
+
+export const updateBlockedTime = <ThrowOnError extends boolean = true>(options: Options<UpdateBlockedTimeData, ThrowOnError>): RequestResult<UpdateBlockedTimeResponses, UpdateBlockedTimeErrors, ThrowOnError> => (options.client ?? client).patch<UpdateBlockedTimeResponses, UpdateBlockedTimeErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/v1/blocked-times/{id}',
     ...options,
     headers: {
         'Content-Type': 'application/json',

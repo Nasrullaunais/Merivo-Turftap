@@ -28,6 +28,8 @@ describe("SIG-06 staff limited to some venues", () => {
   let ruleB: number;
   let closedA: number;
   let closedB: number;
+  let blockA: number;
+  let blockB: number;
   const asManager = () => asStaff(tenant, tenant.manager);
 
   beforeAll(async () => {
@@ -51,6 +53,16 @@ describe("SIG-06 staff limited to some venues", () => {
         .data.id as number;
     closedA = await addClosedDate(venueA);
     closedB = await addClosedDate(venueB);
+    const addBlock = async (resourceId: number) =>
+      (
+        await call("POST", "/v1/blocked-times", asStaff(tenant), {
+          resourceId,
+          startsAt: new Date(Date.now() + 3 * DAY_MS).toISOString(),
+          endsAt: new Date(Date.now() + 3 * DAY_MS + DAY_MS / 12).toISOString(),
+        })
+      ).body.data.id as number;
+    blockA = await addBlock(resourceA);
+    blockB = await addBlock(resourceB);
     await limitToVenues(tenant, tenant.manager, [venueA]);
     await limitToVenues(tenant, tenant.frontDesk, [venueB]);
   });
@@ -163,6 +175,33 @@ describe("SIG-06 staff limited to some venues", () => {
 
     it("updateAndDelete_cannotTouchAnotherVenuesClosedDate", async () => {
       const path = `/v1/closed-dates/${closedB}`;
+      expect((await call("PATCH", path, asManager(), { reason: "Taken" })).status).toBe(404);
+      expect((await call("DELETE", path, asManager())).status).toBe(404);
+      expect((await call("GET", path, asStaff(tenant))).body.data.reason).toBeNull();
+    });
+  });
+
+  describe("Blocked Times", () => {
+    it("list_showsOnlyBlocksAtTheirVenues", async () => {
+      expect(idsOf(await call("GET", "/v1/blocked-times", asManager()))).toEqual([blockA]);
+    });
+
+    it("get_repliesNotFoundForABlockAtAnotherVenue", async () => {
+      const reply = await call("GET", `/v1/blocked-times/${blockB}`, asManager());
+      expect(reply).toMatchObject({ status: 404, body: { code: "tt_ven_009" } });
+    });
+
+    it("create_cannotBlockAResourceAtAnotherVenue", async () => {
+      const reply = await call("POST", "/v1/blocked-times", asManager(), {
+        resourceId: resourceB,
+        startsAt: new Date(Date.now() + 6 * DAY_MS).toISOString(),
+        endsAt: new Date(Date.now() + 7 * DAY_MS).toISOString(),
+      });
+      expect(reply).toMatchObject({ status: 404, body: { code: "tt_ven_003" } });
+    });
+
+    it("updateAndDelete_cannotTouchABlockAtAnotherVenue", async () => {
+      const path = `/v1/blocked-times/${blockB}`;
       expect((await call("PATCH", path, asManager(), { reason: "Taken" })).status).toBe(404);
       expect((await call("DELETE", path, asManager())).status).toBe(404);
       expect((await call("GET", path, asStaff(tenant))).body.data.reason).toBeNull();

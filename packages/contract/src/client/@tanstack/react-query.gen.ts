@@ -3,8 +3,8 @@
 import { type InfiniteData, infiniteQueryOptions, queryOptions, type UseMutationOptions } from '@tanstack/react-query';
 
 import { client } from '../client.gen';
-import { createClosedDate, createPriceRule, createResource, createStaff, createVenue, deleteClosedDate, deletePriceRule, deleteResource, deleteStaff, deleteVenue, getClosedDate, getMe, getPriceRule, getResource, getStaff, getVenue, listClosedDates, listPriceRules, listResources, listStaff, listVenues, type Options, updateClosedDate, updatePriceRule, updateResource, updateStaff, updateVenue } from '../sdk.gen';
-import type { CreateClosedDateData, CreateClosedDateError, CreateClosedDateResponse, CreatePriceRuleData, CreatePriceRuleError, CreatePriceRuleResponse, CreateResourceData, CreateResourceError, CreateResourceResponse, CreateStaffData, CreateStaffError, CreateStaffResponse, CreateVenueData, CreateVenueError, CreateVenueResponse, DeleteClosedDateData, DeleteClosedDateError, DeleteClosedDateResponse, DeletePriceRuleData, DeletePriceRuleError, DeletePriceRuleResponse, DeleteResourceData, DeleteResourceError, DeleteResourceResponse, DeleteStaffData, DeleteStaffError, DeleteStaffResponse, DeleteVenueData, DeleteVenueError, DeleteVenueResponse, GetClosedDateData, GetClosedDateError, GetClosedDateResponse, GetMeData, GetMeError, GetMeResponse, GetPriceRuleData, GetPriceRuleError, GetPriceRuleResponse, GetResourceData, GetResourceError, GetResourceResponse, GetStaffData, GetStaffError, GetStaffResponse, GetVenueData, GetVenueError, GetVenueResponse, ListClosedDatesData, ListClosedDatesError, ListClosedDatesResponse, ListPriceRulesData, ListPriceRulesError, ListPriceRulesResponse, ListResourcesData, ListResourcesError, ListResourcesResponse, ListStaffData, ListStaffError, ListStaffResponse, ListVenuesData, ListVenuesError, ListVenuesResponse, UpdateClosedDateData, UpdateClosedDateError, UpdateClosedDateResponse, UpdatePriceRuleData, UpdatePriceRuleError, UpdatePriceRuleResponse, UpdateResourceData, UpdateResourceError, UpdateResourceResponse, UpdateStaffData, UpdateStaffError, UpdateStaffResponse, UpdateVenueData, UpdateVenueError, UpdateVenueResponse } from '../types.gen';
+import { createBlockedTime, createClosedDate, createPriceRule, createResource, createStaff, createVenue, deleteBlockedTime, deleteClosedDate, deletePriceRule, deleteResource, deleteStaff, deleteVenue, getBlockedTime, getClosedDate, getMe, getPriceRule, getResource, getStaff, getVenue, listBlockedTimes, listClosedDates, listPriceRules, listResources, listStaff, listVenues, type Options, updateBlockedTime, updateClosedDate, updatePriceRule, updateResource, updateStaff, updateVenue } from '../sdk.gen';
+import type { CreateBlockedTimeData, CreateBlockedTimeError, CreateBlockedTimeResponse, CreateClosedDateData, CreateClosedDateError, CreateClosedDateResponse, CreatePriceRuleData, CreatePriceRuleError, CreatePriceRuleResponse, CreateResourceData, CreateResourceError, CreateResourceResponse, CreateStaffData, CreateStaffError, CreateStaffResponse, CreateVenueData, CreateVenueError, CreateVenueResponse, DeleteBlockedTimeData, DeleteBlockedTimeError, DeleteBlockedTimeResponse, DeleteClosedDateData, DeleteClosedDateError, DeleteClosedDateResponse, DeletePriceRuleData, DeletePriceRuleError, DeletePriceRuleResponse, DeleteResourceData, DeleteResourceError, DeleteResourceResponse, DeleteStaffData, DeleteStaffError, DeleteStaffResponse, DeleteVenueData, DeleteVenueError, DeleteVenueResponse, GetBlockedTimeData, GetBlockedTimeError, GetBlockedTimeResponse, GetClosedDateData, GetClosedDateError, GetClosedDateResponse, GetMeData, GetMeError, GetMeResponse, GetPriceRuleData, GetPriceRuleError, GetPriceRuleResponse, GetResourceData, GetResourceError, GetResourceResponse, GetStaffData, GetStaffError, GetStaffResponse, GetVenueData, GetVenueError, GetVenueResponse, ListBlockedTimesData, ListBlockedTimesError, ListBlockedTimesResponse, ListClosedDatesData, ListClosedDatesError, ListClosedDatesResponse, ListPriceRulesData, ListPriceRulesError, ListPriceRulesResponse, ListResourcesData, ListResourcesError, ListResourcesResponse, ListStaffData, ListStaffError, ListStaffResponse, ListVenuesData, ListVenuesError, ListVenuesResponse, UpdateBlockedTimeData, UpdateBlockedTimeError, UpdateBlockedTimeResponse, UpdateClosedDateData, UpdateClosedDateError, UpdateClosedDateResponse, UpdatePriceRuleData, UpdatePriceRuleError, UpdatePriceRuleResponse, UpdateResourceData, UpdateResourceError, UpdateResourceResponse, UpdateStaffData, UpdateStaffError, UpdateStaffResponse, UpdateVenueData, UpdateVenueError, UpdateVenueResponse } from '../types.gen';
 
 export type QueryKey<TOptions extends Options> = [
     Pick<TOptions, 'baseUrl' | 'body' | 'headers' | 'path' | 'query'> & {
@@ -568,6 +568,105 @@ export const updatePriceRuleMutation = (options?: Partial<Options<UpdatePriceRul
     const mutationOptions: UseMutationOptions<UpdatePriceRuleResponse, UpdatePriceRuleError, Options<UpdatePriceRuleData>> = {
         mutationFn: async (fnOptions) => {
             const { data } = await updatePriceRule({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+export const listBlockedTimesQueryKey = (options?: Options<ListBlockedTimesData>) => createQueryKey('listBlockedTimes', options);
+
+export const listBlockedTimesOptions = (options?: Options<ListBlockedTimesData>) => queryOptions<ListBlockedTimesResponse, ListBlockedTimesError, ListBlockedTimesResponse, ReturnType<typeof listBlockedTimesQueryKey>>({
+    queryFn: async ({ queryKey, signal }) => {
+        const { data } = await listBlockedTimes({
+            ...options,
+            ...queryKey[0],
+            signal,
+            throwOnError: true
+        });
+        return data;
+    },
+    queryKey: listBlockedTimesQueryKey(options)
+});
+
+export const listBlockedTimesInfiniteQueryKey = (options?: Options<ListBlockedTimesData>): QueryKey<Options<ListBlockedTimesData>> => createQueryKey('listBlockedTimes', options, true);
+
+export const listBlockedTimesInfiniteOptions = (options?: Options<ListBlockedTimesData>) => {
+    const opts = infiniteQueryOptions<ListBlockedTimesResponse, ListBlockedTimesError, InfiniteData<ListBlockedTimesResponse>, QueryKey<Options<ListBlockedTimesData>>, number | Pick<QueryKey<Options<ListBlockedTimesData>>[0], 'body' | 'headers' | 'path' | 'query'>>(
+    // @ts-ignore
+    {
+        queryFn: async ({ pageParam, queryKey, signal }) => {
+            // @ts-ignore
+            const page: Pick<QueryKey<Options<ListBlockedTimesData>>[0], 'body' | 'headers' | 'path' | 'query'> = typeof pageParam === 'object' ? pageParam : {
+                query: {
+                    page: pageParam
+                }
+            };
+            const params = createInfiniteParams(queryKey, page);
+            const { data } = await listBlockedTimes({
+                ...options,
+                ...params,
+                signal,
+                throwOnError: true
+            });
+            return data;
+        },
+        queryKey: listBlockedTimesInfiniteQueryKey(options)
+    });
+    return opts as Omit<typeof opts, 'initialData'>;
+};
+
+export const createBlockedTimeMutation = (options?: Partial<Options<CreateBlockedTimeData>>): UseMutationOptions<CreateBlockedTimeResponse, CreateBlockedTimeError, Options<CreateBlockedTimeData>> => {
+    const mutationOptions: UseMutationOptions<CreateBlockedTimeResponse, CreateBlockedTimeError, Options<CreateBlockedTimeData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await createBlockedTime({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+export const deleteBlockedTimeMutation = (options?: Partial<Options<DeleteBlockedTimeData>>): UseMutationOptions<DeleteBlockedTimeResponse, DeleteBlockedTimeError, Options<DeleteBlockedTimeData>> => {
+    const mutationOptions: UseMutationOptions<DeleteBlockedTimeResponse, DeleteBlockedTimeError, Options<DeleteBlockedTimeData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await deleteBlockedTime({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+export const getBlockedTimeQueryKey = (options: Options<GetBlockedTimeData>) => createQueryKey('getBlockedTime', options);
+
+export const getBlockedTimeOptions = (options: Options<GetBlockedTimeData>) => queryOptions<GetBlockedTimeResponse, GetBlockedTimeError, GetBlockedTimeResponse, ReturnType<typeof getBlockedTimeQueryKey>>({
+    queryFn: async ({ queryKey, signal }) => {
+        const { data } = await getBlockedTime({
+            ...options,
+            ...queryKey[0],
+            signal,
+            throwOnError: true
+        });
+        return data;
+    },
+    queryKey: getBlockedTimeQueryKey(options)
+});
+
+export const updateBlockedTimeMutation = (options?: Partial<Options<UpdateBlockedTimeData>>): UseMutationOptions<UpdateBlockedTimeResponse, UpdateBlockedTimeError, Options<UpdateBlockedTimeData>> => {
+    const mutationOptions: UseMutationOptions<UpdateBlockedTimeResponse, UpdateBlockedTimeError, Options<UpdateBlockedTimeData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await updateBlockedTime({
                 ...options,
                 ...fnOptions,
                 throwOnError: true

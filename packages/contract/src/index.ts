@@ -1,3 +1,4 @@
+export * from "./blocked-times";
 export * from "./closed-dates";
 export * from "./common";
 export * from "./me";

@@ -17,6 +17,7 @@ import {
   pgEnum,
   pgTable,
   text,
+  timestamp,
   uniqueIndex,
 } from "drizzle-orm/pg-core";
 
@@ -125,3 +126,25 @@ export const priceRules = pgTable(
 );
 
 export type PriceRuleRow = typeof priceRules.$inferSelect;
+
+/** Blocks may not overlap on one resource; see migration 0009_blocked_times_no_overlap. */
+export const blockedTimes = pgTable(
+  "blocked_times",
+  {
+    id: idColumn(),
+    tenantId: tenantIdColumn(),
+    resourceId: bigint("resource_id", { mode: "number" })
+      .notNull()
+      .references(() => resources.id),
+    startsAt: timestamp("starts_at", { withTimezone: true }).notNull(),
+    endsAt: timestamp("ends_at", { withTimezone: true }).notNull(),
+    reason: text("reason"),
+    ...timestampColumns(),
+  },
+  (table) => [
+    index("blocked_times_tenant_idx").on(table.tenantId),
+    index("blocked_times_resource_idx").on(table.resourceId),
+  ],
+);
+
+export type BlockedTimeRow = typeof blockedTimes.$inferSelect;

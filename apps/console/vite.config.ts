@@ -16,5 +16,7 @@ export default defineConfig({
     environment: "jsdom",
     setupFiles: "./src/test/setup.ts",
     css: false,
+    // Far from the venues' Colombo time, so code that uses the browser's time zone by mistake fails.
+    env: { TZ: "America/New_York" },
   },
 });

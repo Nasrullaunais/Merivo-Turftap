@@ -1,7 +1,11 @@
 import {
+  BLOCKED_TIME_SORT_FIELDS,
+  BlockedTime,
+  BlockedTimeFilters,
   CLOSED_DATE_SORT_FIELDS,
   ClosedDate,
   ClosedDateFilters,
+  CreateBlockedTime,
   CreateClosedDate,
   CreatePriceRule,
   CreateResource,
@@ -12,6 +16,7 @@ import {
   Resource,
   RESOURCE_SORT_FIELDS,
   ResourceFilters,
+  UpdateBlockedTime,
   UpdateClosedDate,
   UpdatePriceRule,
   UpdateResource,
@@ -22,6 +27,7 @@ import {
 } from "@turftap/contract";
 
 import { defineResource } from "../../lib/resource";
+import * as blockedTimesService from "./blocked-times.service";
 import * as closedDatesService from "./closed-dates.service";
 import * as priceRulesService from "./price-rules.service";
 import * as resourcesService from "./resources.service";
@@ -76,4 +82,17 @@ export const closedDatesResource = defineResource({
   },
   sort: { fields: CLOSED_DATE_SORT_FIELDS, default: "date,asc" },
   service: closedDatesService,
+});
+
+export const blockedTimesResource = defineResource({
+  name: "blocked-times",
+  operations: ["list", "get", "create", "update", "delete"],
+  schemas: {
+    item: BlockedTime,
+    create: CreateBlockedTime,
+    update: UpdateBlockedTime,
+    filters: BlockedTimeFilters,
+  },
+  sort: { fields: BLOCKED_TIME_SORT_FIELDS, default: "startsAt,asc" },
+  service: blockedTimesService,
 });

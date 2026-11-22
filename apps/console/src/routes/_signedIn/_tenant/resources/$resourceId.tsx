@@ -2,6 +2,8 @@ import { createFileRoute, redirect } from "@tanstack/react-router";
 import { Id } from "@turftap/contract";
 
 import { canOpen } from "../../../../config/routePermissions";
+import { BlockedTimeList } from "../../../../features/blocked-times/BlockedTimeList";
+import { BlockResourceForm } from "../../../../features/blocked-times/BlockResourceForm";
 import { AddPriceRuleForm } from "../../../../features/price-rules/AddPriceRuleForm";
 import { PriceRuleList } from "../../../../features/price-rules/PriceRuleList";
 import { DefaultPrice } from "../../../../features/resources/DefaultPrice";
@@ -29,6 +31,8 @@ function ResourcePage() {
       {can(tenant, "resources:update") && <DefaultPrice resourceId={resourceId} />}
       <PriceRuleList resourceId={resourceId} canDelete={can(tenant, "price-rules:delete")} />
       {can(tenant, "price-rules:create") && <AddPriceRuleForm resourceId={resourceId} />}
+      <BlockedTimeList resourceId={resourceId} canUnblock={can(tenant, "blocked-times:delete")} />
+      {can(tenant, "blocked-times:create") && <BlockResourceForm resourceId={resourceId} />}
     </main>
   );
 }

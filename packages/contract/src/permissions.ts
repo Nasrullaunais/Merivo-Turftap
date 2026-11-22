@@ -10,6 +10,7 @@ export const STAFF_RESOURCES = [
   "closed-dates",
   "resources",
   "price-rules",
+  "blocked-times",
 ] as const;
 export type StaffResource = (typeof STAFF_RESOURCES)[number];
 
