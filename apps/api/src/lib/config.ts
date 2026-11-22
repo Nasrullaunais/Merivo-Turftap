@@ -16,6 +16,7 @@ const Env = z.object({
   LOG_LEVEL: z.enum(["debug", "info", "warn", "error", "silent"]).default("info"),
   DATABASE_URL: z.url(),
   CORS_ORIGINS: commaList.default(["http://localhost:5173", "http://localhost:5174"]),
+  CONSOLE_URL: z.url().default("http://localhost:5174"),
 
   AUTH_PROVIDER: z.enum(["fake", "auth0"]).default("fake"),
   AUTH_CACHE_SECONDS: z.coerce.number().int().min(0).default(DEFAULT_AUTH_CACHE_SECONDS),
@@ -72,6 +73,7 @@ export function loadConfig(source: Record<string, string | undefined> = process.
     logLevel: env.LOG_LEVEL,
     databaseUrl: env.DATABASE_URL,
     corsOrigins: env.CORS_ORIGINS,
+    consoleUrl: env.CONSOLE_URL,
     auth: {
       cacheSeconds: env.AUTH_CACHE_SECONDS,
       provider: authProvider(env),

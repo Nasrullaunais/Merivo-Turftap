@@ -3,8 +3,8 @@
 import { type InfiniteData, infiniteQueryOptions, queryOptions, type UseMutationOptions } from '@tanstack/react-query';
 
 import { client } from '../client.gen';
-import { createVenue, deleteVenue, getMe, getVenue, listVenues, type Options, updateVenue } from '../sdk.gen';
-import type { CreateVenueData, CreateVenueError, CreateVenueResponse, DeleteVenueData, DeleteVenueError, DeleteVenueResponse, GetMeData, GetMeError, GetMeResponse, GetVenueData, GetVenueError, GetVenueResponse, ListVenuesData, ListVenuesError, ListVenuesResponse, UpdateVenueData, UpdateVenueError, UpdateVenueResponse } from '../types.gen';
+import { createStaff, createVenue, deleteVenue, getMe, getStaff, getVenue, listStaff, listVenues, type Options, updateVenue } from '../sdk.gen';
+import type { CreateStaffData, CreateStaffError, CreateStaffResponse, CreateVenueData, CreateVenueError, CreateVenueResponse, DeleteVenueData, DeleteVenueError, DeleteVenueResponse, GetMeData, GetMeError, GetMeResponse, GetStaffData, GetStaffError, GetStaffResponse, GetVenueData, GetVenueError, GetVenueResponse, ListStaffData, ListStaffError, ListStaffResponse, ListVenuesData, ListVenuesError, ListVenuesResponse, UpdateVenueData, UpdateVenueError, UpdateVenueResponse } from '../types.gen';
 
 export type QueryKey<TOptions extends Options> = [
     Pick<TOptions, 'baseUrl' | 'body' | 'headers' | 'path' | 'query'> & {
@@ -54,11 +54,11 @@ export const getMeOptions = (options?: Options<GetMeData>) => queryOptions<GetMe
     queryKey: getMeQueryKey(options)
 });
 
-export const listVenuesQueryKey = (options?: Options<ListVenuesData>) => createQueryKey('listVenues', options);
+export const listStaffQueryKey = (options?: Options<ListStaffData>) => createQueryKey('listStaff', options);
 
-export const listVenuesOptions = (options?: Options<ListVenuesData>) => queryOptions<ListVenuesResponse, ListVenuesError, ListVenuesResponse, ReturnType<typeof listVenuesQueryKey>>({
+export const listStaffOptions = (options?: Options<ListStaffData>) => queryOptions<ListStaffResponse, ListStaffError, ListStaffResponse, ReturnType<typeof listStaffQueryKey>>({
     queryFn: async ({ queryKey, signal }) => {
-        const { data } = await listVenues({
+        const { data } = await listStaff({
             ...options,
             ...queryKey[0],
             signal,
@@ -66,7 +66,7 @@ export const listVenuesOptions = (options?: Options<ListVenuesData>) => queryOpt
         });
         return data;
     },
-    queryKey: listVenuesQueryKey(options)
+    queryKey: listStaffQueryKey(options)
 });
 
 const createInfiniteParams = <K extends Pick<QueryKey<Options>[0], 'body' | 'headers' | 'path' | 'query'>>(queryKey: QueryKey<Options>, page: K) => {
@@ -97,6 +97,77 @@ const createInfiniteParams = <K extends Pick<QueryKey<Options>[0], 'body' | 'hea
     }
     return params as unknown as typeof page;
 };
+
+export const listStaffInfiniteQueryKey = (options?: Options<ListStaffData>): QueryKey<Options<ListStaffData>> => createQueryKey('listStaff', options, true);
+
+export const listStaffInfiniteOptions = (options?: Options<ListStaffData>) => {
+    const opts = infiniteQueryOptions<ListStaffResponse, ListStaffError, InfiniteData<ListStaffResponse>, QueryKey<Options<ListStaffData>>, number | Pick<QueryKey<Options<ListStaffData>>[0], 'body' | 'headers' | 'path' | 'query'>>(
+    // @ts-ignore
+    {
+        queryFn: async ({ pageParam, queryKey, signal }) => {
+            // @ts-ignore
+            const page: Pick<QueryKey<Options<ListStaffData>>[0], 'body' | 'headers' | 'path' | 'query'> = typeof pageParam === 'object' ? pageParam : {
+                query: {
+                    page: pageParam
+                }
+            };
+            const params = createInfiniteParams(queryKey, page);
+            const { data } = await listStaff({
+                ...options,
+                ...params,
+                signal,
+                throwOnError: true
+            });
+            return data;
+        },
+        queryKey: listStaffInfiniteQueryKey(options)
+    });
+    return opts as Omit<typeof opts, 'initialData'>;
+};
+
+export const createStaffMutation = (options?: Partial<Options<CreateStaffData>>): UseMutationOptions<CreateStaffResponse, CreateStaffError, Options<CreateStaffData>> => {
+    const mutationOptions: UseMutationOptions<CreateStaffResponse, CreateStaffError, Options<CreateStaffData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await createStaff({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+export const getStaffQueryKey = (options: Options<GetStaffData>) => createQueryKey('getStaff', options);
+
+export const getStaffOptions = (options: Options<GetStaffData>) => queryOptions<GetStaffResponse, GetStaffError, GetStaffResponse, ReturnType<typeof getStaffQueryKey>>({
+    queryFn: async ({ queryKey, signal }) => {
+        const { data } = await getStaff({
+            ...options,
+            ...queryKey[0],
+            signal,
+            throwOnError: true
+        });
+        return data;
+    },
+    queryKey: getStaffQueryKey(options)
+});
+
+export const listVenuesQueryKey = (options?: Options<ListVenuesData>) => createQueryKey('listVenues', options);
+
+export const listVenuesOptions = (options?: Options<ListVenuesData>) => queryOptions<ListVenuesResponse, ListVenuesError, ListVenuesResponse, ReturnType<typeof listVenuesQueryKey>>({
+    queryFn: async ({ queryKey, signal }) => {
+        const { data } = await listVenues({
+            ...options,
+            ...queryKey[0],
+            signal,
+            throwOnError: true
+        });
+        return data;
+    },
+    queryKey: listVenuesQueryKey(options)
+});
 
 export const listVenuesInfiniteQueryKey = (options?: Options<ListVenuesData>): QueryKey<Options<ListVenuesData>> => createQueryKey('listVenues', options, true);
 

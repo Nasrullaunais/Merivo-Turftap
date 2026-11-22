@@ -8,6 +8,13 @@ import { installApiTransport } from "../lib/api/transport";
 installApiTransport();
 
 window.scrollTo = () => {}; // jsdom has no scrolling; the router calls it on every page change.
+// jsdom has no ResizeObserver; HeroUI's form controls create one to measure themselves.
+globalThis.ResizeObserver ??= class {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+};
+
 // jsdom's Request rejects relative URLs; browsers resolve them against the page.
 const NodeRequest = globalThis.Request;
 globalThis.Request = class extends NodeRequest {

@@ -1,8 +1,8 @@
-import { afterAll, beforeAll, describe, expect, it } from "bun:test";
+import { beforeAll, describe, expect, it } from "bun:test";
 import { sql } from "drizzle-orm";
 
 import { db, transaction } from "./db";
-import { defineJob, startJobs, stopJobs } from "./jobs";
+import { defineJob, startJobs } from "./jobs";
 
 const testJob = defineJob<{ marker: string }>("test-job", async () => {});
 
@@ -14,8 +14,8 @@ const jobsWithMarker = async (marker: string) => {
 };
 
 describe("jobs", () => {
+  // The test setup started the queues before this file defined test-job; this creates its queue.
   beforeAll(() => startJobs({ work: false }));
-  afterAll(() => stopJobs());
 
   it("queue_insideATransactionThatCommits_savesTheJob", async () => {
     const marker = crypto.randomUUID();

@@ -64,6 +64,7 @@ export function update(auth: AuthContext, id: number, input: UpdateVenue) {
 - **Writes run inside `transaction()`.** Every repository call and queued job inside it shares one connection, and database rule violations (duplicate name, overlapping booking) come out as our own errors. Calling `transaction()` inside another one just joins it.
 - Reads can skip the transaction.
 - Other modules are reached through their service: `import * as staffService from "../staff/staff.service"`.
+- If two modules need each other, the part one of them needs moves to a second service file, so the imports don't go in a circle. Example: `platform/users.service.ts`, used by `staff`, while `platform.service.ts` uses `staff`.
 - Outside services are reached through `ports()`: `await ports().storage.save(key, file)`. Never import an adapter.
 
 ## Repositories
@@ -120,13 +121,17 @@ if (!changed) throw statusChangedMeanwhile();
 
 ```ts
 // bookings.jobs.ts
-export const expireBooking = defineJob<{ tenantId: number; bookingId: number }>("expire-booking", async (data) => {
-  await bookingsService.expire(data.tenantId, data.bookingId);   // re-checks the current state
-});
+export async function expireBooking({ tenantId, bookingId }: ExpireData) {
+  const booking = await bookingsRepository.findById(tenantId, bookingId);   // re-checks the current state
+  ...
+}
+export const expireBookingJob = defineJob<ExpireData>("expire-booking", expireBooking);
 
 // in the service, inside transaction():
-await expireBooking.queue({ tenantId, bookingId }, { startAfter: deadline });
+await expireBookingJob.queue({ tenantId, bookingId }, { startAfter: deadline });
 ```
+
+The handler uses the repository, not the service: the service imports the job to queue it, so the other way round would be an import circle. `staff.jobs.ts` is a working example.
 
 A job queued inside `transaction()` is saved with the data, so it never runs for a row that didn't save. Handlers must check the row's state when they run, because things may have moved on.
 
@@ -141,6 +146,6 @@ See [adapters.md](adapters.md). `wiring.ts` picks the adapters from config and c
 
 ## Tests
 
-- `bun test` in `apps/api` uses the `turftap_test` database (never the development one), runs migrations first and installs fake ports.
+- `bun test` in `apps/api` uses the `turftap_test` database (never the development one), runs migrations first, installs fake ports and creates the job queues without working them. A test that needs a job's effect runs its handler itself (see `staff.routes.test.ts`).
 - `src/test/fixtures.ts` has `createTenant()` (a tenant with an Owner, Manager and Front Desk), `venueInput()` and `call()`, which sends a request through the whole app signed in with the fake auth provider (`Bearer fake:+94771234567`).
 - Each module has service tests, route tests and a `<module>.tenancy.test.ts`.

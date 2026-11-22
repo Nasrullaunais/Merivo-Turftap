@@ -50,3 +50,8 @@ export async function findTenantsByIds(ids: number[]) {
     .where(inArray(tenants.id, ids))
     .orderBy(asc(sql`lower(${tenants.name})`));
 }
+
+export async function findUsersByIds(ids: number[]) {
+  if (!ids.length) return [];
+  return db().select().from(users).where(inArray(users.id, ids));
+}
