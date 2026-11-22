@@ -35,9 +35,9 @@ flowchart TD
 
 ## Messages the backend sends
 
-Confirmations, rejections, cancellations, reminders and login codes are sent by the API through `MessagingChannel`, not by n8n. Login codes come from the shared TurfTap number. Everything else comes from the tenant's number.
+Confirmations, rejections, cancellations, reminders, login codes and staff invites are sent by the API through `MessagingChannel`, not by n8n. Messages about TurfTap itself come from the shared TurfTap number: login codes, staff invites (`SIG-03`) and the first Owner's welcome (`PLA-01`), since a new tenant has no number yet. Messages about a booking or membership come from the tenant's number.
 
-WhatsApp only allows free-form messages within 24 hours of the customer's last message. Outside that window, Meta requires **pre-approved message templates**. Every backend-sent message therefore has a template, registered with Meta per number; the template names are listed in `apps/api/src/modules/notifications/templates.ts`.
+WhatsApp only allows free-form messages within 24 hours of the customer's last message. Outside that window, Meta requires **pre-approved message templates**. Every backend-sent message therefore has a template, registered with Meta per number; the template names are listed in `WHATSAPP_TEMPLATES` in `apps/api/src/ports/messaging-channel.ts`.
 
 ## Where the workflow lives
 

@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { CreateVenueData, CreateVenueErrors, CreateVenueResponses, DeleteVenueData, DeleteVenueErrors, DeleteVenueResponses, GetMeData, GetMeErrors, GetMeResponses, GetVenueData, GetVenueErrors, GetVenueResponses, ListVenuesData, ListVenuesErrors, ListVenuesResponses, UpdateVenueData, UpdateVenueErrors, UpdateVenueResponses } from './types.gen';
+import type { CreateStaffData, CreateStaffErrors, CreateStaffResponses, CreateVenueData, CreateVenueErrors, CreateVenueResponses, DeleteVenueData, DeleteVenueErrors, DeleteVenueResponses, GetMeData, GetMeErrors, GetMeResponses, GetStaffData, GetStaffErrors, GetStaffResponses, GetVenueData, GetVenueErrors, GetVenueResponses, ListStaffData, ListStaffErrors, ListStaffResponses, ListVenuesData, ListVenuesErrors, ListVenuesResponses, UpdateVenueData, UpdateVenueErrors, UpdateVenueResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -21,6 +21,28 @@ export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends 
 export const getMe = <ThrowOnError extends boolean = true>(options?: Options<GetMeData, ThrowOnError>): RequestResult<GetMeResponses, GetMeErrors, ThrowOnError> => (options?.client ?? client).get<GetMeResponses, GetMeErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/v1/me',
+    ...options
+});
+
+export const listStaff = <ThrowOnError extends boolean = true>(options?: Options<ListStaffData, ThrowOnError>): RequestResult<ListStaffResponses, ListStaffErrors, ThrowOnError> => (options?.client ?? client).get<ListStaffResponses, ListStaffErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/v1/staff',
+    ...options
+});
+
+export const createStaff = <ThrowOnError extends boolean = true>(options: Options<CreateStaffData, ThrowOnError>): RequestResult<CreateStaffResponses, CreateStaffErrors, ThrowOnError> => (options.client ?? client).post<CreateStaffResponses, CreateStaffErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/v1/staff',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+export const getStaff = <ThrowOnError extends boolean = true>(options: Options<GetStaffData, ThrowOnError>): RequestResult<GetStaffResponses, GetStaffErrors, ThrowOnError> => (options.client ?? client).get<GetStaffResponses, GetStaffErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/v1/staff/{id}',
     ...options
 });
 

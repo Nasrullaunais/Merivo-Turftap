@@ -33,6 +33,20 @@ export const StaffRole = {
 
 export type StaffRole = typeof StaffRole[keyof typeof StaffRole];
 
+export type Staff = {
+    id: number;
+    phone: string;
+    name: string | null;
+    role: StaffRole;
+    createdAt: string;
+    updatedAt: string;
+};
+
+export type CreateStaff = {
+    phone: string;
+    role: StaffRole;
+};
+
 export type MyTenant = {
     id: number;
     slug: string;
@@ -114,6 +128,105 @@ export type GetMeResponses = {
 };
 
 export type GetMeResponse = GetMeResponses[keyof GetMeResponses];
+
+export type ListStaffData = {
+    body?: never;
+    path?: never;
+    query?: {
+        page?: number;
+        size?: number;
+        sort?: 'createdAt,asc' | 'createdAt,desc';
+    };
+    url: '/v1/staff';
+};
+
+export type ListStaffErrors = {
+    /**
+     * Error
+     */
+    default: ErrorReply;
+};
+
+export type ListStaffError = ListStaffErrors[keyof ListStaffErrors];
+
+export type ListStaffResponses = {
+    /**
+     * One page
+     */
+    200: {
+        status: number;
+        message: string;
+        data: {
+            content: Array<Staff>;
+            page: number;
+            size: number;
+            totalElements: number;
+            totalPages: number;
+        };
+    };
+};
+
+export type ListStaffResponse = ListStaffResponses[keyof ListStaffResponses];
+
+export type CreateStaffData = {
+    body: CreateStaff;
+    path?: never;
+    query?: never;
+    url: '/v1/staff';
+};
+
+export type CreateStaffErrors = {
+    /**
+     * Error
+     */
+    default: ErrorReply;
+};
+
+export type CreateStaffError = CreateStaffErrors[keyof CreateStaffErrors];
+
+export type CreateStaffResponses = {
+    /**
+     * Created
+     */
+    201: {
+        status: number;
+        message: string;
+        data: Staff;
+    };
+};
+
+export type CreateStaffResponse = CreateStaffResponses[keyof CreateStaffResponses];
+
+export type GetStaffData = {
+    body?: never;
+    path: {
+        id: number;
+    };
+    query?: never;
+    url: '/v1/staff/{id}';
+};
+
+export type GetStaffErrors = {
+    /**
+     * Error
+     */
+    default: ErrorReply;
+};
+
+export type GetStaffError = GetStaffErrors[keyof GetStaffErrors];
+
+export type GetStaffResponses = {
+    /**
+     * Found
+     */
+    200: {
+        status: number;
+        message: string;
+        data: Staff;
+    };
+};
+
+export type GetStaffResponse = GetStaffResponses[keyof GetStaffResponses];
 
 export type ListVenuesData = {
     body?: never;

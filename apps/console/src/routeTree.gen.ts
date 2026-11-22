@@ -15,6 +15,7 @@ import { Route as SignedInTenantRouteImport } from './routes/_signedIn/_tenant'
 import { Route as SignedInChooseTenantRouteImport } from './routes/_signedIn/choose-tenant'
 import { Route as SignedInNoAccessRouteImport } from './routes/_signedIn/no-access'
 import { Route as SignedInTenantIndexRouteImport } from './routes/_signedIn/_tenant/index'
+import { Route as SignedInTenantStaffRouteImport } from './routes/_signedIn/_tenant/staff'
 
 const SignedInRoute = SignedInRouteImport.update({
   id: '/_signedIn',
@@ -44,18 +45,25 @@ const SignedInTenantIndexRoute = SignedInTenantIndexRouteImport.update({
   path: '/',
   getParentRoute: () => SignedInTenantRoute,
 } as any)
+const SignedInTenantStaffRoute = SignedInTenantStaffRouteImport.update({
+  id: '/staff',
+  path: '/staff',
+  getParentRoute: () => SignedInTenantRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof SignedInTenantIndexRoute
   '/sign-in': typeof SignInRoute
   '/choose-tenant': typeof SignedInChooseTenantRoute
   '/no-access': typeof SignedInNoAccessRoute
+  '/staff': typeof SignedInTenantStaffRoute
 }
 export interface FileRoutesByTo {
   '/': typeof SignedInTenantIndexRoute
   '/sign-in': typeof SignInRoute
   '/choose-tenant': typeof SignedInChooseTenantRoute
   '/no-access': typeof SignedInNoAccessRoute
+  '/staff': typeof SignedInTenantStaffRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -64,13 +72,14 @@ export interface FileRoutesById {
   '/_signedIn/_tenant': typeof SignedInTenantRouteWithChildren
   '/_signedIn/choose-tenant': typeof SignedInChooseTenantRoute
   '/_signedIn/no-access': typeof SignedInNoAccessRoute
+  '/_signedIn/_tenant/staff': typeof SignedInTenantStaffRoute
   '/_signedIn/_tenant/': typeof SignedInTenantIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/sign-in' | '/choose-tenant' | '/no-access'
+  fullPaths: '/' | '/sign-in' | '/choose-tenant' | '/no-access' | '/staff'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/sign-in' | '/choose-tenant' | '/no-access'
+  to: '/' | '/sign-in' | '/choose-tenant' | '/no-access' | '/staff'
   id:
     | '__root__'
     | '/_signedIn'
@@ -78,6 +87,7 @@ export interface FileRouteTypes {
     | '/_signedIn/_tenant'
     | '/_signedIn/choose-tenant'
     | '/_signedIn/no-access'
+    | '/_signedIn/_tenant/staff'
     | '/_signedIn/_tenant/'
   fileRoutesById: FileRoutesById
 }
@@ -130,14 +140,23 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SignedInTenantIndexRouteImport
       parentRoute: typeof SignedInTenantRoute
     }
+    '/_signedIn/_tenant/staff': {
+      id: '/_signedIn/_tenant/staff'
+      path: '/staff'
+      fullPath: '/staff'
+      preLoaderRoute: typeof SignedInTenantStaffRouteImport
+      parentRoute: typeof SignedInTenantRoute
+    }
   }
 }
 
 interface SignedInTenantRouteChildren {
+  SignedInTenantStaffRoute: typeof SignedInTenantStaffRoute
   SignedInTenantIndexRoute: typeof SignedInTenantIndexRoute
 }
 
 const SignedInTenantRouteChildren: SignedInTenantRouteChildren = {
+  SignedInTenantStaffRoute: SignedInTenantStaffRoute,
   SignedInTenantIndexRoute: SignedInTenantIndexRoute,
 }
 
