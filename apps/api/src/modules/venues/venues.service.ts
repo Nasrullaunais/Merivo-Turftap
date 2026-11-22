@@ -28,6 +28,7 @@ export function create(auth: AuthContext, input: CreateVenue) {
 }
 
 export function update(auth: AuthContext, id: number, input: UpdateVenue) {
+  if (Object.keys(input).length === 0) return get(auth, id);
   return transaction(async () => {
     const venue = await venuesRepository.update(auth.tenantId, id, input);
     if (!venue) throw venueErrors.notFound(id);

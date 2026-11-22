@@ -57,6 +57,16 @@ describe("venues routes", () => {
     expect(patched.body.data).toMatchObject({ description: null, name: created.body.data.name });
   });
 
+  it("patch_withNothingToChangeRepliesWithTheVenue", async () => {
+    const created = await call("POST", "/v1/venues", asStaff(tenant), venueInput());
+    const id = created.body.data.id;
+    const patched = await call("PATCH", `/v1/venues/${id}`, asStaff(tenant), {});
+    expect(patched).toMatchObject({
+      status: 200,
+      body: { data: { id, name: created.body.data.name } },
+    });
+  });
+
   it("list_refusesFiltersItDoesNotDeclare", async () => {
     const reply = await call("GET", "/v1/venues?tenantId=1", asStaff(tenant));
     expect(reply.status).toBe(400);
