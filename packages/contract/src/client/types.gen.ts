@@ -47,6 +47,10 @@ export type CreateStaff = {
     role: StaffRole;
 };
 
+export type UpdateStaff = {
+    role?: StaffRole;
+};
+
 export type MyTenant = {
     id: number;
     slug: string;
@@ -197,6 +201,37 @@ export type CreateStaffResponses = {
 
 export type CreateStaffResponse = CreateStaffResponses[keyof CreateStaffResponses];
 
+export type DeleteStaffData = {
+    body?: never;
+    path: {
+        id: number;
+    };
+    query?: never;
+    url: '/v1/staff/{id}';
+};
+
+export type DeleteStaffErrors = {
+    /**
+     * Error
+     */
+    default: ErrorReply;
+};
+
+export type DeleteStaffError = DeleteStaffErrors[keyof DeleteStaffErrors];
+
+export type DeleteStaffResponses = {
+    /**
+     * Deleted
+     */
+    200: {
+        status: number;
+        message: string;
+        data: null;
+    };
+};
+
+export type DeleteStaffResponse = DeleteStaffResponses[keyof DeleteStaffResponses];
+
 export type GetStaffData = {
     body?: never;
     path: {
@@ -227,6 +262,37 @@ export type GetStaffResponses = {
 };
 
 export type GetStaffResponse = GetStaffResponses[keyof GetStaffResponses];
+
+export type UpdateStaffData = {
+    body: UpdateStaff;
+    path: {
+        id: number;
+    };
+    query?: never;
+    url: '/v1/staff/{id}';
+};
+
+export type UpdateStaffErrors = {
+    /**
+     * Error
+     */
+    default: ErrorReply;
+};
+
+export type UpdateStaffError = UpdateStaffErrors[keyof UpdateStaffErrors];
+
+export type UpdateStaffResponses = {
+    /**
+     * Changed
+     */
+    200: {
+        status: number;
+        message: string;
+        data: Staff;
+    };
+};
+
+export type UpdateStaffResponse = UpdateStaffResponses[keyof UpdateStaffResponses];
 
 export type ListVenuesData = {
     body?: never;

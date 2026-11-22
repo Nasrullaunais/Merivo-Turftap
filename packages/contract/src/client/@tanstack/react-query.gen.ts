@@ -3,8 +3,8 @@
 import { type InfiniteData, infiniteQueryOptions, queryOptions, type UseMutationOptions } from '@tanstack/react-query';
 
 import { client } from '../client.gen';
-import { createStaff, createVenue, deleteVenue, getMe, getStaff, getVenue, listStaff, listVenues, type Options, updateVenue } from '../sdk.gen';
-import type { CreateStaffData, CreateStaffError, CreateStaffResponse, CreateVenueData, CreateVenueError, CreateVenueResponse, DeleteVenueData, DeleteVenueError, DeleteVenueResponse, GetMeData, GetMeError, GetMeResponse, GetStaffData, GetStaffError, GetStaffResponse, GetVenueData, GetVenueError, GetVenueResponse, ListStaffData, ListStaffError, ListStaffResponse, ListVenuesData, ListVenuesError, ListVenuesResponse, UpdateVenueData, UpdateVenueError, UpdateVenueResponse } from '../types.gen';
+import { createStaff, createVenue, deleteStaff, deleteVenue, getMe, getStaff, getVenue, listStaff, listVenues, type Options, updateStaff, updateVenue } from '../sdk.gen';
+import type { CreateStaffData, CreateStaffError, CreateStaffResponse, CreateVenueData, CreateVenueError, CreateVenueResponse, DeleteStaffData, DeleteStaffError, DeleteStaffResponse, DeleteVenueData, DeleteVenueError, DeleteVenueResponse, GetMeData, GetMeError, GetMeResponse, GetStaffData, GetStaffError, GetStaffResponse, GetVenueData, GetVenueError, GetVenueResponse, ListStaffData, ListStaffError, ListStaffResponse, ListVenuesData, ListVenuesError, ListVenuesResponse, UpdateStaffData, UpdateStaffError, UpdateStaffResponse, UpdateVenueData, UpdateVenueError, UpdateVenueResponse } from '../types.gen';
 
 export type QueryKey<TOptions extends Options> = [
     Pick<TOptions, 'baseUrl' | 'body' | 'headers' | 'path' | 'query'> & {
@@ -139,6 +139,20 @@ export const createStaffMutation = (options?: Partial<Options<CreateStaffData>>)
     return mutationOptions;
 };
 
+export const deleteStaffMutation = (options?: Partial<Options<DeleteStaffData>>): UseMutationOptions<DeleteStaffResponse, DeleteStaffError, Options<DeleteStaffData>> => {
+    const mutationOptions: UseMutationOptions<DeleteStaffResponse, DeleteStaffError, Options<DeleteStaffData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await deleteStaff({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
 export const getStaffQueryKey = (options: Options<GetStaffData>) => createQueryKey('getStaff', options);
 
 export const getStaffOptions = (options: Options<GetStaffData>) => queryOptions<GetStaffResponse, GetStaffError, GetStaffResponse, ReturnType<typeof getStaffQueryKey>>({
@@ -153,6 +167,20 @@ export const getStaffOptions = (options: Options<GetStaffData>) => queryOptions<
     },
     queryKey: getStaffQueryKey(options)
 });
+
+export const updateStaffMutation = (options?: Partial<Options<UpdateStaffData>>): UseMutationOptions<UpdateStaffResponse, UpdateStaffError, Options<UpdateStaffData>> => {
+    const mutationOptions: UseMutationOptions<UpdateStaffResponse, UpdateStaffError, Options<UpdateStaffData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await updateStaff({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
 
 export const listVenuesQueryKey = (options?: Options<ListVenuesData>) => createQueryKey('listVenues', options);
 

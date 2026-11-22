@@ -28,6 +28,14 @@ describe("staff tenant isolation", () => {
     expect(reply.body.data.content.map((row: { id: number }) => row.id)).not.toContain(staffOfB);
   });
 
+  it("updateAndRemove_replyNotFoundForAnotherTenantsStaff", async () => {
+    const as = asStaff(tenantA);
+    expect((await call("PATCH", `/v1/staff/${staffOfB}`, as, { role: "OWNER" })).status).toBe(404);
+    expect((await call("DELETE", `/v1/staff/${staffOfB}`, as)).status).toBe(404);
+    const stillThere = await call("GET", `/v1/staff/${staffOfB}`, asStaff(tenantB));
+    expect(stillThere.body.data.role).toBe("MANAGER");
+  });
+
   it("create_addsToTheCallersOwnTenantOnly", async () => {
     const phone = uniquePhone();
     await call("POST", "/v1/staff", asStaff(tenantA), { phone, role: "OWNER" });

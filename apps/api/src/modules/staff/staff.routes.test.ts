@@ -1,10 +1,17 @@
-import { beforeAll, describe, expect, it } from "bun:test";
+import { beforeAll, beforeEach, describe, expect, it } from "bun:test";
 import { sql } from "drizzle-orm";
 
 import { config } from "../../lib/config";
 import { db } from "../../lib/db";
 import { TURFTAP_NUMBER, WHATSAPP_TEMPLATES } from "../../ports/messaging-channel";
-import { asStaff, call, createTenant, type TestTenant, uniquePhone } from "../../test/fixtures";
+import {
+  asStaff,
+  call,
+  createTenant,
+  type TestStaff,
+  type TestTenant,
+  uniquePhone,
+} from "../../test/fixtures";
 import { testPorts } from "../../test/ports";
 import { sendStaffInvite } from "./staff.jobs";
 
@@ -115,5 +122,111 @@ describe("SIG-03 invite staff", () => {
     });
     const reply = await call("GET", `/v1/staff/${added.body.data.id}`, asStaff(tenant));
     expect(reply.body.data).toEqual(added.body.data);
+  });
+});
+
+describe("SIG-04 change or remove staff", () => {
+  let tenant: TestTenant;
+  beforeEach(async () => {
+    tenant = await createTenant();
+  });
+
+  const staffIdOf = async (who: TestStaff) => {
+    const reply = await call("GET", "/v1/staff?size=100", asStaff(tenant));
+    return reply.body.data.content.find((row: { phone: string }) => row.phone === who.phone).id;
+  };
+  const rolesOf = async (who: TestStaff) =>
+    (await call("GET", "/v1/me", { phone: who.phone })).body.data.tenants.map(
+      (row: { role: string }) => row.role,
+    );
+
+  it("update_changesTheirRole", async () => {
+    const id = await staffIdOf(tenant.manager);
+    const reply = await call("PATCH", `/v1/staff/${id}`, asStaff(tenant), { role: "FRONT_DESK" });
+    expect(reply.status).toBe(200);
+    expect(reply.body.data).toMatchObject({ phone: tenant.manager.phone, role: "FRONT_DESK" });
+    expect(await rolesOf(tenant.manager)).toEqual(["FRONT_DESK"]);
+  });
+
+  it("update_refusesTheLastOwnerChangingTheirOwnRole", async () => {
+    const id = await staffIdOf(tenant.owner);
+    const reply = await call("PATCH", `/v1/staff/${id}`, asStaff(tenant), { role: "MANAGER" });
+    expect(reply.status).toBe(409);
+    expect(reply.body.code).toBe("tt_stf_003");
+    expect(await rolesOf(tenant.owner)).toEqual(["OWNER"]);
+  });
+
+  it("update_withNoFieldsLeavesTheLastOwnerAsTheyAre", async () => {
+    const reply = await call(
+      "PATCH",
+      `/v1/staff/${await staffIdOf(tenant.owner)}`,
+      asStaff(tenant),
+      {},
+    );
+    expect(reply.status).toBe(200);
+    expect(reply.body.data.role).toBe("OWNER");
+  });
+
+  it("update_letsAnOwnerStepDownWhenAnotherOwnerRemains", async () => {
+    await call("PATCH", `/v1/staff/${await staffIdOf(tenant.manager)}`, asStaff(tenant), {
+      role: "OWNER",
+    });
+    const id = await staffIdOf(tenant.owner);
+    const reply = await call("PATCH", `/v1/staff/${id}`, asStaff(tenant), { role: "MANAGER" });
+    expect(reply.status).toBe(200);
+    expect(await rolesOf(tenant.owner)).toEqual(["MANAGER"]);
+  });
+
+  it("remove_takesAwayTheirAccessToTheTenant", async () => {
+    const id = await staffIdOf(tenant.manager);
+    expect((await call("DELETE", `/v1/staff/${id}`, asStaff(tenant))).status).toBe(200);
+    expect((await call("GET", "/v1/staff", asStaff(tenant, tenant.manager))).status).toBe(403);
+    expect(await rolesOf(tenant.manager)).toEqual([]);
+  });
+
+  it("remove_refusesTheLastOwnerRemovingThemselves", async () => {
+    const reply = await call(
+      "DELETE",
+      `/v1/staff/${await staffIdOf(tenant.owner)}`,
+      asStaff(tenant),
+    );
+    expect(reply.status).toBe(409);
+    expect(reply.body.code).toBe("tt_stf_003");
+    expect(await rolesOf(tenant.owner)).toEqual(["OWNER"]);
+  });
+
+  it("remove_leavesOneOwnerWhenTwoOwnersRemoveEachOtherAtOnce", async () => {
+    const managerId = await staffIdOf(tenant.manager);
+    await call("PATCH", `/v1/staff/${managerId}`, asStaff(tenant), { role: "OWNER" });
+    const ownerId = await staffIdOf(tenant.owner);
+    const replies = await Promise.all([
+      call("DELETE", `/v1/staff/${managerId}`, asStaff(tenant, tenant.owner)),
+      call("DELETE", `/v1/staff/${ownerId}`, asStaff(tenant, tenant.manager)),
+    ]);
+    expect(replies.map((reply) => reply.status).sort()).toEqual([200, 409]);
+    const { rows } = await db().execute(
+      sql`select id from staff where tenant_id = ${tenant.id} and role = 'OWNER'`,
+    );
+    expect(rows).toHaveLength(1);
+  });
+
+  it("updateAndRemove_areOnlyForOwners", async () => {
+    const id = await staffIdOf(tenant.frontDesk);
+    for (const who of [tenant.manager, tenant.frontDesk]) {
+      const as = asStaff(tenant, who);
+      expect((await call("PATCH", `/v1/staff/${id}`, as, { role: "MANAGER" })).status).toBe(403);
+      expect((await call("DELETE", `/v1/staff/${id}`, as)).status).toBe(403);
+    }
+    expect(await rolesOf(tenant.frontDesk)).toEqual(["FRONT_DESK"]);
+  });
+
+  it("updateAndRemove_replyNotFoundForAnUnknownId", async () => {
+    const missing = 999_999_999;
+    const patch = await call("PATCH", `/v1/staff/${missing}`, asStaff(tenant), { role: "OWNER" });
+    const removal = await call("DELETE", `/v1/staff/${missing}`, asStaff(tenant));
+    for (const reply of [patch, removal]) {
+      expect(reply.status).toBe(404);
+      expect(reply.body.code).toBe("tt_stf_001");
+    }
   });
 });
