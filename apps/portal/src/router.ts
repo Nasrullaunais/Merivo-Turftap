@@ -1,0 +1,18 @@
+import { createRouter } from "@tanstack/react-router";
+
+import { routeTree } from "./routeTree.gen";
+
+export function createAppRouter() {
+  return createRouter({
+    routeTree,
+    defaultPreload: "intent",
+    // Filled in by <RouterProvider context> in main.tsx.
+    context: { queryClient: undefined! },
+  });
+}
+
+declare module "@tanstack/react-router" {
+  interface Register {
+    router: ReturnType<typeof createAppRouter>;
+  }
+}

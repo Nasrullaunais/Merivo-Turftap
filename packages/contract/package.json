@@ -1,0 +1,30 @@
+{
+  "name": "@turftap/contract",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./client": "./src/client/index.ts",
+    "./client/client": "./src/client/client.gen.ts",
+    "./client/react-query": "./src/client/@tanstack/react-query.gen.ts",
+    "./openapi.json": "./openapi.json"
+  },
+  "scripts": {
+    "client": "openapi-ts",
+    "typecheck": "../../node_modules/.bin/tsc -p tsconfig.json",
+    "test": "bun test"
+  },
+  "dependencies": {
+    "libphonenumber-js": "^1.13.17",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@hey-api/openapi-ts": "^0.99.0",
+    "@tanstack/react-query": "^5.108.2",
+    "@types/bun": "latest",
+    "typescript": "^6.0.3"
+  },
+  "peerDependencies": {
+    "@tanstack/react-query": "^5"
+  }
+}

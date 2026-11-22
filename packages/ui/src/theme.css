@@ -1,0 +1,11 @@
+@import "tailwindcss";
+@import "@heroui/styles";
+@source "./";
+
+/* Neutral backgrounds and one accent colour (docs/architecture/frontend.md). Checked for 4.5:1 contrast. */
+:root,
+[data-theme="light"] {
+  --accent: oklch(0.52 0.15 155);
+  --accent-hover: color-mix(in oklab, var(--accent) 90%, black);
+  --background: oklch(98.2% 0 0);
+}

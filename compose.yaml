@@ -1,0 +1,55 @@
+# Local development services. Production adds Caddy and the app images (docs/architecture/deployment.md).
+name: turftap
+
+services:
+  postgres:
+    image: postgres:18-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: turftap
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-turftap}
+      POSTGRES_DB: turftap
+    ports:
+      - "127.0.0.1:${POSTGRES_PORT:-5433}:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql
+      - ./infra/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U turftap -d turftap"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  seaweedfs:
+    image: chrislusf/seaweedfs:latest
+    restart: unless-stopped
+    command: server -dir=/data -s3 -s3.port=8333 -s3.config=/etc/seaweedfs/s3.json
+    ports:
+      - "127.0.0.1:${S3_PORT:-8334}:8333"
+    volumes:
+      - seaweedfs-data:/data
+      - ./infra/seaweedfs/s3.json:/etc/seaweedfs/s3.json:ro
+
+  n8n:
+    image: docker.n8n.io/n8nio/n8n:latest
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DB_TYPE: postgresdb
+      DB_POSTGRESDB_HOST: postgres
+      DB_POSTGRESDB_DATABASE: n8n
+      DB_POSTGRESDB_USER: turftap
+      DB_POSTGRESDB_PASSWORD: ${POSTGRES_PASSWORD:-turftap}
+      GENERIC_TIMEZONE: Asia/Colombo
+      N8N_SECURE_COOKIE: "false"
+    ports:
+      - "127.0.0.1:${N8N_PORT:-5679}:5678"
+    volumes:
+      - n8n-data:/home/node/.n8n
+
+volumes:
+  postgres-data:
+  seaweedfs-data:
+  n8n-data:

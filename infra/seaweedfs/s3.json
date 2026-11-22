@@ -1,0 +1,9 @@
+{
+  "identities": [
+    {
+      "name": "turftap",
+      "credentials": [{ "accessKey": "turftap", "secretKey": "turftap-secret" }],
+      "actions": ["Admin", "Read", "Write", "List", "Tagging"]
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+*.md
+bun.lock
+apps/api/migrations/
+packages/contract/openapi.json
+packages/contract/src/client/
+**/routeTree.gen.ts
+n8n/workflows/

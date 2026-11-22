@@ -1,0 +1,146 @@
+# Writing backend code
+
+How code inside `apps/api` is written. The `venues` module is the working example: when adding a module, copy its shape. Rules here are checked by `apps/api/src/architecture.test.ts` where a test can check them.
+
+## Adding a resource, step by step
+
+1. **Contract** (`packages/contract/src/<module>.ts`): Zod schemas for the item, create, update and filters. Give each body schema an id with `.meta({ id: "Venue" })` so it gets a name in OpenAPI.
+2. **Tables** (`<module>.tables.ts`): Drizzle tables. Every tenant table starts with `tenantId: tenantIdColumn()` and has an index on it.
+3. **Migration**: `bun run db:generate`, then read the SQL file it wrote before committing ([ADR 0009](../adr/0009-drizzle-migrations.md)).
+4. **Errors** (`<module>.errors.ts`): the module's error codes and English messages.
+5. **Repository** (`<module>.repository.ts`): one function per query, `tenantId` first.
+6. **Service** (`<module>.service.ts`): business rules and transactions.
+7. **Routes** (`<module>.routes.ts`): one `defineResource()` call, added to `src/resources.ts`.
+8. **Permissions**: add the resource to `STAFF_RESOURCES` and `ROLE_PERMISSIONS` in `lib/auth/permissions.ts`, matching the table in [api.md](api.md#permissions).
+9. **Generate**: `bun run gen` rewrites `openapi.json` and the frontend client. Commit both.
+10. **Tests**: service tests, route tests and a tenant-isolation test (see `venues.*.test.ts`).
+
+## Schemas: one definition, three uses
+
+A schema in `packages/contract` checks the request on the server, describes the API in `openapi.json`, and can check a form in React.
+
+```ts
+export const Venue = z.object({ id: Id, name: z.string(), createdAt: Timestamp, ... }).meta({ id: "Venue" });
+export const CreateVenue = z.object({ name: z.string().trim().min(1), phone: PhoneInput, ... }).meta({ id: "CreateVenue" });
+export const UpdateVenue = z.object(venueFields).partial().meta({ id: "UpdateVenue" });
+```
+
+- **Item** schemas describe what is stored. They have no `.transform()`, because replies are written with `z.encode()`, which can't undo a transform. Fields not in the item schema (like `tenantId`) are dropped from the reply.
+- **Create** and **update** schemas may clean input: `PhoneInput` turns "077 123 4567" into `+94771234567`.
+- **Update** schemas are built from the plain fields, never from the create schema, so a field with a create default isn't reset when a PATCH leaves it out.
+- Shared pieces live in `common.ts`: `Id`, `Timestamp` (ISO text with `Z` on the wire, `Date` in code), `Money`, `PhoneNumber`, `PhoneInput`, `LocalTime`, `QueryBoolean`.
+- Server-owned fields (`id`, `tenantId`, `status` on create, prices, payment results) never appear in create or update schemas.
+
+## Routes: `defineResource()`
+
+```ts
+export const venuesResource = defineResource({
+  name: "venues",                                   // URL /v1/venues, permissions venues:<action>
+  operations: ["list", "get", "create", "update", "delete"],
+  public: ["list", "get"],                          // open without sign-in, still needs a tenant
+  schemas: { item: Venue, create: CreateVenue, update: UpdateVenue, filters: VenueFilters },
+  sort: { fields: VENUE_SORT_FIELDS, default: "name,asc" },
+  service: venuesService,                           // needs list, get, create, update, remove
+});
+```
+
+For each route it: checks who may call it, parses the id, query and body with Zod (a mismatch is a 400 listing every bad field), calls one service function, and writes the reply in the envelope. TypeScript checks that the service's functions match the schemas. Unknown query parameters are refused, so a mistyped filter fails instead of quietly returning everything.
+
+Resources that customers or the Assistant may call list those operations in `forCustomers`; the service then limits them to the customer's own rows.
+
+## Services
+
+```ts
+export function update(auth: AuthContext, id: number, input: UpdateVenue) {
+  return transaction(async () => {
+    const venue = await venuesRepository.update(auth.tenantId, id, input);
+    if (!venue) throw venueErrors.notFound(id);
+    return venue;
+  });
+}
+```
+
+- A service function takes `auth` first. The tenant is always `auth.tenantId`.
+- **Writes run inside `transaction()`.** Every repository call and queued job inside it shares one connection, and database rule violations (duplicate name, overlapping booking) come out as our own errors. Calling `transaction()` inside another one just joins it.
+- Reads can skip the transaction.
+- Other modules are reached through their service: `import * as staffService from "../staff/staff.service"`.
+- Outside services are reached through `ports()`: `await ports().storage.save(key, file)`. Never import an adapter.
+
+## Repositories
+
+```ts
+export async function findById(tenantId: number, id: number) {
+  const [venue] = await db().select().from(venues).where(and(eq(venues.tenantId, tenantId), eq(venues.id, id)));
+  return venue;
+}
+```
+
+- `tenantId` is the first parameter of every exported function (except in `modules/platform/`, whose tables have no tenant).
+- Use `db()`, never a connection passed in: it is the open transaction if there is one.
+- "Find" functions return `undefined` when nothing matches. The service decides that this is a 404.
+- Lists use `pageOf()` and `sortBy()` from `lib/db`. Sort text columns by `sql\`lower(column)\`` so names sort the way people expect.
+- State changes are one conditional UPDATE: `.where(and(ownedBy(tenantId, id), eq(bookings.status, expected)))`. No row back means someone else got there first: throw `statusChangedMeanwhile()`.
+
+## Errors
+
+Business code throws and never catches. One handler (`lib/http/error-handler.ts`) turns every error into the reply.
+
+```ts
+// venues.errors.ts
+export const venueErrors = {
+  notFound: (id: number) => new NotFound("tt_ven_001", `Venue ${id} was not found`),
+  nameTaken: () => new Conflict("tt_ven_002", "Another venue already has this name"),
+};
+
+constraintErrors({ venues_tenant_name_unique: venueErrors.nameTaken });
+```
+
+- The error types are `BadRequest` (400), `Unauthorized` (401), `Forbidden` (403), `NotFound` (404) and `Conflict` (409), each with a code and an English message.
+- Codes are `tt_<area>_<nnn>`. Each module's codes live only in its `<module>.errors.ts`, use its area, and are never reused. The architecture test checks all three.
+- `constraintErrors()` gives a database constraint its own error. Without it, a duplicate becomes the generic `tt_dat_001` "This already exists".
+- Errors that belong to no module are in `lib/errors/http-errors.ts`: `tt_htt_*` for bad input, sign-in and routing, `tt_dat_*` for database rules.
+- `try`/`catch` and `.catch()` are refused anywhere under `modules/`. They belong at real edges: adapters, job handlers, hooks and `lib/`.
+- An unknown error replies 500 with a plain message and the `traceId`. The full error goes to the log only.
+
+## Status changes
+
+```ts
+export const bookingTransitions = transitions<BookingStatus>({
+  AWAITING_PAYMENT: { CANCELLED: ["customer", "assistant", "staff"] },
+  CONFIRMED: { CANCELLED: ["customer", "assistant", "staff"] },
+});
+
+// in the service, inside transaction():
+bookingTransitions.check(auth.actor, booking.status, input.status);   // 409 or 403 if not allowed
+const changed = await bookingsRepository.setStatus(auth.tenantId, id, booking.status, input.status);
+if (!changed) throw statusChangedMeanwhile();
+```
+
+## Background jobs
+
+```ts
+// bookings.jobs.ts
+export const expireBooking = defineJob<{ tenantId: number; bookingId: number }>("expire-booking", async (data) => {
+  await bookingsService.expire(data.tenantId, data.bookingId);   // re-checks the current state
+});
+
+// in the service, inside transaction():
+await expireBooking.queue({ tenantId, bookingId }, { startAfter: deadline });
+```
+
+A job queued inside `transaction()` is saved with the data, so it never runs for a row that didn't save. Handlers must check the row's state when they run, because things may have moved on.
+
+## Ports and adapters
+
+See [adapters.md](adapters.md). `wiring.ts` picks the adapters from config and calls `installPorts()` at start-up; tests install fakes in `src/test/setup.ts`. Services call `ports()`.
+
+## Config and logs
+
+- Settings are read once in `lib/config.ts` and checked by Zod. A missing secret stops the app. Fake adapters are refused when `NODE_ENV=production`.
+- `logger` from `lib/logger.ts` writes JSON. Every line written during a request or job carries its `requestId`, which errors return as `traceId`.
+
+## Tests
+
+- `bun test` in `apps/api` uses the `turftap_test` database (never the development one), runs migrations first and installs fake ports.
+- `src/test/fixtures.ts` has `createTenant()` (a tenant with an Owner, Manager and Front Desk), `venueInput()` and `call()`, which sends a request through the whole app signed in with the fake auth provider (`Bearer fake:+94771234567`).
+- Each module has service tests, route tests and a `<module>.tenancy.test.ts`.
