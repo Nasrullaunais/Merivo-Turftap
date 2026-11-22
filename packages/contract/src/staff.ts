@@ -22,10 +22,13 @@ export const CreateStaff = z
   .object({ phone: PhoneInput, role: StaffRole })
   .meta({ id: "CreateStaff" });
 
+export const UpdateStaff = z.object({ role: StaffRole }).partial().meta({ id: "UpdateStaff" });
+
 export const StaffFilters = z.object({});
 
 export const STAFF_SORT_FIELDS = ["createdAt"] as const;
 
 export type Staff = z.output<typeof Staff>;
 export type CreateStaff = z.output<typeof CreateStaff>;
+export type UpdateStaff = z.output<typeof UpdateStaff>;
 export type StaffFilters = z.output<typeof StaffFilters>;

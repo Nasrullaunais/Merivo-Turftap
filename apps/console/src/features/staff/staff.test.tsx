@@ -1,4 +1,4 @@
-import { fireEvent, screen } from "@testing-library/react";
+import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
 import { signInForTesting } from "../../lib/auth/session";
@@ -93,5 +93,104 @@ describe("SIG-03 invite staff from the Staff Console", () => {
     renderApp("/staff");
     expect(await screen.findByText("Demo Owner")).toBeInTheDocument();
     expect(screen.queryByRole("heading", { name: "Add staff" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /^Remove/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /^Role for/ })).not.toBeInTheDocument();
+  });
+});
+
+describe("SIG-04 change or remove staff from the Staff Console", () => {
+  const noContent = () => Response.json({ status: 200, message: "success", data: null });
+
+  it("owner_changesSomeonesRole", async () => {
+    signInForTesting(OWNER_PHONE);
+    const sent: unknown[] = [];
+    let person = added;
+    mockApi({
+      "GET /v1/me": meAs("OWNER"),
+      "GET /v1/staff": () =>
+        Response.json({ status: 200, message: "success", data: page([owner, person]) }),
+      "PATCH /v1/staff/9": async (request: Request) => {
+        sent.push(await request.json());
+        person = { ...added, role: "FRONT_DESK" };
+        return Response.json({ status: 200, message: "success", data: person });
+      },
+    });
+    renderApp("/staff");
+    fireEvent.click(await screen.findByRole("button", { name: /Role for \+94770001111/ }));
+    fireEvent.click(await screen.findByRole("option", { name: "Front Desk" }));
+    await waitFor(() => expect(sent).toEqual([{ role: "FRONT_DESK" }]));
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: /Role for \+94770001111/ })).toHaveTextContent(
+        "Front Desk",
+      ),
+    );
+  });
+
+  it("owner_removesSomeoneOnlyAfterConfirming", async () => {
+    signInForTesting(OWNER_PHONE);
+    let staff: object[] = [owner, added];
+    const fetch = mockApi({
+      "GET /v1/me": meAs("OWNER"),
+      "GET /v1/staff": () => Response.json({ status: 200, message: "success", data: page(staff) }),
+      "DELETE /v1/staff/9": () => {
+        staff = [owner];
+        return noContent();
+      },
+    });
+    const deletes = () =>
+      fetch.mock.calls.filter(([request]) => (request as Request).method === "DELETE");
+    renderApp("/staff");
+
+    fireEvent.click(await screen.findByRole("button", { name: "Remove +94770001111" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Cancel" }));
+    await waitFor(() => expect(screen.queryByRole("button", { name: "Cancel" })).toBeNull());
+    expect(deletes()).toHaveLength(0);
+    expect(screen.getByText("+94770001111")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Remove +94770001111" }));
+    const dialog = await screen.findByRole("alertdialog", { name: "Remove +94770001111?" });
+    fireEvent.click(within(dialog).getByRole("button", { name: "Remove" }));
+    await waitFor(() => expect(screen.queryByText("+94770001111")).not.toBeInTheDocument());
+    expect(deletes()).toHaveLength(1);
+  });
+
+  it("owner_isToldTheyAreTheLastOwner", async () => {
+    signInForTesting(OWNER_PHONE);
+    mockApi({
+      "GET /v1/me": meAs("OWNER"),
+      "GET /v1/staff": page([owner]),
+      "PATCH /v1/staff/1": () =>
+        apiError(
+          409,
+          "tt_stf_003",
+          "A tenant needs at least one Owner. Make someone else an Owner first.",
+        ),
+    });
+    renderApp("/staff");
+    fireEvent.click(await screen.findByRole("button", { name: /Role for Demo Owner/ }));
+    fireEvent.click(await screen.findByRole("option", { name: "Manager" }));
+    expect(
+      await screen.findByText(
+        "A tenant needs at least one Owner. Make someone else an Owner first.",
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it("owner_whoRemovesThemselvesLosesAccessToTheTenant", async () => {
+    signInForTesting(OWNER_PHONE);
+    let me = meAs("OWNER");
+    mockApi({
+      "GET /v1/me": () => Response.json({ status: 200, message: "success", data: me }),
+      "GET /v1/staff": page([owner, { ...added, role: "OWNER" }]),
+      "DELETE /v1/staff/1": () => {
+        me = { ...me, tenants: [] };
+        return noContent();
+      },
+    });
+    renderApp("/staff");
+    fireEvent.click(await screen.findByRole("button", { name: "Remove Demo Owner" }));
+    const dialog = await screen.findByRole("alertdialog", { name: "Remove Demo Owner?" });
+    fireEvent.click(within(dialog).getByRole("button", { name: "Remove" }));
+    expect(await screen.findByText("You don't have access to any venue yet")).toBeInTheDocument();
   });
 });

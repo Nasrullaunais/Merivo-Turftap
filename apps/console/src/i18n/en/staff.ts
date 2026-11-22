@@ -9,4 +9,10 @@ export default {
   added: (phone: string) =>
     `${phone} was added. They'll get a WhatsApp message with the console link.`,
   noName: "Hasn't signed in yet",
+  roleFor: (who: string) => `Role for ${who}`,
+  remove: "Remove",
+  removeFor: (who: string) => `Remove ${who}`,
+  removeTitle: (who: string) => `Remove ${who}?`,
+  removeHint: "They lose access to this tenant within a few minutes.",
+  cancel: "Cancel",
 };

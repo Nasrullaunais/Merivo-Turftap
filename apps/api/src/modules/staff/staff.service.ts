@@ -1,8 +1,8 @@
-import type { CreateStaff, Staff, StaffFilters } from "@turftap/contract";
+import type { CreateStaff, Staff, StaffFilters, UpdateStaff } from "@turftap/contract";
 
 import type { AuthContext, StaffRole } from "../../lib/auth/context";
 import { transaction } from "../../lib/db";
-import type { ListQuery } from "../../lib/resource";
+import { type ListQuery, statusChangedMeanwhile } from "../../lib/resource";
 import * as usersService from "../platform/users.service";
 import { staffErrors } from "./staff.errors";
 import { staffInviteJob } from "./staff.jobs";
@@ -50,6 +50,38 @@ export function create(auth: AuthContext, input: CreateStaff) {
     const row = await staffRepository.insert(auth.tenantId, { userId: user.id, role: input.role });
     await staffInviteJob.queue({ tenantId: auth.tenantId, staffId: row.id });
     return toStaff(row, user);
+  });
+}
+
+/** SIG-04: finds the row to change and refuses a change that would leave the tenant with no Owner. */
+async function changeKeepingAnOwner(tenantId: number, id: number, newRole?: StaffRole) {
+  const owners = await staffRepository.lockOwners(tenantId);
+  const row = await staffRepository.findById(tenantId, id);
+  if (!row) throw staffErrors.notFound(id);
+  if (row.role === "OWNER" && newRole !== "OWNER" && owners.length <= 1) {
+    throw staffErrors.lastOwner();
+  }
+  return row;
+}
+
+export function update(auth: AuthContext, id: number, input: UpdateStaff) {
+  const { role } = input;
+  if (!role) return get(auth, id);
+  return transaction(async () => {
+    const row = await changeKeepingAnOwner(auth.tenantId, id, role);
+    const updated = await staffRepository.updateRole(auth.tenantId, id, row.role, role);
+    if (!updated) throw statusChangedMeanwhile();
+    const [staff] = await withPeople([updated]);
+    return staff!;
+  });
+}
+
+export function remove(auth: AuthContext, id: number) {
+  return transaction(async () => {
+    const row = await changeKeepingAnOwner(auth.tenantId, id);
+    if (!(await staffRepository.remove(auth.tenantId, id, row.role))) {
+      throw statusChangedMeanwhile();
+    }
   });
 }
 
