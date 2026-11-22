@@ -40,6 +40,14 @@ _Avoid_: Court, table, asset, facility, slot
 The smallest block of time a resource can be booked for, such as 60 minutes for a futsal court or 30 minutes for a pool table.
 _Avoid_: Period, session
 
+**Price Rule**:
+A price per slot for one resource on chosen weekdays between a start and end time, such as evenings and weekends. Any slot no Price Rule covers costs the resource's default price.
+_Avoid_: Rate, tariff, peak pricing
+
+**Blocked Time**:
+A time window when staff have stopped one resource from being booked, such as for maintenance or a private event. A whole venue closing for a day is a closed date, not Blocked Time.
+_Avoid_: Block, closure, maintenance window
+
 **Booking**:
 A customer's reservation of one resource for one or more back-to-back slots.
 _Avoid_: Reservation, appointment
