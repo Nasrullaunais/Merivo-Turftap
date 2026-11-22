@@ -9,50 +9,161 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as IndexRouteImport } from './routes/index'
+import { Route as SignedInRouteImport } from './routes/_signedIn'
+import { Route as SignInRouteImport } from './routes/sign-in'
+import { Route as SignedInTenantRouteImport } from './routes/_signedIn/_tenant'
+import { Route as SignedInChooseTenantRouteImport } from './routes/_signedIn/choose-tenant'
+import { Route as SignedInNoAccessRouteImport } from './routes/_signedIn/no-access'
+import { Route as SignedInTenantIndexRouteImport } from './routes/_signedIn/_tenant/index'
 
-const IndexRoute = IndexRouteImport.update({
+const SignedInRoute = SignedInRouteImport.update({
+  id: '/_signedIn',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SignInRoute = SignInRouteImport.update({
+  id: '/sign-in',
+  path: '/sign-in',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SignedInTenantRoute = SignedInTenantRouteImport.update({
+  id: '/_tenant',
+  getParentRoute: () => SignedInRoute,
+} as any)
+const SignedInChooseTenantRoute = SignedInChooseTenantRouteImport.update({
+  id: '/choose-tenant',
+  path: '/choose-tenant',
+  getParentRoute: () => SignedInRoute,
+} as any)
+const SignedInNoAccessRoute = SignedInNoAccessRouteImport.update({
+  id: '/no-access',
+  path: '/no-access',
+  getParentRoute: () => SignedInRoute,
+} as any)
+const SignedInTenantIndexRoute = SignedInTenantIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => SignedInTenantRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
+  '/': typeof SignedInTenantIndexRoute
+  '/sign-in': typeof SignInRoute
+  '/choose-tenant': typeof SignedInChooseTenantRoute
+  '/no-access': typeof SignedInNoAccessRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
+  '/': typeof SignedInTenantIndexRoute
+  '/sign-in': typeof SignInRoute
+  '/choose-tenant': typeof SignedInChooseTenantRoute
+  '/no-access': typeof SignedInNoAccessRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
+  '/_signedIn': typeof SignedInRouteWithChildren
+  '/sign-in': typeof SignInRoute
+  '/_signedIn/_tenant': typeof SignedInTenantRouteWithChildren
+  '/_signedIn/choose-tenant': typeof SignedInChooseTenantRoute
+  '/_signedIn/no-access': typeof SignedInNoAccessRoute
+  '/_signedIn/_tenant/': typeof SignedInTenantIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths: '/' | '/sign-in' | '/choose-tenant' | '/no-access'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/' | '/sign-in' | '/choose-tenant' | '/no-access'
+  id:
+    | '__root__'
+    | '/_signedIn'
+    | '/sign-in'
+    | '/_signedIn/_tenant'
+    | '/_signedIn/choose-tenant'
+    | '/_signedIn/no-access'
+    | '/_signedIn/_tenant/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
+  SignedInRoute: typeof SignedInRouteWithChildren
+  SignInRoute: typeof SignInRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
+    '/_signedIn': {
+      id: '/_signedIn'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof SignedInRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sign-in': {
+      id: '/sign-in'
+      path: '/sign-in'
+      fullPath: '/sign-in'
+      preLoaderRoute: typeof SignInRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_signedIn/_tenant': {
+      id: '/_signedIn/_tenant'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof SignedInTenantRouteImport
+      parentRoute: typeof SignedInRoute
+    }
+    '/_signedIn/choose-tenant': {
+      id: '/_signedIn/choose-tenant'
+      path: '/choose-tenant'
+      fullPath: '/choose-tenant'
+      preLoaderRoute: typeof SignedInChooseTenantRouteImport
+      parentRoute: typeof SignedInRoute
+    }
+    '/_signedIn/no-access': {
+      id: '/_signedIn/no-access'
+      path: '/no-access'
+      fullPath: '/no-access'
+      preLoaderRoute: typeof SignedInNoAccessRouteImport
+      parentRoute: typeof SignedInRoute
+    }
+    '/_signedIn/_tenant/': {
+      id: '/_signedIn/_tenant/'
       path: '/'
       fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof SignedInTenantIndexRouteImport
+      parentRoute: typeof SignedInTenantRoute
     }
   }
 }
 
+interface SignedInTenantRouteChildren {
+  SignedInTenantIndexRoute: typeof SignedInTenantIndexRoute
+}
+
+const SignedInTenantRouteChildren: SignedInTenantRouteChildren = {
+  SignedInTenantIndexRoute: SignedInTenantIndexRoute,
+}
+
+const SignedInTenantRouteWithChildren = SignedInTenantRoute._addFileChildren(
+  SignedInTenantRouteChildren,
+)
+
+interface SignedInRouteChildren {
+  SignedInTenantRoute: typeof SignedInTenantRouteWithChildren
+  SignedInChooseTenantRoute: typeof SignedInChooseTenantRoute
+  SignedInNoAccessRoute: typeof SignedInNoAccessRoute
+}
+
+const SignedInRouteChildren: SignedInRouteChildren = {
+  SignedInTenantRoute: SignedInTenantRouteWithChildren,
+  SignedInChooseTenantRoute: SignedInChooseTenantRoute,
+  SignedInNoAccessRoute: SignedInNoAccessRoute,
+}
+
+const SignedInRouteWithChildren = SignedInRoute._addFileChildren(
+  SignedInRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
+  SignedInRoute: SignedInRouteWithChildren,
+  SignInRoute: SignInRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

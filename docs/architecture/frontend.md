@@ -40,9 +40,15 @@ Code shared by **both** apps goes in `packages/ui` (theme, components, `ApiError
 
 - All server data goes through TanStack Query hooks in `features/<area>/`, built from the generated helpers: `useQuery({ ...listVenuesOptions(), select: (reply) => reply.data.content })`. Components never call `fetch` directly.
 - A failed request shows a toast from one place (`createQueryClient` in `packages/ui`), with the `traceId` as a reference. A page that shows the error itself passes `meta: { silent: true }`. Requests that failed with a 4xx are not retried.
-- A 401 is handled once, in `lib/auth`: sign in again, or go to the tenant picker.
+- A 401 is handled once: `createQueryClient({ onUnauthorized })` in the app's `router.ts` signs out through `lib/auth` and goes back to sign-in.
 - Tokens and the chosen tenant are kept in `sessionStorage`.
-- The portal sends `X-Tenant-Slug` from its web address (`?tenant=demo` locally); the console sends `X-Tenant-Id` for the chosen tenant.
+- The portal sends `X-Tenant-Slug` from its web address (`?tenant=demo` locally); the console sends `X-Tenant-Id` for the chosen tenant, except on `/v1/me`, which is about the person.
+
+## Sign-in in the console
+
+- Until the Auth0 tenant exists, `/sign-in` is a test form: it stores `fake:<phone>` as the token, which the API accepts only with `AUTH_PROVIDER=fake`.
+- After sign-in, `/v1/me` decides where the user goes (`SIG-02`): one tenant opens straight away, several go to `/choose-tenant`, none go to `/no-access`. A Platform Admin with no tenant still opens the console.
+- Switching tenant drops all cached data, because cached replies belong to the old tenant.
 - Menu items, search and route guards all read one permission list: `config/routePermissions.ts`.
 
 ## Text and look

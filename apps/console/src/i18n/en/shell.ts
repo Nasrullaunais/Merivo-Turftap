@@ -1,4 +1,6 @@
 export default {
   title: "TurfTap Staff Console",
-  comingSoon: "Sign-in arrives with story SIG-01.",
+  comingSoon: "Bookings, calendars and receipts will appear here.",
+  switchTenant: "Switch tenant",
+  signOut: "Sign out",
 };
