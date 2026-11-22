@@ -29,11 +29,20 @@ export function toastError(error: unknown, meta?: ErrorMeta): void {
   toast.danger(error.message, { description: error.traceId && `Reference: ${error.traceId}` });
 }
 
-export function createQueryClient(): QueryClient {
+type QueryClientOptions = {
+  /** Called once for any request the API refused with a 401, so the app can sign in again. */
+  onUnauthorized?: () => void;
+};
+
+export function createQueryClient(options: QueryClientOptions = {}): QueryClient {
+  const onError = (error: unknown, meta?: ErrorMeta) => {
+    if (error instanceof ApiError && error.status === UNAUTHORIZED) options.onUnauthorized?.();
+    toastError(error, meta);
+  };
   return new QueryClient({
-    queryCache: new QueryCache({ onError: (error, query) => toastError(error, query.meta) }),
+    queryCache: new QueryCache({ onError: (error, query) => onError(error, query.meta) }),
     mutationCache: new MutationCache({
-      onError: (error, _variables, _context, mutation) => toastError(error, mutation.meta),
+      onError: (error, _variables, _context, mutation) => onError(error, mutation.meta),
     }),
     defaultOptions: {
       queries: {
