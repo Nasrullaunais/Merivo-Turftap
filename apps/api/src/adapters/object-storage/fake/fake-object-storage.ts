@@ -6,7 +6,7 @@ export function createFakeObjectStorage(): ObjectStorage {
     save: async (key, file) => void files.set(key, file),
     read: async (key) => files.get(key),
     remove: async (key) => void files.delete(key),
-    downloadUrl: async (key, expiresInSeconds) =>
-      `http://fake-storage.local/${key}?expiresIn=${expiresInSeconds}`,
+    downloadUrl: async (key, { signedAt, expiresInSeconds }) =>
+      `http://fake-storage.local/${key}?signedAt=${signedAt.toISOString()}&expiresIn=${expiresInSeconds}`,
   };
 }

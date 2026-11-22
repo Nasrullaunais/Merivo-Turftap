@@ -7,9 +7,13 @@ import {
   ClosedDateFilters,
   CreateBlockedTime,
   CreateClosedDate,
+  CreatePhoto,
   CreatePriceRule,
   CreateResource,
   CreateVenue,
+  Photo,
+  PHOTO_SORT_FIELDS,
+  PhotoFilters,
   PRICE_RULE_SORT_FIELDS,
   PriceRule,
   PriceRuleFilters,
@@ -18,6 +22,7 @@ import {
   ResourceFilters,
   UpdateBlockedTime,
   UpdateClosedDate,
+  UpdatePhoto,
   UpdatePriceRule,
   UpdateResource,
   UpdateVenue,
@@ -29,6 +34,7 @@ import {
 import { defineResource } from "../../lib/resource";
 import * as blockedTimesService from "./blocked-times.service";
 import * as closedDatesService from "./closed-dates.service";
+import * as photosService from "./photos.service";
 import * as priceRulesService from "./price-rules.service";
 import * as resourcesService from "./resources.service";
 import * as venuesService from "./venues.service";
@@ -95,4 +101,13 @@ export const blockedTimesResource = defineResource({
   },
   sort: { fields: BLOCKED_TIME_SORT_FIELDS, default: "startsAt,asc" },
   service: blockedTimesService,
+});
+
+export const photosResource = defineResource({
+  name: "photos",
+  operations: ["list", "get", "create", "update", "delete"],
+  public: ["list"],
+  schemas: { item: Photo, create: CreatePhoto, update: UpdatePhoto, filters: PhotoFilters },
+  sort: { fields: PHOTO_SORT_FIELDS, default: "position,asc" },
+  service: photosService,
 });

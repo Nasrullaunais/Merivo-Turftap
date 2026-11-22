@@ -1,0 +1,16 @@
+export default {
+  title: "Photos",
+  loading: "Loading photos",
+  none: "No photos yet. The first photo is the cover customers see.",
+  photoAlt: (position: number) => (position === 1 ? "Cover photo" : `Photo ${position}`),
+  cover: "Cover",
+  moveEarlier: "Move earlier",
+  moveEarlierFor: (alt: string) => `Move ${alt} earlier`,
+  moveLater: "Move later",
+  moveLaterFor: (alt: string) => `Move ${alt} later`,
+  remove: "Delete",
+  removeFor: (alt: string) => `Delete ${alt}`,
+  addLabel: "Add a photo (JPG or PNG)",
+  adding: "Adding photo",
+  unreadable: "This photo couldn't be opened. Pick a JPG or PNG.",
+};

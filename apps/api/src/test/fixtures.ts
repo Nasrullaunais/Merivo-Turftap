@@ -93,11 +93,12 @@ export async function call(method: string, path: string, as: As = {}, body?: unk
   if (as.phone) headers.Authorization = `Bearer ${fakeTokenFor(as.phone)}`;
   if (as.tenantId !== undefined) headers["X-Tenant-Id"] = String(as.tenantId);
   if (as.tenantSlug) headers["X-Tenant-Slug"] = as.tenantSlug;
-  if (body !== undefined) headers["Content-Type"] = "application/json";
+  const isForm = body instanceof FormData;
+  if (body !== undefined && !isForm) headers["Content-Type"] = "application/json";
   const response = await app.request(path, {
     method,
     headers,
-    body: body === undefined ? undefined : typeof body === "string" ? body : JSON.stringify(body),
+    body: body === undefined || isForm || typeof body === "string" ? body : JSON.stringify(body),
   });
   return {
     status: response.status,
@@ -112,6 +113,31 @@ export async function limitToVenues(tenant: TestTenant, who: TestStaff, venueIds
   const body = { allVenues: false, venueIds };
   const reply = await call("PATCH", `/v1/staff/${who.staffId}`, asStaff(tenant), body);
   if (reply.status !== 200) throw new Error(`Could not limit staff: ${JSON.stringify(reply.body)}`);
+}
+
+const JPEG_START = [0xff, 0xd8, 0xff, 0xe0];
+const PNG_START = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a];
+const FAKE_IMAGE_BYTES = 2048;
+
+/** Bytes that start like a real JPG or PNG, which is all the API looks at. */
+export function imageBytes(kind: "jpg" | "png" = "jpg", size = FAKE_IMAGE_BYTES) {
+  const bytes = new Uint8Array(size);
+  bytes.set(kind === "jpg" ? JPEG_START : PNG_START);
+  return bytes;
+}
+
+export function uploadForm(bytes: Uint8Array, purpose = "PHOTO", type = "image/jpeg") {
+  const form = new FormData();
+  form.append("file", new File([bytes], "court.jpg", { type }));
+  form.append("purpose", purpose);
+  return form;
+}
+
+/** Uploads a photo file and returns its id, ready to be attached with POST /v1/photos. */
+export async function uploadPhotoFile(as: As) {
+  const reply = await call("POST", "/v1/files", as, uploadForm(imageBytes()));
+  if (reply.status !== 201) throw new Error(`Upload failed: ${JSON.stringify(reply.body)}`);
+  return reply.body.data.id as number;
 }
 
 export const asStaff = (tenant: TestTenant, who: TestStaff = tenant.owner): As => ({

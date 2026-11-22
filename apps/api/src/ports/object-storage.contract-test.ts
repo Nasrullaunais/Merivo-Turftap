@@ -32,13 +32,33 @@ export function objectStorageContract(
       expect(await storage.read(key)).toBeUndefined();
     });
 
-    it("downloadUrl_servesTheFile", async () => {
+    it("downloadUrl_servesTheFileWhenSignedEarlier", async () => {
       const storage = await setup();
       const key = `test/${crypto.randomUUID()}.txt`;
       await storage.save(key, file);
-      const url = await storage.downloadUrl(key, 60);
+      const halfAnHourAgo = new Date(Date.now() - 30 * 60_000);
+      const url = await storage.downloadUrl(key, {
+        signedAt: halfAnHourAgo,
+        expiresInSeconds: 60 * 60,
+      });
       expect(url).toContain(key);
       if (servesUrls) expect(await (await fetch(url)).text()).toBe("hello");
+    });
+
+    it("downloadUrl_isTheSameForTheSameTiming", async () => {
+      const storage = await setup();
+      const key = `test/${crypto.randomUUID()}.txt`;
+      await storage.save(key, file);
+      const signedAt = new Date(Date.now() - 60_000);
+      const link = (expiresInSeconds: number) =>
+        storage.downloadUrl(key, { signedAt, expiresInSeconds });
+      expect(await link(600)).toBe(await link(600));
+      expect(await link(600)).not.toBe(await link(1200));
+      const signedNow = await storage.downloadUrl(key, {
+        signedAt: new Date(),
+        expiresInSeconds: 600,
+      });
+      expect(await link(600)).not.toBe(signedNow);
     });
   });
 }

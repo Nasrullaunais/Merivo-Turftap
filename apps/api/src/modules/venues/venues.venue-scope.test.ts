@@ -9,6 +9,7 @@ import {
   priceRuleInput,
   resourceInput,
   type TestTenant,
+  uploadPhotoFile,
   venueInput,
 } from "../../test/fixtures";
 
@@ -30,6 +31,10 @@ describe("SIG-06 staff limited to some venues", () => {
   let closedB: number;
   let blockA: number;
   let blockB: number;
+  let venuePhotoA: number;
+  let resourcePhotoA: number;
+  let venuePhotoB: number;
+  let resourcePhotoB: number;
   const asManager = () => asStaff(tenant, tenant.manager);
 
   beforeAll(async () => {
@@ -63,6 +68,17 @@ describe("SIG-06 staff limited to some venues", () => {
       ).body.data.id as number;
     blockA = await addBlock(resourceA);
     blockB = await addBlock(resourceB);
+    const addPhoto = async (owner: object) =>
+      (
+        await call("POST", "/v1/photos", asStaff(tenant), {
+          fileId: await uploadPhotoFile(asStaff(tenant)),
+          ...owner,
+        })
+      ).body.data.id as number;
+    venuePhotoA = await addPhoto({ venueId: venueA });
+    resourcePhotoA = await addPhoto({ resourceId: resourceA });
+    venuePhotoB = await addPhoto({ venueId: venueB });
+    resourcePhotoB = await addPhoto({ resourceId: resourceB });
     await limitToVenues(tenant, tenant.manager, [venueA]);
     await limitToVenues(tenant, tenant.frontDesk, [venueB]);
   });
@@ -205,6 +221,47 @@ describe("SIG-06 staff limited to some venues", () => {
       expect((await call("PATCH", path, asManager(), { reason: "Taken" })).status).toBe(404);
       expect((await call("DELETE", path, asManager())).status).toBe(404);
       expect((await call("GET", path, asStaff(tenant))).body.data.reason).toBeNull();
+    });
+  });
+
+  describe("Photos", () => {
+    it("list_showsOnlyPhotosAtTheirVenues", async () => {
+      const ids = idsOf(await call("GET", "/v1/photos", asManager()));
+      expect(ids.sort()).toEqual([venuePhotoA, resourcePhotoA].sort());
+    });
+
+    it("get_repliesNotFoundForPhotosAtAnotherVenue", async () => {
+      for (const id of [venuePhotoB, resourcePhotoB]) {
+        const reply = await call("GET", `/v1/photos/${id}`, asManager());
+        expect(reply).toMatchObject({ status: 404, body: { code: "tt_ven_011" } });
+      }
+    });
+
+    it("create_cannotAddPhotosAtAnotherVenue", async () => {
+      const toVenue = await call("POST", "/v1/photos", asManager(), {
+        fileId: await uploadPhotoFile(asManager()),
+        venueId: venueB,
+      });
+      expect(toVenue).toMatchObject({ status: 404, body: { code: "tt_ven_001" } });
+      const toResource = await call("POST", "/v1/photos", asManager(), {
+        fileId: await uploadPhotoFile(asManager()),
+        resourceId: resourceB,
+      });
+      expect(toResource).toMatchObject({ status: 404, body: { code: "tt_ven_003" } });
+    });
+
+    it("updateAndDelete_cannotTouchPhotosAtAnotherVenue", async () => {
+      for (const id of [venuePhotoB, resourcePhotoB]) {
+        const path = `/v1/photos/${id}`;
+        expect((await call("PATCH", path, asManager(), { position: 9 })).status).toBe(404);
+        expect((await call("DELETE", path, asManager())).status).toBe(404);
+        expect((await call("GET", path, asStaff(tenant))).status).toBe(200);
+      }
+    });
+
+    it("customers_stillSeePhotosAtEveryVenue", async () => {
+      const reply = await call("GET", `/v1/photos?venueId=${venueB}`, { tenantSlug: tenant.slug });
+      expect(idsOf(reply)).toEqual([venuePhotoB]);
     });
   });
 });

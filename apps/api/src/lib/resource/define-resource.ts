@@ -1,5 +1,6 @@
 import { DEFAULT_PAGE_SIZE, Id, MAX_PAGE_SIZE } from "@turftap/contract";
 import { type Context, Hono } from "hono";
+import { bodyLimit } from "hono/body-limit";
 import { z } from "zod";
 
 import type { AuthContext, Caller } from "../auth/context";
@@ -7,9 +8,12 @@ import { type Action, isStaffResource, ROLE_PERMISSIONS } from "../auth/permissi
 import { httpErrors } from "../errors";
 import type { AppEnv } from "../http/env";
 import { ok } from "../http/envelope";
-import { jsonBody, parse } from "../http/input";
+import { formBody, jsonBody, parse } from "../http/input";
 import { describeResource } from "./openapi";
 import type { AnyDefinition, Handlers, Operation, Resource, ResourceDefinition } from "./types";
+
+/** Room for the form's field names and part headers around the file itself. */
+const FORM_OVERHEAD_BYTES = 64 * 1024;
 
 const ACTION_OF: Record<Operation, Action> = {
   list: "read",
@@ -135,9 +139,17 @@ export function defineResource<
   }
   if (has("create") && def.schemas.create) {
     const schema = def.schemas.create;
+    const { upload } = def;
+    if (upload) {
+      const maxSize = upload.maxBytes + FORM_OVERHEAD_BYTES;
+      const tooLarge = () => {
+        throw httpErrors.tooLarge();
+      };
+      routes.post("/", bodyLimit({ maxSize, onError: tooLarge }));
+    }
     routes.post("/", async (c) => {
       const auth = access(c, "create");
-      const input = parse(schema, await jsonBody(c));
+      const input = parse(schema, await (upload ? formBody(c) : jsonBody(c)));
       return ok(c, encode(await service.create(auth, input)), 201);
     });
   }

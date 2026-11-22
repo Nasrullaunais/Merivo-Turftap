@@ -34,7 +34,11 @@ As a **Manager**, I want to set a default price per slot and add Price Rules for
 
 ## VEN-06 Upload venue photos
 As a **Manager**, I want to add photos to a venue and its resources, so that the Customer Portal looks inviting.
-- JPG or PNG only, up to 5 MB each.
+- JPG or PNG only, up to 5 MB each. The API checks the file itself, not its name.
+- The console shrinks each photo before upload (at most 1600 pixels on the long side, saved as JPG), so pages load fast on mobile data. This also removes hidden details such as where the photo was taken.
+- A Photo belongs to the venue or to one of its resources. New photos go last; the first one is the cover, shown on the venue's card in the Customer Portal.
+- I can move a photo earlier or later, and delete it. Deleting removes the stored file too.
+- Front Desk can see the photos; customers see them without signing in.
 
 ## VEN-07 Block a resource
 As a **Manager**, I want to block a resource for a time window (maintenance, private event), so that nobody books it.

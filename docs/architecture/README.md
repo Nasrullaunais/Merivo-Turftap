@@ -16,9 +16,9 @@ flowchart LR
     n8n[n8n<br/>Assistant workflow]
     pg[(Postgres<br/>app database)]
     n8ndb[(Postgres<br/>n8n database)]
-    seaweed[(SeaweedFS<br/>files)]
   end
 
+  r2[(Cloudflare R2<br/>files)]
   meta[Meta WhatsApp<br/>Cloud API]
   sms[SMS provider]
   auth0[Auth0]
@@ -35,7 +35,7 @@ flowchart LR
   n8n -- replies --> meta
   n8n --> gemini
   api --> pg
-  api -- ObjectStorage --> seaweed
+  api -- ObjectStorage --> r2
   api -- MessagingChannel --> meta
   api -- SmsChannel --> sms
   api -- ReceiptReader --> gemini

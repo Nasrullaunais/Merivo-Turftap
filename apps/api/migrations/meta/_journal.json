@@ -71,6 +71,13 @@
       "when": 1795357066213,
       "tag": "0009_blocked_times_no_overlap",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1795376812393,
+      "tag": "0010_photos",
+      "breakpoints": true
     }
   ]
 }

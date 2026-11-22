@@ -7,6 +7,8 @@ export const httpErrors = {
   invalidRequest: (fieldErrors: FieldError[]) =>
     new BadRequest("tt_htt_400", "The request was invalid", fieldErrors),
   invalidJson: () => new BadRequest("tt_htt_400", "The request body is not valid JSON"),
+  invalidForm: () => new BadRequest("tt_htt_400", "The request body is not a valid multipart form"),
+  tooLarge: () => new AppError(413, "tt_htt_413", "The request is too large"),
   tenantMissing: () =>
     new BadRequest("tt_htt_400", "Send an X-Tenant-Id or X-Tenant-Slug header to choose a tenant"),
   notSignedIn: () => new Unauthorized("tt_htt_401", "Please sign in"),

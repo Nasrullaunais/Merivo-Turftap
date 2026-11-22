@@ -54,7 +54,7 @@ These are still resources, with only the operations that make sense:
 |---|---|---|
 | `availability` | list | Free slots, computed on each request (`?resourceId=&date=`) |
 | `me` | get (`/v1/me`) | The signed-in user, their tenants and roles. Declared with `defineSingleton()`: one GET about the caller, with no id and no tenant header. |
-| `files` | create, get | Create uploads a file (multipart) and returns its id. Get returns a short-lived download link. |
+| `files` | create | Uploads one file as a multipart form (`file`, `purpose`) and returns its id, which another resource then points at (`POST /v1/photos { fileId }`). The resource declares `upload: { maxBytes }`; a body much larger is cut off with 413 before it is read. The API checks the file's first bytes, not the name or type the browser sends. Download links come with the resource that uses the file, such as a photo's `url`. Get arrives with receipts, when it is clear who may open one. |
 | `events` | list | A Server-Sent Events stream (the server keeps the connection open and pushes events), so the console updates without refreshing. Events carry only a type and an id; the screen refetches. |
 
 ## The one exception: vendor callbacks
@@ -74,6 +74,7 @@ Outside services that must call a fixed address use `/hooks/<vendor>/<event>`, e
 | `resources` | venues | all | list, get |
 | `price-rules` | venues | all | list |
 | `blocked-times` | venues | all | |
+| `photos` | venues | all | list |
 | `customers` | customers | list, get, create, update | |
 | `bookings` | bookings | list, get, create, update | |
 | `repeat-series` | bookings | list, get, create, update | |
@@ -82,7 +83,7 @@ Outside services that must call a fixed address use `/hooks/<vendor>/<event>`, e
 | `membership-plans` | memberships | all | list, get |
 | `memberships` | memberships | list, get, create, update | |
 | `check-ins` | memberships | list, create | |
-| `files` | files | create, get | |
+| `files` | files | create | |
 | `events` | notifications | list | |
 
 "Open without sign-in" still needs `X-Tenant-Slug`, so the portal only ever sees one tenant's data.
@@ -95,7 +96,8 @@ Permission names are `<resource>:<action>`, where action is `read`, `create`, `u
 |---|---|---|---|
 | `staff` | ✓ | read | |
 | `venues` | ✓ | read | read |
-| `closed-dates`, `resources`, `price-rules`, `blocked-times`, `membership-plans` | ✓ | ✓ | read |
+| `closed-dates`, `resources`, `price-rules`, `blocked-times`, `photos`, `membership-plans` | ✓ | ✓ | read |
+| `files` | ✓ | create | |
 | `customers`, `bookings`, `payments`, `memberships`, `check-ins` | ✓ | ✓ | read, create, update |
 | `repeat-series` | ✓ | ✓ | read |
 

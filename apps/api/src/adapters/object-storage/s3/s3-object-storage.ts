@@ -17,12 +17,15 @@ type S3Settings = {
   secretAccessKey: string;
 };
 
-/** Works with any S3-compatible store; TurfTap points it at SeaweedFS. */
+/** Works with any S3-compatible store: Cloudflare R2 in production, SeaweedFS locally. */
 export function createS3ObjectStorage(settings: S3Settings): ObjectStorage {
   const client = new S3Client({
     endpoint: settings.endpoint,
     region: settings.region,
     forcePathStyle: true,
+    // R2 refuses the extra checksums newer SDK versions send by default.
+    requestChecksumCalculation: "WHEN_REQUIRED",
+    responseChecksumValidation: "WHEN_REQUIRED",
     credentials: { accessKeyId: settings.accessKeyId, secretAccessKey: settings.secretAccessKey },
   });
   const Bucket = settings.bucket;
@@ -46,7 +49,10 @@ export function createS3ObjectStorage(settings: S3Settings): ObjectStorage {
     async remove(key) {
       await client.send(new DeleteObjectCommand({ Bucket, Key: key }));
     },
-    downloadUrl: (key, expiresIn) =>
-      getSignedUrl(client, new GetObjectCommand({ Bucket, Key: key }), { expiresIn }),
+    downloadUrl: (key, { signedAt, expiresInSeconds }) =>
+      getSignedUrl(client, new GetObjectCommand({ Bucket, Key: key }), {
+        signingDate: signedAt,
+        expiresIn: expiresInSeconds,
+      }),
   };
 }

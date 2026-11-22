@@ -10,6 +10,7 @@ import { sql } from "drizzle-orm";
 import {
   bigint,
   boolean,
+  check,
   date,
   index,
   integer,
@@ -22,6 +23,7 @@ import {
 } from "drizzle-orm/pg-core";
 
 import { idColumn, priceColumns, timestampColumns } from "../../lib/db/columns";
+import { files } from "../files/files.tables";
 import { tenantIdColumn } from "../platform/platform.tables";
 
 export const DEFAULT_TIME_ZONE = "Asia/Colombo";
@@ -148,3 +150,28 @@ export const blockedTimes = pgTable(
 );
 
 export type BlockedTimeRow = typeof blockedTimes.$inferSelect;
+
+/** A photo of a venue or of one resource: exactly one of the two is set. */
+export const photos = pgTable(
+  "photos",
+  {
+    id: idColumn(),
+    tenantId: tenantIdColumn(),
+    venueId: bigint("venue_id", { mode: "number" }).references(() => venues.id),
+    resourceId: bigint("resource_id", { mode: "number" }).references(() => resources.id),
+    fileId: bigint("file_id", { mode: "number" })
+      .notNull()
+      .references(() => files.id),
+    position: integer("position").notNull(),
+    ...timestampColumns(),
+  },
+  (table) => [
+    index("photos_tenant_idx").on(table.tenantId),
+    index("photos_venue_idx").on(table.venueId),
+    index("photos_resource_idx").on(table.resourceId),
+    uniqueIndex("photos_file_unique").on(table.fileId),
+    check("photos_one_owner", sql`num_nonnulls(${table.venueId}, ${table.resourceId}) = 1`),
+  ],
+);
+
+export type PhotoRow = typeof photos.$inferSelect;

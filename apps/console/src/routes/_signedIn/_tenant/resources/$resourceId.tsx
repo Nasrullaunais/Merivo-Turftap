@@ -8,6 +8,7 @@ import { AddPriceRuleForm } from "../../../../features/price-rules/AddPriceRuleF
 import { PriceRuleList } from "../../../../features/price-rules/PriceRuleList";
 import { DefaultPrice } from "../../../../features/resources/DefaultPrice";
 import { ResourceHeading } from "../../../../features/resources/ResourceHeading";
+import { PhotoGallery } from "../../../../features/photos/PhotoGallery";
 import { can } from "../../../../lib/tenant/activeTenant";
 
 export const Route = createFileRoute("/_signedIn/_tenant/resources/$resourceId")({
@@ -28,6 +29,12 @@ function ResourcePage() {
   return (
     <main className="mx-auto grid max-w-2xl gap-6 p-6">
       <ResourceHeading resourceId={resourceId} />
+      <PhotoGallery
+        owner={{ resourceId }}
+        canAdd={can(tenant, "photos:create")}
+        canMove={can(tenant, "photos:update")}
+        canDelete={can(tenant, "photos:delete")}
+      />
       {can(tenant, "resources:update") && <DefaultPrice resourceId={resourceId} />}
       <PriceRuleList resourceId={resourceId} canDelete={can(tenant, "price-rules:delete")} />
       {can(tenant, "price-rules:create") && <AddPriceRuleForm resourceId={resourceId} />}

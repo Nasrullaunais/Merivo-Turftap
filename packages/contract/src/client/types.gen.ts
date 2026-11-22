@@ -73,6 +73,23 @@ export type UpdateClosedDate = {
     reason?: string | null;
 };
 
+export const FilePurpose = { PHOTO: 'PHOTO' } as const;
+
+export type FilePurpose = typeof FilePurpose[keyof typeof FilePurpose];
+
+export type UploadedFile = {
+    id: number;
+    purpose: FilePurpose;
+    contentType: string;
+    sizeBytes: number;
+    createdAt: string;
+};
+
+export type UploadFile = {
+    file: Blob | File;
+    purpose: FilePurpose;
+};
+
 export const Permission = {
     STAFF_READ: 'staff:read',
     STAFF_CREATE: 'staff:create',
@@ -97,7 +114,15 @@ export const Permission = {
     BLOCKED_TIMES_READ: 'blocked-times:read',
     BLOCKED_TIMES_CREATE: 'blocked-times:create',
     BLOCKED_TIMES_UPDATE: 'blocked-times:update',
-    BLOCKED_TIMES_DELETE: 'blocked-times:delete'
+    BLOCKED_TIMES_DELETE: 'blocked-times:delete',
+    PHOTOS_READ: 'photos:read',
+    PHOTOS_CREATE: 'photos:create',
+    PHOTOS_UPDATE: 'photos:update',
+    PHOTOS_DELETE: 'photos:delete',
+    FILES_READ: 'files:read',
+    FILES_CREATE: 'files:create',
+    FILES_UPDATE: 'files:update',
+    FILES_DELETE: 'files:delete'
 } as const;
 
 export type Permission = typeof Permission[keyof typeof Permission];
@@ -148,6 +173,26 @@ export type Me = {
     name: string | null;
     isPlatformAdmin: boolean;
     tenants: Array<MyTenant>;
+};
+
+export type Photo = {
+    id: number;
+    venueId: number | null;
+    resourceId: number | null;
+    position: number;
+    url: string;
+    createdAt: string;
+    updatedAt: string;
+};
+
+export type CreatePhoto = {
+    fileId: number;
+    venueId?: number;
+    resourceId?: number;
+};
+
+export type UpdatePhoto = {
+    position?: number;
 };
 
 /**
@@ -1279,3 +1324,195 @@ export type UpdateBlockedTimeResponses = {
 };
 
 export type UpdateBlockedTimeResponse = UpdateBlockedTimeResponses[keyof UpdateBlockedTimeResponses];
+
+export type ListPhotosData = {
+    body?: never;
+    path?: never;
+    query?: {
+        page?: number;
+        size?: number;
+        sort?: 'position,asc' | 'position,desc' | 'createdAt,asc' | 'createdAt,desc';
+        venueId?: number;
+        resourceId?: number;
+    };
+    url: '/v1/photos';
+};
+
+export type ListPhotosErrors = {
+    /**
+     * Error
+     */
+    default: ErrorReply;
+};
+
+export type ListPhotosError = ListPhotosErrors[keyof ListPhotosErrors];
+
+export type ListPhotosResponses = {
+    /**
+     * One page
+     */
+    200: {
+        status: number;
+        message: string;
+        data: {
+            content: Array<Photo>;
+            page: number;
+            size: number;
+            totalElements: number;
+            totalPages: number;
+        };
+    };
+};
+
+export type ListPhotosResponse = ListPhotosResponses[keyof ListPhotosResponses];
+
+export type CreatePhotoData = {
+    body: CreatePhoto;
+    path?: never;
+    query?: never;
+    url: '/v1/photos';
+};
+
+export type CreatePhotoErrors = {
+    /**
+     * Error
+     */
+    default: ErrorReply;
+};
+
+export type CreatePhotoError = CreatePhotoErrors[keyof CreatePhotoErrors];
+
+export type CreatePhotoResponses = {
+    /**
+     * Created
+     */
+    201: {
+        status: number;
+        message: string;
+        data: Photo;
+    };
+};
+
+export type CreatePhotoResponse = CreatePhotoResponses[keyof CreatePhotoResponses];
+
+export type DeletePhotoData = {
+    body?: never;
+    path: {
+        id: number;
+    };
+    query?: never;
+    url: '/v1/photos/{id}';
+};
+
+export type DeletePhotoErrors = {
+    /**
+     * Error
+     */
+    default: ErrorReply;
+};
+
+export type DeletePhotoError = DeletePhotoErrors[keyof DeletePhotoErrors];
+
+export type DeletePhotoResponses = {
+    /**
+     * Deleted
+     */
+    200: {
+        status: number;
+        message: string;
+        data: null;
+    };
+};
+
+export type DeletePhotoResponse = DeletePhotoResponses[keyof DeletePhotoResponses];
+
+export type GetPhotoData = {
+    body?: never;
+    path: {
+        id: number;
+    };
+    query?: never;
+    url: '/v1/photos/{id}';
+};
+
+export type GetPhotoErrors = {
+    /**
+     * Error
+     */
+    default: ErrorReply;
+};
+
+export type GetPhotoError = GetPhotoErrors[keyof GetPhotoErrors];
+
+export type GetPhotoResponses = {
+    /**
+     * Found
+     */
+    200: {
+        status: number;
+        message: string;
+        data: Photo;
+    };
+};
+
+export type GetPhotoResponse = GetPhotoResponses[keyof GetPhotoResponses];
+
+export type UpdatePhotoData = {
+    body: UpdatePhoto;
+    path: {
+        id: number;
+    };
+    query?: never;
+    url: '/v1/photos/{id}';
+};
+
+export type UpdatePhotoErrors = {
+    /**
+     * Error
+     */
+    default: ErrorReply;
+};
+
+export type UpdatePhotoError = UpdatePhotoErrors[keyof UpdatePhotoErrors];
+
+export type UpdatePhotoResponses = {
+    /**
+     * Changed
+     */
+    200: {
+        status: number;
+        message: string;
+        data: Photo;
+    };
+};
+
+export type UpdatePhotoResponse = UpdatePhotoResponses[keyof UpdatePhotoResponses];
+
+export type CreateUploadedFileData = {
+    body: UploadFile;
+    path?: never;
+    query?: never;
+    url: '/v1/files';
+};
+
+export type CreateUploadedFileErrors = {
+    /**
+     * Error
+     */
+    default: ErrorReply;
+};
+
+export type CreateUploadedFileError = CreateUploadedFileErrors[keyof CreateUploadedFileErrors];
+
+export type CreateUploadedFileResponses = {
+    /**
+     * Created
+     */
+    201: {
+        status: number;
+        message: string;
+        data: UploadedFile;
+    };
+};
+
+export type CreateUploadedFileResponse = CreateUploadedFileResponses[keyof CreateUploadedFileResponses];

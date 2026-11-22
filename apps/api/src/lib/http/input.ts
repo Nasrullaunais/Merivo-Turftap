@@ -18,3 +18,11 @@ export async function jsonBody(c: Context): Promise<unknown> {
     throw httpErrors.invalidJson();
   }
 }
+
+export async function formBody(c: Context): Promise<unknown> {
+  try {
+    return await c.req.parseBody();
+  } catch {
+    throw httpErrors.invalidForm();
+  }
+}

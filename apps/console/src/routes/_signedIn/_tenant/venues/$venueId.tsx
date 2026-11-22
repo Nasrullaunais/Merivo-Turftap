@@ -8,6 +8,7 @@ import { AddResourceForm } from "../../../../features/resources/AddResourceForm"
 import { ResourceList } from "../../../../features/resources/ResourceList";
 import { PaymentSettings } from "../../../../features/venues/PaymentSettings";
 import { VenueHeading } from "../../../../features/venues/VenueHeading";
+import { PhotoGallery } from "../../../../features/photos/PhotoGallery";
 import { can } from "../../../../lib/tenant/activeTenant";
 
 export const Route = createFileRoute("/_signedIn/_tenant/venues/$venueId")({
@@ -28,6 +29,12 @@ function VenuePage() {
   return (
     <main className="mx-auto grid max-w-2xl gap-6 p-6">
       <VenueHeading venueId={venueId} />
+      <PhotoGallery
+        owner={{ venueId }}
+        canAdd={can(tenant, "photos:create")}
+        canMove={can(tenant, "photos:update")}
+        canDelete={can(tenant, "photos:delete")}
+      />
       <ResourceList venueId={venueId} canTurnOff={can(tenant, "resources:delete")} />
       {can(tenant, "resources:create") && <AddResourceForm venueId={venueId} />}
       <ClosedDateList venueId={venueId} canReopen={can(tenant, "closed-dates:delete")} />

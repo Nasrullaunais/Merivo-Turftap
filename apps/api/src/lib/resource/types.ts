@@ -42,6 +42,8 @@ export type ResourceDefinition<
   /** Operations customers and the Assistant may call; the service limits them to their own rows. */
   forCustomers?: readonly NoInfer<Op>[];
   schemas: { item: Item; create?: Create; update?: Update; filters?: Filters };
+  /** Create takes a multipart form carrying one file of at most `maxBytes`, instead of JSON. */
+  upload?: { maxBytes: number };
   sort?: { fields: readonly SortField[]; default: SortValue<NoInfer<SortField>> };
   service: Pick<
     Handlers<z.output<Item>, z.output<Create>, z.output<Update>, z.output<Filters>, SortField>,

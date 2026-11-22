@@ -39,6 +39,7 @@ Code shared by **both** apps goes in `packages/ui` (theme, components, `ApiError
 ## Data and errors
 
 - All server data goes through TanStack Query hooks in `features/<area>/`, built from the generated helpers: `useQuery({ ...listVenuesOptions(), select: (reply) => reply.data.content })`. Components never call `fetch` directly.
+- A mutation that makes several calls in a row (upload a file, then attach it) calls the generated SDK functions from `@turftap/contract/client` inside its own `mutationFn`.
 - A failed request shows a toast from one place (`createQueryClient` in `packages/ui`), with the `traceId` as a reference. A page that shows the error itself passes `meta: { silent: true }`. Requests that failed with a 4xx are not retried.
 - A 401 is handled once: `createQueryClient({ onUnauthorized })` in the app's `router.ts` signs out through `lib/auth` and goes back to sign-in.
 - Tokens and the chosen tenant are kept in `sessionStorage`.

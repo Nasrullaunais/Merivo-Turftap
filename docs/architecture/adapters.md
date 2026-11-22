@@ -20,7 +20,7 @@ apps/api/src/
 | Port | What it does | v1 adapter | Fake for tests |
 |---|---|---|---|
 | `AuthProvider` | Checks a sign-in token and returns the phone number | `auth0` | Yes |
-| `ObjectStorage` | Saves, reads and deletes files; makes short-lived download links | `s3` (pointed at SeaweedFS) | Yes |
+| `ObjectStorage` | Saves, reads and deletes files; makes short-lived download links | `s3`: Cloudflare R2 in production, SeaweedFS locally ([ADR 0012](../adr/0012-files-in-cloudflare-r2.md)) | Yes |
 | `MessagingChannel` | Sends a WhatsApp message (text, template or login code) from a given number | `whatsapp-cloud` (Meta) | Yes, records sent messages |
 | `SmsChannel` | Sends an SMS (login codes when WhatsApp didn't work) | not chosen yet | Yes, records sent messages |
 | `ReceiptReader` | Reads amount, date, bank and reference from a receipt image | `gemini` | Yes, returns set answers |

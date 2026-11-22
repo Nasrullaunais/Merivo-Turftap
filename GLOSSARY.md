@@ -50,6 +50,10 @@ _Avoid_: Branch, location, site, facility
 One thing inside a venue that can be booked by time, such as "Futsal Court 1" or "Pool Table 3".
 _Avoid_: Court, table, asset, facility, slot
 
+**Photo**:
+A picture of a venue or of one of its resources, shown on the Customer Portal. The first one is the **cover**.
+_Avoid_: Image, picture, gallery
+
 ## Bookings
 
 **Slot**:

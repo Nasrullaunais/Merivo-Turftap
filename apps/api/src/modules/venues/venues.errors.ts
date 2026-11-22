@@ -46,6 +46,8 @@ export const venueErrors = {
         ? `This overlaps the Blocked Time from ${describeInstant(clashing.startsAt, timeZone)} to ${describeInstant(clashing.endsAt, timeZone)}`
         : "This overlaps another Blocked Time for this resource",
     ),
+  photoNotFound: (id: number) => new NotFound("tt_ven_011", `Photo ${id} was not found`),
+  photoFileInUse: () => new Conflict("tt_ven_012", "This file is already used by another photo"),
 };
 
 constraintErrors({
@@ -54,4 +56,5 @@ constraintErrors({
   price_rules_no_overlap: () => venueErrors.priceRuleClash(),
   closed_dates_venue_date_unique: venueErrors.alreadyClosed,
   blocked_times_no_overlap: () => venueErrors.blockedTimeClash(),
+  photos_file_unique: venueErrors.photoFileInUse,
 });

@@ -27,6 +27,14 @@ const PERMISSIONS: Record<StaffRole, Permission[]> = {
     "blocked-times:create",
     "blocked-times:update",
     "blocked-times:delete",
+    "photos:read",
+    "photos:create",
+    "photos:update",
+    "photos:delete",
+    "files:read",
+    "files:create",
+    "files:update",
+    "files:delete",
   ],
   MANAGER: [
     "staff:read",
@@ -47,6 +55,11 @@ const PERMISSIONS: Record<StaffRole, Permission[]> = {
     "blocked-times:create",
     "blocked-times:update",
     "blocked-times:delete",
+    "photos:read",
+    "photos:create",
+    "photos:update",
+    "photos:delete",
+    "files:create",
   ],
   FRONT_DESK: [
     "venues:read",
@@ -54,6 +67,7 @@ const PERMISSIONS: Record<StaffRole, Permission[]> = {
     "resources:read",
     "price-rules:read",
     "blocked-times:read",
+    "photos:read",
   ],
 };
 

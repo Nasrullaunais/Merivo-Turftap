@@ -95,7 +95,12 @@ export function describeResource(def: AnyDefinition) {
   }
   if (has("create") && def.schemas.create) {
     collection.post = operation("create", `create${singular}`, {
-      requestBody: { required: true, content: json(ref(def.schemas.create, `${def.name} create`)) },
+      requestBody: {
+        required: true,
+        content: def.upload
+          ? { "multipart/form-data": { schema: ref(def.schemas.create, `${def.name} create`) } }
+          : json(ref(def.schemas.create, `${def.name} create`)),
+      },
       responses: { 201: reply("Created", item), ...ERRORS },
     });
   }

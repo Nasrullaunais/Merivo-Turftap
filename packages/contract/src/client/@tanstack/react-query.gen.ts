@@ -3,8 +3,8 @@
 import { type InfiniteData, infiniteQueryOptions, queryOptions, type UseMutationOptions } from '@tanstack/react-query';
 
 import { client } from '../client.gen';
-import { createBlockedTime, createClosedDate, createPriceRule, createResource, createStaff, createVenue, deleteBlockedTime, deleteClosedDate, deletePriceRule, deleteResource, deleteStaff, deleteVenue, getBlockedTime, getClosedDate, getMe, getPriceRule, getResource, getStaff, getVenue, listBlockedTimes, listClosedDates, listPriceRules, listResources, listStaff, listVenues, type Options, updateBlockedTime, updateClosedDate, updatePriceRule, updateResource, updateStaff, updateVenue } from '../sdk.gen';
-import type { CreateBlockedTimeData, CreateBlockedTimeError, CreateBlockedTimeResponse, CreateClosedDateData, CreateClosedDateError, CreateClosedDateResponse, CreatePriceRuleData, CreatePriceRuleError, CreatePriceRuleResponse, CreateResourceData, CreateResourceError, CreateResourceResponse, CreateStaffData, CreateStaffError, CreateStaffResponse, CreateVenueData, CreateVenueError, CreateVenueResponse, DeleteBlockedTimeData, DeleteBlockedTimeError, DeleteBlockedTimeResponse, DeleteClosedDateData, DeleteClosedDateError, DeleteClosedDateResponse, DeletePriceRuleData, DeletePriceRuleError, DeletePriceRuleResponse, DeleteResourceData, DeleteResourceError, DeleteResourceResponse, DeleteStaffData, DeleteStaffError, DeleteStaffResponse, DeleteVenueData, DeleteVenueError, DeleteVenueResponse, GetBlockedTimeData, GetBlockedTimeError, GetBlockedTimeResponse, GetClosedDateData, GetClosedDateError, GetClosedDateResponse, GetMeData, GetMeError, GetMeResponse, GetPriceRuleData, GetPriceRuleError, GetPriceRuleResponse, GetResourceData, GetResourceError, GetResourceResponse, GetStaffData, GetStaffError, GetStaffResponse, GetVenueData, GetVenueError, GetVenueResponse, ListBlockedTimesData, ListBlockedTimesError, ListBlockedTimesResponse, ListClosedDatesData, ListClosedDatesError, ListClosedDatesResponse, ListPriceRulesData, ListPriceRulesError, ListPriceRulesResponse, ListResourcesData, ListResourcesError, ListResourcesResponse, ListStaffData, ListStaffError, ListStaffResponse, ListVenuesData, ListVenuesError, ListVenuesResponse, UpdateBlockedTimeData, UpdateBlockedTimeError, UpdateBlockedTimeResponse, UpdateClosedDateData, UpdateClosedDateError, UpdateClosedDateResponse, UpdatePriceRuleData, UpdatePriceRuleError, UpdatePriceRuleResponse, UpdateResourceData, UpdateResourceError, UpdateResourceResponse, UpdateStaffData, UpdateStaffError, UpdateStaffResponse, UpdateVenueData, UpdateVenueError, UpdateVenueResponse } from '../types.gen';
+import { createBlockedTime, createClosedDate, createPhoto, createPriceRule, createResource, createStaff, createUploadedFile, createVenue, deleteBlockedTime, deleteClosedDate, deletePhoto, deletePriceRule, deleteResource, deleteStaff, deleteVenue, getBlockedTime, getClosedDate, getMe, getPhoto, getPriceRule, getResource, getStaff, getVenue, listBlockedTimes, listClosedDates, listPhotos, listPriceRules, listResources, listStaff, listVenues, type Options, updateBlockedTime, updateClosedDate, updatePhoto, updatePriceRule, updateResource, updateStaff, updateVenue } from '../sdk.gen';
+import type { CreateBlockedTimeData, CreateBlockedTimeError, CreateBlockedTimeResponse, CreateClosedDateData, CreateClosedDateError, CreateClosedDateResponse, CreatePhotoData, CreatePhotoError, CreatePhotoResponse, CreatePriceRuleData, CreatePriceRuleError, CreatePriceRuleResponse, CreateResourceData, CreateResourceError, CreateResourceResponse, CreateStaffData, CreateStaffError, CreateStaffResponse, CreateUploadedFileData, CreateUploadedFileError, CreateUploadedFileResponse, CreateVenueData, CreateVenueError, CreateVenueResponse, DeleteBlockedTimeData, DeleteBlockedTimeError, DeleteBlockedTimeResponse, DeleteClosedDateData, DeleteClosedDateError, DeleteClosedDateResponse, DeletePhotoData, DeletePhotoError, DeletePhotoResponse, DeletePriceRuleData, DeletePriceRuleError, DeletePriceRuleResponse, DeleteResourceData, DeleteResourceError, DeleteResourceResponse, DeleteStaffData, DeleteStaffError, DeleteStaffResponse, DeleteVenueData, DeleteVenueError, DeleteVenueResponse, GetBlockedTimeData, GetBlockedTimeError, GetBlockedTimeResponse, GetClosedDateData, GetClosedDateError, GetClosedDateResponse, GetMeData, GetMeError, GetMeResponse, GetPhotoData, GetPhotoError, GetPhotoResponse, GetPriceRuleData, GetPriceRuleError, GetPriceRuleResponse, GetResourceData, GetResourceError, GetResourceResponse, GetStaffData, GetStaffError, GetStaffResponse, GetVenueData, GetVenueError, GetVenueResponse, ListBlockedTimesData, ListBlockedTimesError, ListBlockedTimesResponse, ListClosedDatesData, ListClosedDatesError, ListClosedDatesResponse, ListPhotosData, ListPhotosError, ListPhotosResponse, ListPriceRulesData, ListPriceRulesError, ListPriceRulesResponse, ListResourcesData, ListResourcesError, ListResourcesResponse, ListStaffData, ListStaffError, ListStaffResponse, ListVenuesData, ListVenuesError, ListVenuesResponse, UpdateBlockedTimeData, UpdateBlockedTimeError, UpdateBlockedTimeResponse, UpdateClosedDateData, UpdateClosedDateError, UpdateClosedDateResponse, UpdatePhotoData, UpdatePhotoError, UpdatePhotoResponse, UpdatePriceRuleData, UpdatePriceRuleError, UpdatePriceRuleResponse, UpdateResourceData, UpdateResourceError, UpdateResourceResponse, UpdateStaffData, UpdateStaffError, UpdateStaffResponse, UpdateVenueData, UpdateVenueError, UpdateVenueResponse } from '../types.gen';
 
 export type QueryKey<TOptions extends Options> = [
     Pick<TOptions, 'baseUrl' | 'body' | 'headers' | 'path' | 'query'> & {
@@ -667,6 +667,119 @@ export const updateBlockedTimeMutation = (options?: Partial<Options<UpdateBlocke
     const mutationOptions: UseMutationOptions<UpdateBlockedTimeResponse, UpdateBlockedTimeError, Options<UpdateBlockedTimeData>> = {
         mutationFn: async (fnOptions) => {
             const { data } = await updateBlockedTime({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+export const listPhotosQueryKey = (options?: Options<ListPhotosData>) => createQueryKey('listPhotos', options);
+
+export const listPhotosOptions = (options?: Options<ListPhotosData>) => queryOptions<ListPhotosResponse, ListPhotosError, ListPhotosResponse, ReturnType<typeof listPhotosQueryKey>>({
+    queryFn: async ({ queryKey, signal }) => {
+        const { data } = await listPhotos({
+            ...options,
+            ...queryKey[0],
+            signal,
+            throwOnError: true
+        });
+        return data;
+    },
+    queryKey: listPhotosQueryKey(options)
+});
+
+export const listPhotosInfiniteQueryKey = (options?: Options<ListPhotosData>): QueryKey<Options<ListPhotosData>> => createQueryKey('listPhotos', options, true);
+
+export const listPhotosInfiniteOptions = (options?: Options<ListPhotosData>) => {
+    const opts = infiniteQueryOptions<ListPhotosResponse, ListPhotosError, InfiniteData<ListPhotosResponse>, QueryKey<Options<ListPhotosData>>, number | Pick<QueryKey<Options<ListPhotosData>>[0], 'body' | 'headers' | 'path' | 'query'>>(
+    // @ts-ignore
+    {
+        queryFn: async ({ pageParam, queryKey, signal }) => {
+            // @ts-ignore
+            const page: Pick<QueryKey<Options<ListPhotosData>>[0], 'body' | 'headers' | 'path' | 'query'> = typeof pageParam === 'object' ? pageParam : {
+                query: {
+                    page: pageParam
+                }
+            };
+            const params = createInfiniteParams(queryKey, page);
+            const { data } = await listPhotos({
+                ...options,
+                ...params,
+                signal,
+                throwOnError: true
+            });
+            return data;
+        },
+        queryKey: listPhotosInfiniteQueryKey(options)
+    });
+    return opts as Omit<typeof opts, 'initialData'>;
+};
+
+export const createPhotoMutation = (options?: Partial<Options<CreatePhotoData>>): UseMutationOptions<CreatePhotoResponse, CreatePhotoError, Options<CreatePhotoData>> => {
+    const mutationOptions: UseMutationOptions<CreatePhotoResponse, CreatePhotoError, Options<CreatePhotoData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await createPhoto({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+export const deletePhotoMutation = (options?: Partial<Options<DeletePhotoData>>): UseMutationOptions<DeletePhotoResponse, DeletePhotoError, Options<DeletePhotoData>> => {
+    const mutationOptions: UseMutationOptions<DeletePhotoResponse, DeletePhotoError, Options<DeletePhotoData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await deletePhoto({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+export const getPhotoQueryKey = (options: Options<GetPhotoData>) => createQueryKey('getPhoto', options);
+
+export const getPhotoOptions = (options: Options<GetPhotoData>) => queryOptions<GetPhotoResponse, GetPhotoError, GetPhotoResponse, ReturnType<typeof getPhotoQueryKey>>({
+    queryFn: async ({ queryKey, signal }) => {
+        const { data } = await getPhoto({
+            ...options,
+            ...queryKey[0],
+            signal,
+            throwOnError: true
+        });
+        return data;
+    },
+    queryKey: getPhotoQueryKey(options)
+});
+
+export const updatePhotoMutation = (options?: Partial<Options<UpdatePhotoData>>): UseMutationOptions<UpdatePhotoResponse, UpdatePhotoError, Options<UpdatePhotoData>> => {
+    const mutationOptions: UseMutationOptions<UpdatePhotoResponse, UpdatePhotoError, Options<UpdatePhotoData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await updatePhoto({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+export const createUploadedFileMutation = (options?: Partial<Options<CreateUploadedFileData>>): UseMutationOptions<CreateUploadedFileResponse, CreateUploadedFileError, Options<CreateUploadedFileData>> => {
+    const mutationOptions: UseMutationOptions<CreateUploadedFileResponse, CreateUploadedFileError, Options<CreateUploadedFileData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await createUploadedFile({
                 ...options,
                 ...fnOptions,
                 throwOnError: true
