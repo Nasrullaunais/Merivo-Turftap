@@ -16,9 +16,9 @@ import * as venuesService from "./venues.service";
 
 type ResourceSort = "name" | "createdAt";
 
-/** Staff see resources that were turned off; everyone else only sees ones that can be booked. */
+/** Staff and background jobs see resources that were turned off; everyone else only sees ones that can be booked. */
 const seesInactive = (auth: AuthContext) =>
-  auth.actor === "staff" || auth.actor === "platform_admin";
+  auth.actor === "staff" || auth.actor === "platform_admin" || auth.actor === "system";
 
 export function list(
   auth: AuthContext,

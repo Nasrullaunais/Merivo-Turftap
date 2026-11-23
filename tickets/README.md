@@ -30,7 +30,7 @@ Status: `todo`, `doing`, `done`, `blocked` (waiting on a decision or an outside 
 | [T46](T46-venue-payment-settings-2.md) | Venue payment settings: Pay at Venue, 20-minute default, series payment days | VEN-03 | | done |
 | [T48](T48-slot-length-and-start-interval.md) | Slot length and Start Interval per resource | VEN-04, VEN-05 | | done |
 | [T05](T05-bookings-table-and-free-slots.md) | Bookings table and free slots | BKG-01 | T01, T48 | done |
-| [T06](T06-book-online.md) | Book online, and expiry | BKG-02, BKG-03, PAY-01 | T02, T04, T05, T46 | todo |
+| [T06](T06-book-online.md) | Book online, and expiry | BKG-02, BKG-03, PAY-01 | T02, T04, T05, T46 | done |
 | [T07](T07-cancel-bookings.md) | Cancel bookings | BKG-06, BKG-07 | T06 | todo |
 | [T08](T08-closed-dates-and-blocks-vs-bookings.md) | Closed Dates and Blocked Times meet bookings | VEN-02, VEN-07 | T06 | todo |
 | [T09](T09-payments-cash-and-refunds.md) | Payments: cash and refunds | PAY-08, BKG-08 | T07 | todo |

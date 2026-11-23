@@ -14,6 +14,7 @@ export const STAFF_RESOURCES = [
   "photos",
   "files",
   "customers",
+  "bookings",
 ] as const;
 export type StaffResource = (typeof STAFF_RESOURCES)[number];
 

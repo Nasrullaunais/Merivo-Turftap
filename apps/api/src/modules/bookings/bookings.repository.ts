@@ -1,15 +1,93 @@
-import { HOLDING_STATUSES } from "@turftap/contract";
-import { and, eq, gt, inArray, lt } from "drizzle-orm";
+import { type BookingFilters, type BookingStatus, HOLDING_STATUSES } from "@turftap/contract";
+import { and, eq, gt, inArray, lt, type SQL, sql } from "drizzle-orm";
 
-import { db } from "../../lib/db";
-import { bookings, type NewBooking } from "./bookings.tables";
+import { db, pageOf, type PageRequest, sortBy } from "../../lib/db";
+import { priceOf } from "../../lib/db/columns";
+import { type BookingRow, bookings, type NewBooking } from "./bookings.tables";
+
+const SORTABLE = { startsAt: bookings.startsAt, createdAt: bookings.createdAt };
+
+/** Who may see which bookings: staff by venue, customers and the Assistant only their own. */
+export type BookingScope = {
+  /** No list means every venue in the tenant. */
+  venueIds: number[] | undefined;
+  /** Set for customers and the Assistant. `null` is a caller with no customer record yet. */
+  ownCustomerId?: number | null;
+};
+
+function ownedBy(ownCustomerId: number | null | undefined) {
+  if (ownCustomerId === undefined) return undefined;
+  return ownCustomerId === null ? sql`false` : eq(bookings.customerId, ownCustomerId);
+}
+
+const inScope = ({ venueIds, ownCustomerId }: BookingScope) =>
+  and(venueIds && inArray(bookings.venueId, venueIds), ownedBy(ownCustomerId));
+
+const toBooking = (row: BookingRow) => ({
+  ...row,
+  price: priceOf(row),
+  amountDue: { amount: row.amountDue, currency: row.priceCurrency },
+});
 
 export async function insert(tenantId: number, values: NewBooking) {
   const [booking] = await db()
     .insert(bookings)
     .values({ ...values, tenantId })
     .returning();
-  return booking!;
+  return toBooking(booking!);
+}
+
+export async function findById(tenantId: number, id: number, scope: BookingScope) {
+  const [booking] = await db()
+    .select()
+    .from(bookings)
+    .where(and(eq(bookings.tenantId, tenantId), eq(bookings.id, id), inScope(scope)));
+  return booking && toBooking(booking);
+}
+
+export function list(
+  tenantId: number,
+  scope: BookingScope,
+  filters: BookingFilters,
+  page: PageRequest<keyof typeof SORTABLE>,
+) {
+  const conditions: (SQL | undefined)[] = [eq(bookings.tenantId, tenantId), inScope(scope)];
+  if (filters.venueId !== undefined) conditions.push(eq(bookings.venueId, filters.venueId));
+  if (filters.resourceId !== undefined)
+    conditions.push(eq(bookings.resourceId, filters.resourceId));
+  if (filters.customerId !== undefined)
+    conditions.push(eq(bookings.customerId, filters.customerId));
+  if (filters.status !== undefined) conditions.push(eq(bookings.status, filters.status));
+  if (filters.from !== undefined) conditions.push(gt(bookings.endsAt, filters.from));
+  if (filters.to !== undefined) conditions.push(lt(bookings.startsAt, filters.to));
+  const where = and(...conditions);
+  return pageOf(
+    page,
+    db()
+      .select()
+      .from(bookings)
+      .where(where)
+      .orderBy(...sortBy(page, SORTABLE, bookings.id))
+      .limit(page.size)
+      .offset(page.page * page.size)
+      .then((rows) => rows.map(toBooking)),
+    db().$count(bookings, where),
+  );
+}
+
+/** Changes the status only if it is still `from`; returns nothing if someone got there first. */
+export async function setStatus(
+  tenantId: number,
+  id: number,
+  from: BookingStatus,
+  to: BookingStatus,
+) {
+  const [booking] = await db()
+    .update(bookings)
+    .set({ status: to })
+    .where(and(eq(bookings.tenantId, tenantId), eq(bookings.id, id), eq(bookings.status, from)))
+    .returning();
+  return booking && toBooking(booking);
 }
 
 /** Bookings that hold time on the resource inside the window. */

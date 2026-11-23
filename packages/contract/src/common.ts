@@ -32,7 +32,7 @@ export const localTimeAt = (minute: number) =>
 export const LocalDate = z.iso.date();
 
 export const Currency = z.enum(["LKR"]);
-const CENTS_PER_RUPEE = 100;
+export const CENTS_PER_RUPEE = 100;
 
 /** Money is a whole number of cents: `{ amount: 250000, currency: "LKR" }` is LKR 2,500. */
 export const Money = z

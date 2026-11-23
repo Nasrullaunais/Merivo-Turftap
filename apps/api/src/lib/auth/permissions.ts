@@ -21,6 +21,7 @@ export const ROLE_PERMISSIONS: Record<StaffRole, ReadonlySet<Permission>> = {
     ...all("photos"),
     "files:create",
     ...all("customers"),
+    ...all("bookings"),
   ]),
   FRONT_DESK: new Set([
     ...readOnly("venues"),
@@ -32,6 +33,9 @@ export const ROLE_PERMISSIONS: Record<StaffRole, ReadonlySet<Permission>> = {
     "customers:read",
     "customers:create",
     "customers:update",
+    "bookings:read",
+    "bookings:create",
+    "bookings:update",
   ]),
 };
 

@@ -80,8 +80,9 @@ describe("BKG-01 free slots", () => {
   const priceAt = (slots: Slot[], time: string) =>
     slots.find((slot) => clock.format(slot.startsAt) === time)?.price;
 
-  const book = (resourceId: number, startsAt: Date, endsAt: Date, status: BookingStatus) =>
+  const book = async (resourceId: number, startsAt: Date, endsAt: Date, status: BookingStatus) =>
     bookingsRepository.insert(tenant.id, {
+      venueId: (await resourcesService.get(owner(), resourceId)).venueId,
       resourceId,
       customerId,
       startsAt,
@@ -294,6 +295,7 @@ describe("BKG-01 free slots", () => {
 
 describe("bookings_no_overlap", () => {
   let tenant: TestTenant;
+  let venueId: number;
   let resourceId: number;
   let customerId: number;
   const date = inDays(5);
@@ -301,6 +303,7 @@ describe("bookings_no_overlap", () => {
   beforeAll(async () => {
     tenant = await createTenant();
     const venue = await venuesService.create(tenant.owner.auth, venueInput());
+    venueId = venue.id;
     resourceId = (await resourcesService.create(tenant.owner.auth, resourceInput(venue.id))).id;
     customerId = (
       await customersService.create(tenant.owner.auth, {
@@ -312,6 +315,7 @@ describe("bookings_no_overlap", () => {
 
   const book = (start: string, end: string, status: BookingStatus) =>
     bookingsRepository.insert(tenant.id, {
+      venueId,
       resourceId,
       customerId,
       startsAt: at(date, start),

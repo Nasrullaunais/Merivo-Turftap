@@ -5,6 +5,8 @@ export const TURFTAP_NUMBER = "turftap";
 export const WHATSAPP_TEMPLATES = {
   /** Values: tenant name, role, console link. Sent from the TurfTap number (SIG-03). */
   staffInvite: "staff_invite",
+  /** Values: venue name, resource name, start time in the venue's time zone (BKG-03). */
+  bookingExpired: "booking_expired",
 } as const;
 
 export type WhatsAppTemplate = (typeof WHATSAPP_TEMPLATES)[keyof typeof WHATSAPP_TEMPLATES];

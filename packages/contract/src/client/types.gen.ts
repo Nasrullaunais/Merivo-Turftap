@@ -53,6 +53,100 @@ export type UpdateBlockedTime = {
     reason?: string | null;
 };
 
+/**
+ * A weekday that is not listed is closed.
+ */
+export type OpeningHours = {
+    weekday: number;
+    opens: string;
+    closes: string;
+};
+
+export type BankAccount = {
+    bankName: string;
+    branch: string | null;
+    accountName: string;
+    accountNumber: string;
+};
+
+export type BankAccountInput = {
+    bankName: string;
+    branch?: string | null;
+    accountName: string;
+    accountNumber: string;
+};
+
+export type Venue = {
+    id: number;
+    name: string;
+    description: string | null;
+    address: string;
+    phone: string;
+    timeZone: string;
+    openingHours: Array<OpeningHours>;
+    bankAccount: BankAccount | null;
+    advancePercent: number;
+    paymentTimeLimitMinutes: number;
+    cancellationCutOffHours: number;
+    payAtVenue: boolean;
+    seriesPaymentDaysBefore: number;
+    active: boolean;
+    createdAt: string;
+    updatedAt: string;
+};
+
+export type CreateVenue = {
+    name: string;
+    description?: string | null;
+    address: string;
+    phone: string;
+    openingHours: Array<OpeningHours>;
+    bankAccount?: BankAccountInput | null;
+    advancePercent?: number;
+    paymentTimeLimitMinutes?: number;
+    cancellationCutOffHours?: number;
+    payAtVenue?: boolean;
+    seriesPaymentDaysBefore?: number;
+};
+
+export type UpdateVenue = {
+    name?: string;
+    description?: string | null;
+    address?: string;
+    phone?: string;
+    openingHours?: Array<OpeningHours>;
+    bankAccount?: BankAccountInput | null;
+    advancePercent?: number;
+    paymentTimeLimitMinutes?: number;
+    cancellationCutOffHours?: number;
+    payAtVenue?: boolean;
+    seriesPaymentDaysBefore?: number;
+};
+
+export type Booking = {
+    id: number;
+    venueId: number;
+    resourceId: number;
+    customerId: number;
+    startsAt: string;
+    endsAt: string;
+    status: 'AWAITING_PAYMENT' | 'AWAITING_CHECK' | 'CONFIRMED' | 'EXPIRED' | 'CANCELLED';
+    source: 'ONLINE' | 'WALK_IN';
+    price: Money;
+    amountDue: Money;
+    expiresAt: string | null;
+    cancellationCutOffHours: number;
+    bankAccount: BankAccount | null;
+    createdAt: string;
+    updatedAt: string;
+};
+
+export type CreateBooking = {
+    resourceId: number;
+    startsAt: string;
+    slots?: number;
+};
+
 export type Slot = {
     startsAt: string;
     endsAt: string;
@@ -151,7 +245,11 @@ export const Permission = {
     CUSTOMERS_READ: 'customers:read',
     CUSTOMERS_CREATE: 'customers:create',
     CUSTOMERS_UPDATE: 'customers:update',
-    CUSTOMERS_DELETE: 'customers:delete'
+    CUSTOMERS_DELETE: 'customers:delete',
+    BOOKINGS_READ: 'bookings:read',
+    BOOKINGS_CREATE: 'bookings:create',
+    BOOKINGS_UPDATE: 'bookings:update',
+    BOOKINGS_DELETE: 'bookings:delete'
 } as const;
 
 export type Permission = typeof Permission[keyof typeof Permission];
@@ -222,76 +320,6 @@ export type CreatePhoto = {
 
 export type UpdatePhoto = {
     position?: number;
-};
-
-/**
- * A weekday that is not listed is closed.
- */
-export type OpeningHours = {
-    weekday: number;
-    opens: string;
-    closes: string;
-};
-
-export type BankAccount = {
-    bankName: string;
-    branch: string | null;
-    accountName: string;
-    accountNumber: string;
-};
-
-export type BankAccountInput = {
-    bankName: string;
-    branch?: string | null;
-    accountName: string;
-    accountNumber: string;
-};
-
-export type Venue = {
-    id: number;
-    name: string;
-    description: string | null;
-    address: string;
-    phone: string;
-    timeZone: string;
-    openingHours: Array<OpeningHours>;
-    bankAccount: BankAccount | null;
-    advancePercent: number;
-    paymentTimeLimitMinutes: number;
-    cancellationCutOffHours: number;
-    payAtVenue: boolean;
-    seriesPaymentDaysBefore: number;
-    active: boolean;
-    createdAt: string;
-    updatedAt: string;
-};
-
-export type CreateVenue = {
-    name: string;
-    description?: string | null;
-    address: string;
-    phone: string;
-    openingHours: Array<OpeningHours>;
-    bankAccount?: BankAccountInput | null;
-    advancePercent?: number;
-    paymentTimeLimitMinutes?: number;
-    cancellationCutOffHours?: number;
-    payAtVenue?: boolean;
-    seriesPaymentDaysBefore?: number;
-};
-
-export type UpdateVenue = {
-    name?: string;
-    description?: string | null;
-    address?: string;
-    phone?: string;
-    openingHours?: Array<OpeningHours>;
-    bankAccount?: BankAccountInput | null;
-    advancePercent?: number;
-    paymentTimeLimitMinutes?: number;
-    cancellationCutOffHours?: number;
-    payAtVenue?: boolean;
-    seriesPaymentDaysBefore?: number;
 };
 
 export type PriceRule = {
@@ -1777,3 +1805,108 @@ export type ListAvailabilityResponses = {
 };
 
 export type ListAvailabilityResponse = ListAvailabilityResponses[keyof ListAvailabilityResponses];
+
+export type ListBookingsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        page?: number;
+        size?: number;
+        sort?: 'startsAt,asc' | 'startsAt,desc' | 'createdAt,asc' | 'createdAt,desc';
+        venueId?: number;
+        resourceId?: number;
+        customerId?: number;
+        status?: 'AWAITING_PAYMENT' | 'AWAITING_CHECK' | 'CONFIRMED' | 'EXPIRED' | 'CANCELLED';
+        from?: string;
+        to?: string;
+    };
+    url: '/v1/bookings';
+};
+
+export type ListBookingsErrors = {
+    /**
+     * Error
+     */
+    default: ErrorReply;
+};
+
+export type ListBookingsError = ListBookingsErrors[keyof ListBookingsErrors];
+
+export type ListBookingsResponses = {
+    /**
+     * One page
+     */
+    200: {
+        status: number;
+        message: string;
+        data: {
+            content: Array<Booking>;
+            page: number;
+            size: number;
+            totalElements: number;
+            totalPages: number;
+        };
+    };
+};
+
+export type ListBookingsResponse = ListBookingsResponses[keyof ListBookingsResponses];
+
+export type CreateBookingData = {
+    body: CreateBooking;
+    path?: never;
+    query?: never;
+    url: '/v1/bookings';
+};
+
+export type CreateBookingErrors = {
+    /**
+     * Error
+     */
+    default: ErrorReply;
+};
+
+export type CreateBookingError = CreateBookingErrors[keyof CreateBookingErrors];
+
+export type CreateBookingResponses = {
+    /**
+     * Created
+     */
+    201: {
+        status: number;
+        message: string;
+        data: Booking;
+    };
+};
+
+export type CreateBookingResponse = CreateBookingResponses[keyof CreateBookingResponses];
+
+export type GetBookingData = {
+    body?: never;
+    path: {
+        id: number;
+    };
+    query?: never;
+    url: '/v1/bookings/{id}';
+};
+
+export type GetBookingErrors = {
+    /**
+     * Error
+     */
+    default: ErrorReply;
+};
+
+export type GetBookingError = GetBookingErrors[keyof GetBookingErrors];
+
+export type GetBookingResponses = {
+    /**
+     * Found
+     */
+    200: {
+        status: number;
+        message: string;
+        data: Booking;
+    };
+};
+
+export type GetBookingResponse = GetBookingResponses[keyof GetBookingResponses];
