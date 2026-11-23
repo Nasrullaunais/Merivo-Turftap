@@ -12,6 +12,9 @@ export type Caller = {
   role?: StaffRole;
   /** Set only for staff limited to some venues. Missing means every venue in the tenant. */
   venueIds?: number[];
+  /** Customer and assistant: the phone of the customer who is calling, or whom the Assistant acts for. */
+  phone?: string;
+  /** Missing until that phone has a customer record in the tenant. */
   customerId?: number;
 };
 

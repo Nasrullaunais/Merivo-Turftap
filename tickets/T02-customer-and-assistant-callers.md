@@ -1,6 +1,6 @@
 # T02 Customer and Assistant callers on the API
 
-Status: todo · Stories: `POR-03`, `AST-05` · Depends on: T01
+Status: done · Stories: `POR-03`, `AST-05` · Depends on: T01
 
 ## Goal
 Two new kinds of caller can reach the API: a signed-in customer from the Customer Portal, and the Assistant acting for a customer. They only ever see their own rows.

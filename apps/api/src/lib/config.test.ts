@@ -2,7 +2,10 @@ import { describe, expect, it } from "bun:test";
 
 import { loadConfig } from "./config";
 
-const base = { DATABASE_URL: "postgres://u:p@localhost:5432/db" };
+const base = {
+  DATABASE_URL: "postgres://u:p@localhost:5432/db",
+  ASSISTANT_API_KEY: "a".repeat(32),
+};
 
 describe("config", () => {
   it("loadConfig_fillsDefaults", () => {
@@ -12,6 +15,10 @@ describe("config", () => {
 
   it("loadConfig_refusesAMissingDatabaseUrl", () => {
     expect(() => loadConfig({})).toThrow("DATABASE_URL");
+  });
+
+  it("loadConfig_refusesAShortAssistantKey", () => {
+    expect(() => loadConfig({ ...base, ASSISTANT_API_KEY: "short" })).toThrow("ASSISTANT_API_KEY");
   });
 
   it("loadConfig_refusesAuth0WithoutItsSettings", () => {

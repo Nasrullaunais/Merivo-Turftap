@@ -1,9 +1,11 @@
 import { type CreatePriceRule, type CreateResource, CreateVenue } from "@turftap/contract";
+import { eq } from "drizzle-orm";
 import type { z } from "zod";
 
 import { fakeTokenFor } from "../adapters/auth-provider/fake/fake-auth-provider";
 import { createApp } from "../app";
 import type { AuthContext, StaffRole } from "../lib/auth/context";
+import { config } from "../lib/config";
 import { db } from "../lib/db";
 import { tenants, users } from "../modules/platform/platform.tables";
 import { staff } from "../modules/staff/staff.tables";
@@ -85,14 +87,22 @@ export const priceRuleInput = (
 
 const app = createApp();
 
-type As = { phone?: string; tenantId?: number; tenantSlug?: string };
+type As = {
+  phone?: string;
+  tenantId?: number;
+  tenantSlug?: string;
+  assistantKey?: string;
+  customerPhone?: string;
+};
 
 /** Sends a request through the whole app, signed in with the fake auth provider. */
 export async function call(method: string, path: string, as: As = {}, body?: unknown) {
   const headers: Record<string, string> = {};
   if (as.phone) headers.Authorization = `Bearer ${fakeTokenFor(as.phone)}`;
+  if (as.assistantKey) headers.Authorization = `Assistant ${as.assistantKey}`;
   if (as.tenantId !== undefined) headers["X-Tenant-Id"] = String(as.tenantId);
   if (as.tenantSlug) headers["X-Tenant-Slug"] = as.tenantSlug;
+  if (as.customerPhone) headers["X-Customer-Phone"] = as.customerPhone;
   const isForm = body instanceof FormData;
   if (body !== undefined && !isForm) headers["Content-Type"] = "application/json";
   const response = await app.request(path, {
@@ -144,3 +154,20 @@ export const asStaff = (tenant: TestTenant, who: TestStaff = tenant.owner): As =
   phone: who.phone,
   tenantId: tenant.id,
 });
+
+/** Signed in on the tenant's Customer Portal. */
+export const asCustomer = (tenant: TestTenant, phone: string): As => ({
+  phone,
+  tenantSlug: tenant.slug,
+});
+
+/** The Assistant acting for the customer with this WhatsApp number. */
+export const asAssistant = (tenant: TestTenant, customerPhone: string): As => ({
+  assistantKey: config.auth.assistantApiKey,
+  tenantId: tenant.id,
+  customerPhone,
+});
+
+export async function turnOff(tenant: TestTenant) {
+  await db().update(tenants).set({ active: false }).where(eq(tenants.id, tenant.id));
+}

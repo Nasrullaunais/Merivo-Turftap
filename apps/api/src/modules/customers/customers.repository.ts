@@ -6,8 +6,15 @@ import { customers } from "./customers.tables";
 
 const SORTABLE = { name: sql`lower(${customers.name})`, createdAt: customers.createdAt };
 
-/** `search` matches part of the name, or `phoneDigits` anywhere in the phone number. */
-export type CustomerQuery = { phone?: string; search?: { name: string; phoneDigits?: string } };
+/**
+ * `search` matches part of the name, or `phoneDigits` anywhere in the phone number. `ownPhone`
+ * limits the result to that one customer, for a customer reading their own record.
+ */
+export type CustomerQuery = {
+  phone?: string;
+  ownPhone?: string;
+  search?: { name: string; phoneDigits?: string };
+};
 
 /** A LIKE pattern matching `text` anywhere, with `%` and `_` taken literally. */
 const containing = (text: string) => `%${text.replace(/[\\%_]/g, "\\$&")}%`;
@@ -15,8 +22,9 @@ const containing = (text: string) => `%${text.replace(/[\\%_]/g, "\\$&")}%`;
 const ownedBy = (tenantId: number, id: number) =>
   and(eq(customers.tenantId, tenantId), eq(customers.id, id));
 
-export async function findById(tenantId: number, id: number) {
-  const [customer] = await db().select().from(customers).where(ownedBy(tenantId, id));
+export async function findById(tenantId: number, id: number, ownPhone?: string) {
+  const where = and(ownedBy(tenantId, id), ownPhone ? eq(customers.phone, ownPhone) : undefined);
+  const [customer] = await db().select().from(customers).where(where);
   return customer;
 }
 
@@ -30,11 +38,12 @@ export async function findByPhone(tenantId: number, phone: string) {
 
 export function list(
   tenantId: number,
-  { phone, search }: CustomerQuery,
+  { phone, ownPhone, search }: CustomerQuery,
   page: PageRequest<keyof typeof SORTABLE>,
 ) {
   const conditions: (SQL | undefined)[] = [eq(customers.tenantId, tenantId)];
   if (phone) conditions.push(eq(customers.phone, phone));
+  if (ownPhone) conditions.push(eq(customers.phone, ownPhone));
   if (search)
     conditions.push(
       or(

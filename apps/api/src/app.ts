@@ -39,6 +39,7 @@ export function createApp() {
       authorization: c.req.header("Authorization"),
       tenantId: c.req.header("X-Tenant-Id"),
       tenantSlug: c.req.header("X-Tenant-Slug"),
+      customerPhone: c.req.header("X-Customer-Phone"),
     });
     c.set("caller", caller);
     await next();

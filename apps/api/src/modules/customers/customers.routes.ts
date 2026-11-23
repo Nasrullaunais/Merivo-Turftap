@@ -12,6 +12,7 @@ import * as customersService from "./customers.service";
 export const customersResource = defineResource({
   name: "customers",
   operations: ["list", "get", "create", "update"],
+  forCustomers: ["list", "get", "create"],
   schemas: {
     item: Customer,
     create: CreateCustomer,

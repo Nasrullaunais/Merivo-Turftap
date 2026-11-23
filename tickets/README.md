@@ -22,7 +22,7 @@ Status: `todo`, `doing`, `done`, `blocked` (waiting on a decision or an outside 
 |---|---|---|---|---|
 | **A. Customers** |||||
 | [T01](T01-customers-api.md) | Customers API | supports BKG-04, MEM-05, POR-03 | | done |
-| [T02](T02-customer-and-assistant-callers.md) | Customer and Assistant callers on the API | POR-03, AST-05 | T01 | todo |
+| [T02](T02-customer-and-assistant-callers.md) | Customer and Assistant callers on the API | POR-03, AST-05 | T01 | done |
 | **B. Messages** |||||
 | [T03](T03-whatsapp-numbers-api.md) | WhatsApp numbers API | PLA-02 | | todo |
 | [T04](T04-notifications-module.md) | Notifications module | AST-07 | T01, T03 | todo |

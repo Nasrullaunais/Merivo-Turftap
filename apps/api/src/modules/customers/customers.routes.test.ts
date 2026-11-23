@@ -1,11 +1,14 @@
 import { beforeAll, describe, expect, it } from "bun:test";
 
 import {
+  asAssistant,
+  asCustomer,
   asStaff,
   call,
   createTenant,
   limitToVenues,
   type TestTenant,
+  turnOff,
   uniquePhone,
   venueInput,
 } from "../../test/fixtures";
@@ -128,5 +131,111 @@ describe("customers routes", () => {
   it("notSignedIn_isRefused", async () => {
     const reply = await call("GET", "/v1/customers", { tenantSlug: tenant.slug });
     expect(reply.status).toBe(401);
+  });
+});
+
+describe("POR-03, AST-05 a customer and the Assistant reach only their own record", () => {
+  let tenant: TestTenant;
+  let someoneElse: { id: number; phone: string; name: string };
+  beforeAll(async () => {
+    tenant = await createTenant();
+    const body = { name: "Someone Else", phone: uniquePhone() };
+    someoneElse = (await call("POST", "/v1/customers", asStaff(tenant), body)).body.data;
+  });
+
+  const callers = [
+    ["customer", (phone: string) => asCustomer(tenant, phone)],
+    ["assistant", (phone: string) => asAssistant(tenant, phone)],
+  ] as const;
+
+  for (const [actor, as] of callers) {
+    it(`${actor}_createsTheirOwnRecordOnceAndThenSeesIt`, async () => {
+      const phone = uniquePhone();
+      expect((await call("GET", "/v1/customers", as(phone))).body.data.content).toEqual([]);
+
+      const created = await call("POST", "/v1/customers", as(phone), { name: "Kasun", phone });
+      expect(created).toMatchObject({ status: 201, body: { data: { name: "Kasun", phone } } });
+      const mine = created.body.data;
+
+      expect((await call("GET", `/v1/customers/${mine.id}`, as(phone))).body.data).toEqual(mine);
+      expect((await call("GET", "/v1/customers", as(phone))).body.data.content).toEqual([mine]);
+      const again = await call("POST", "/v1/customers", as(phone), { name: "Kasun", phone });
+      expect(again).toMatchObject({ status: 409, body: { code: "tt_cus_002" } });
+    });
+
+    it(`${actor}_getsNotFoundForAnotherPhonesRecord`, async () => {
+      const reply = await call("GET", `/v1/customers/${someoneElse.id}`, as(uniquePhone()));
+      expect(reply).toMatchObject({ status: 404, body: { code: "tt_cus_001" } });
+    });
+
+    it(`${actor}_listNeverShowsAnotherPhonesRecord`, async () => {
+      const byPhone = new URLSearchParams({ phone: someoneElse.phone });
+      const bySearch = new URLSearchParams({ search: someoneElse.name });
+      for (const query of [byPhone, bySearch, new URLSearchParams()]) {
+        const reply = await call("GET", `/v1/customers?${query}`, as(uniquePhone()));
+        expect(reply.body.data.content).toEqual([]);
+      }
+    });
+
+    it(`${actor}_cannotCreateARecordForAnotherPhone`, async () => {
+      const body = { name: "Not Me", phone: uniquePhone() };
+      const reply = await call("POST", "/v1/customers", as(uniquePhone()), body);
+      expect(reply).toMatchObject({ status: 403, body: { code: "tt_cus_003" } });
+      const listed = await call("GET", "/v1/customers", as(body.phone));
+      expect(listed.body.data.content).toEqual([]);
+    });
+
+    it(`${actor}_cannotChangeTheirRecord`, async () => {
+      const phone = uniquePhone();
+      const mine = (await call("POST", "/v1/customers", as(phone), { name: "Dilan", phone })).body
+        .data;
+      const reply = await call("PATCH", `/v1/customers/${mine.id}`, as(phone), { name: "Other" });
+      expect(reply.status).toBe(403);
+    });
+
+    it(`${actor}_isRefusedByATenantThatIsOff`, async () => {
+      const offTenant = await createTenant();
+      await turnOff(offTenant);
+      const phone = uniquePhone();
+      const as =
+        actor === "customer" ? asCustomer(offTenant, phone) : asAssistant(offTenant, phone);
+      const reply = await call("GET", "/v1/customers", as);
+      expect(reply).toMatchObject({ status: 404, body: { code: "tt_plt_001" } });
+    });
+  }
+
+  it("customer_seesTheRecordTheAssistantMadeForTheirPhone", async () => {
+    const phone = uniquePhone();
+    const body = { name: "Nadeesha", phone };
+    const made = (await call("POST", "/v1/customers", asAssistant(tenant, phone), body)).body.data;
+    const seen = await call("GET", "/v1/customers", asCustomer(tenant, phone));
+    expect(seen.body.data.content).toEqual([made]);
+  });
+
+  it("customer_createsWithTheirPhoneTypedLocally", async () => {
+    const phone = uniquePhone();
+    const body = { name: "Chamari", phone: typedLocally(phone) };
+    const reply = await call("POST", "/v1/customers", asCustomer(tenant, phone), body);
+    expect(reply).toMatchObject({ status: 201, body: { data: { phone } } });
+  });
+
+  it("assistant_withAWrongKeyIsRefused", async () => {
+    const as = { ...asAssistant(tenant, uniquePhone()), assistantKey: "x".repeat(40) };
+    const reply = await call("GET", "/v1/customers", as);
+    expect(reply).toMatchObject({ status: 401, body: { code: "tt_plt_005" } });
+  });
+
+  it("assistant_withoutACustomerPhoneIsRefused", async () => {
+    for (const customerPhone of [undefined, "not a phone"]) {
+      const as = { ...asAssistant(tenant, uniquePhone()), customerPhone };
+      const reply = await call("GET", "/v1/customers", as);
+      expect(reply).toMatchObject({ status: 400, body: { code: "tt_plt_006" } });
+    }
+  });
+
+  it("assistant_withoutATenantIsRefused", async () => {
+    const as = { ...asAssistant(tenant, uniquePhone()), tenantId: undefined };
+    const reply = await call("GET", "/v1/customers", as);
+    expect(reply).toMatchObject({ status: 400, body: { code: "tt_htt_400" } });
   });
 });

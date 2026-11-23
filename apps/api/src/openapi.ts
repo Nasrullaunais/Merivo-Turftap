@@ -12,7 +12,8 @@ export function buildOpenApiDocument() {
       version: "1",
       description:
         "Every reply is wrapped as { status, message, data }. Staff send X-Tenant-Id; the " +
-        "Customer Portal sends X-Tenant-Slug. Errors carry a code (tt_<area>_<nnn>) and a traceId.",
+        "Customer Portal sends X-Tenant-Slug; the Assistant sends Authorization: Assistant <key>, " +
+        "X-Tenant-Id and X-Customer-Phone. Errors carry a code (tt_<area>_<nnn>) and a traceId.",
     },
     components: {
       securitySchemes: { bearerAuth: { type: "http", scheme: "bearer" } },

@@ -2,6 +2,7 @@ import { z } from "zod";
 
 const DEFAULT_PORT = 3000;
 const DEFAULT_AUTH_CACHE_SECONDS = 300;
+const MIN_SECRET_LENGTH = 32;
 
 const commaList = z.string().transform((text) =>
   text
@@ -24,6 +25,7 @@ const Env = z.object({
   AUTH0_AUDIENCE: z.string().optional(),
   AUTH0_PHONE_CLAIM: z.string().default("phone_number"),
   AUTH0_HOOK_SECRET: z.string().optional(),
+  ASSISTANT_API_KEY: z.string().min(MIN_SECRET_LENGTH),
 
   STORAGE_PROVIDER: z.enum(["fake", "s3"]).default("fake"),
   S3_ENDPOINT: z.url().optional(),
@@ -78,6 +80,7 @@ export function loadConfig(source: Record<string, string | undefined> = process.
       cacheSeconds: env.AUTH_CACHE_SECONDS,
       provider: authProvider(env),
       hookSecret: env.AUTH0_HOOK_SECRET,
+      assistantApiKey: env.ASSISTANT_API_KEY,
     },
     storage: storage(env),
     messaging: { kind: env.MESSAGING_PROVIDER },

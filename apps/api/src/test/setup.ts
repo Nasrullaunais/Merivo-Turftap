@@ -4,6 +4,7 @@ process.env.DATABASE_URL =
 process.env.LOG_LEVEL ??= "silent";
 process.env.AUTH_CACHE_SECONDS = "0";
 process.env.AUTH0_HOOK_SECRET = "test-hook-secret";
+process.env.ASSISTANT_API_KEY = "test-assistant-key-at-least-32-characters";
 
 const { runMigrations } = await import("../lib/db/migrate");
 const { claimEmptyDatabase } = await import("./empty-database");

@@ -1,9 +1,11 @@
 import { afterEach, describe, expect, it } from "bun:test";
 
+import { fakeTokenFor } from "../../adapters/auth-provider/fake/fake-auth-provider";
+import { config } from "../../lib/config";
 import { db } from "../../lib/db";
 import { installPorts } from "../../ports";
+import { asStaff, call, createTenant, uniquePhone } from "../../test/fixtures";
 import { testPorts } from "../../test/ports";
-import { uniquePhone } from "../../test/fixtures";
 import { loginCodeSends } from "./platform.tables";
 import * as platformService from "./platform.service";
 
@@ -66,5 +68,38 @@ describe("SIG-01 login codes", () => {
     installPorts(testPorts);
     await platformService.sendLoginCode(phone, "777777");
     expect(smsTo(phone)).toHaveLength(1);
+  });
+});
+
+describe("POR-03, AST-05 customer and Assistant callers", () => {
+  it("resolveCaller_namesTheCustomerRecordOnceThePhoneHasOne", async () => {
+    const tenant = await createTenant();
+    const phone = uniquePhone();
+    const asCustomer = { authorization: `Bearer ${fakeTokenFor(phone)}`, tenantSlug: tenant.slug };
+    const asAssistant = {
+      authorization: `Assistant ${config.auth.assistantApiKey}`,
+      tenantId: String(tenant.id),
+      customerPhone: phone,
+    };
+    for (const headers of [asCustomer, asAssistant]) {
+      expect(await platformService.resolveCaller(headers)).toMatchObject({
+        tenantId: tenant.id,
+        phone,
+        customerId: undefined,
+      });
+    }
+
+    const body = { name: "Ishara", phone };
+    const created = (await call("POST", "/v1/customers", asStaff(tenant), body)).body.data;
+
+    expect(await platformService.resolveCaller(asCustomer)).toMatchObject({
+      actor: "customer",
+      userId: expect.any(Number),
+      customerId: created.id,
+    });
+    expect(await platformService.resolveCaller(asAssistant)).toMatchObject({
+      actor: "assistant",
+      customerId: created.id,
+    });
   });
 });

@@ -32,7 +32,8 @@ type Caller = {
   userId?: number;      // staff, customer, platform_admin
   role?: StaffRole;     // staff only
   venueIds?: number[];  // staff limited to some venues; missing means every venue
-  customerId?: number;  // customer, assistant (acting for a customer)
+  phone?: string;       // customer, assistant: the customer's phone
+  customerId?: number;  // customer, assistant: missing until that phone has a customers row
 };
 
 type AuthContext = Caller & { tenantId: number }; // what services receive
@@ -44,13 +45,15 @@ type AuthContext = Caller & { tenantId: number }; // what services receive
 |---|---|---|---|
 | Staff (console) | Auth0 token | `X-Tenant-Id` header | The user has a `staff` row in that tenant |
 | Platform Admin (console) | Auth0 token | `X-Tenant-Id` header, only for tenant pages | The user is flagged platform admin |
-| Customer (portal) | Auth0 token | `X-Tenant-Slug` header, which the portal takes from its own web address | The tenant exists and is on. A `customers` row is created on first booking. |
-| Assistant (n8n) | Assistant key | `X-Tenant-Id` header | The tenant is on. `X-Customer-Phone` names the customer it acts for. |
+| Customer (portal) | `Authorization: Bearer <Auth0 token>` | `X-Tenant-Slug` header, which the portal takes from its own web address | The tenant exists and is on. The `customers` row with the token's phone, if any; it is created on first booking (`POR-03`). |
+| Assistant (n8n) | `Authorization: Assistant <ASSISTANT_API_KEY>`, compared in constant time | `X-Tenant-Id` header | The tenant is on. `X-Customer-Phone: +94771234567` names the customer it acts for. |
 | Background job | n/a | The job's saved data | Jobs re-check that the tenant is on, and that any staff action is still allowed, when they run |
+
+Customers and the Assistant reach only the records of that one phone: another phone's record replies 404, and creating a customer record for another phone replies 403.
 
 The Assistant may act for any customer phone in a tenant. That's acceptable because WhatsApp has already proved the customer owns that phone. The assistant key is therefore as sensitive as a database password.
 
-The user, tenant and role lookup is cached for a few minutes per token, so a removed staff member loses access within minutes (`SIG-04`).
+The user, tenant and role lookup is cached for a few minutes per token (`AUTH_CACHE_SECONDS`), so a removed staff member loses access within minutes (`SIG-04`). For customers and the Assistant, only the sign-in and the "tenant is on" check are cached; the customer record is looked up on every request, so it is there as soon as it is created.
 
 ## Staff limited to some venues
 

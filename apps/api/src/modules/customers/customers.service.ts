@@ -18,6 +18,13 @@ function phoneDigitsOf(search: string) {
   return digits.startsWith("0") ? SRI_LANKA_CALLING_CODE + digits.slice(1) : digits;
 }
 
+/** Customers and the Assistant only ever reach the record with the caller's own phone. */
+function ownPhoneOf(auth: AuthContext) {
+  if (auth.actor !== "customer" && auth.actor !== "assistant") return undefined;
+  if (!auth.phone) throw new Error(`A ${auth.actor} caller arrived without a phone`);
+  return auth.phone;
+}
+
 export function list(
   auth: AuthContext,
   { filters, page }: ListQuery<CustomerFilters, CustomerSort>,
@@ -25,16 +32,19 @@ export function list(
   const search = filters.search
     ? { name: filters.search, phoneDigits: phoneDigitsOf(filters.search) }
     : undefined;
-  return customersRepository.list(auth.tenantId, { phone: filters.phone, search }, page);
+  const query = { phone: filters.phone, ownPhone: ownPhoneOf(auth), search };
+  return customersRepository.list(auth.tenantId, query, page);
 }
 
 export async function get(auth: AuthContext, id: number) {
-  const customer = await customersRepository.findById(auth.tenantId, id);
+  const customer = await customersRepository.findById(auth.tenantId, id, ownPhoneOf(auth));
   if (!customer) throw customerErrors.notFound(id);
   return customer;
 }
 
 export function create(auth: AuthContext, input: CreateCustomer) {
+  const ownPhone = ownPhoneOf(auth);
+  if (ownPhone !== undefined && input.phone !== ownPhone) throw customerErrors.notYourPhone();
   return transaction(() => customersRepository.insert(auth.tenantId, input));
 }
 
@@ -45,6 +55,10 @@ export function update(auth: AuthContext, id: number, input: UpdateCustomer) {
     if (!customer) throw customerErrors.notFound(id);
     return customer;
   });
+}
+
+export async function findIdByPhone(tenantId: number, phone: string) {
+  return (await customersRepository.findByPhone(tenantId, phone))?.id;
 }
 
 /** BKG-04: a walk-in with a known phone reuses that customer and keeps the name on record. */

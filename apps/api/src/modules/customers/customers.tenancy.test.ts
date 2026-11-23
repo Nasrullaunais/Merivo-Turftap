@@ -1,6 +1,14 @@
 import { beforeAll, describe, expect, it } from "bun:test";
 
-import { asStaff, call, createTenant, type TestTenant, uniquePhone } from "../../test/fixtures";
+import {
+  asAssistant,
+  asCustomer,
+  asStaff,
+  call,
+  createTenant,
+  type TestTenant,
+  uniquePhone,
+} from "../../test/fixtures";
 
 describe("customers tenant isolation", () => {
   let tenantA: TestTenant;
@@ -58,5 +66,15 @@ describe("customers tenant isolation", () => {
       tenantId: tenantB.id,
     });
     expect(reply.status).toBe(403);
+  });
+
+  it("customerOfA_cannotReadTheirOwnPhonesRecordAtB", async () => {
+    const phone = customerOfB.phone;
+    for (const as of [asCustomer(tenantA, phone), asAssistant(tenantA, phone)]) {
+      const reply = await call("GET", `/v1/customers/${customerOfB.id}`, as);
+      expect(reply.status).toBe(404);
+      const listed = await call("GET", "/v1/customers", as);
+      expect(listed.body.data.content).not.toContainEqual(customerOfB);
+    }
   });
 });
