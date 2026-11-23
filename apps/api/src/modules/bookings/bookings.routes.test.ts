@@ -191,3 +191,79 @@ describe("BKG-02 bookings routes", () => {
     expect(reply).toMatchObject({ status: 403, body: { code: "tt_htt_403" } });
   });
 });
+
+describe("BKG-06, BKG-07 cancel routes", () => {
+  let tenant: TestTenant;
+  let resourceId: number;
+
+  beforeAll(async () => {
+    tenant = await createTenant();
+    const venue = (
+      await call(
+        "POST",
+        "/v1/venues",
+        asStaff(tenant),
+        venueInput({ openingHours: openAllWeek, bankAccount }),
+      )
+    ).body.data;
+    resourceId = (await call("POST", "/v1/resources", asStaff(tenant), resourceInput(venue.id)))
+      .body.data.id;
+  });
+
+  async function bookAsNewCustomer(hour: number) {
+    const phone = uniquePhone();
+    await call("POST", "/v1/customers", asCustomer(tenant, phone), { name: "Nimal", phone });
+    const booking = (
+      await call("POST", "/v1/bookings", asCustomer(tenant, phone), {
+        resourceId,
+        startsAt: startAt(hour),
+      })
+    ).body.data;
+    return { phone, id: booking.id as number };
+  }
+
+  it("customer_cancelsTheirOwnBooking", async () => {
+    const { phone, id } = await bookAsNewCustomer(10);
+    const reply = await call("PATCH", `/v1/bookings/${id}`, asCustomer(tenant, phone), {
+      status: "CANCELLED",
+    });
+    expect(reply).toMatchObject({
+      status: 200,
+      body: { data: { id, status: "CANCELLED", cancelReason: null, bankAccount: null } },
+    });
+  });
+
+  it("frontDesk_cancelsWithAReason", async () => {
+    const { id } = await bookAsNewCustomer(11);
+    const reply = await call("PATCH", `/v1/bookings/${id}`, asStaff(tenant, tenant.frontDesk), {
+      status: "CANCELLED",
+      cancelReason: "  Rain  ",
+    });
+    expect(reply).toMatchObject({
+      status: 200,
+      body: { data: { status: "CANCELLED", cancelReason: "Rain" } },
+    });
+  });
+
+  it("frontDesk_withoutAReason_isAskedForOne", async () => {
+    const { id } = await bookAsNewCustomer(12);
+    const reply = await call("PATCH", `/v1/bookings/${id}`, asStaff(tenant, tenant.frontDesk), {
+      status: "CANCELLED",
+    });
+    expect(reply).toMatchObject({
+      status: 400,
+      body: {
+        code: "tt_bkg_007",
+        errors: [{ field: "cancelReason", message: "Required when staff cancel a booking" }],
+      },
+    });
+  });
+
+  it("patch_refusesAnyChangeOtherThanCancelling", async () => {
+    const { id } = await bookAsNewCustomer(13);
+    const reply = await call("PATCH", `/v1/bookings/${id}`, asStaff(tenant), {
+      status: "CONFIRMED",
+    });
+    expect(reply).toMatchObject({ status: 409, body: { code: "tt_sts_001" } });
+  });
+});

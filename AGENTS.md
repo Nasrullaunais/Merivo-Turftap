@@ -27,13 +27,19 @@ bun run check            # lint, format, type check, all tests including archite
 bun run gen              # after a contract or resource change: openapi.json + frontend client
 bun run db:generate      # after a *.tables.ts change: writes a migration to read and commit
 bun run format <files>   # format the files you touched
+cd apps/api && bun test venues.service -t "create_"   # one file, tests named like this
 ```
 
-`bun run check` passes before every commit.
+## Done means
+
+- `bun run check` passes.
+- A new resource: every step of [Adding a resource](docs/architecture/backend.md#adding-a-resource-step-by-step) is done.
+- `bun run gen` output and new migrations (read first) are committed with the change.
+- A changed rule, term or flow is updated in the glossary, spec, ADR or architecture page.
 
 ## Core rules
 
-**API.** Every resource is declared with `defineResource()` and gets at most the five standard routes (list, get, create, PATCH, delete) under flat `/v1/<resource>` URLs. Actions like cancel or accept are PATCHes of `status`, allowed by the resource's `<module>.transitions.ts`. Vendor callbacks are the only exception and live in `hooks/`. Details: [docs/architecture/api.md](docs/architecture/api.md).
+**API.** Resources come only from `defineResource()`: at most list, get, create, PATCH and delete under `/v1/<resource>`, with actions as PATCHes of `status`. Vendor callbacks in `hooks/` are the one exception. Details: [api.md](docs/architecture/api.md).
 
 **Backend module layout.**
 
@@ -51,13 +57,13 @@ apps/api/src/modules/bookings/
 └── bookings.tenancy.test.ts  # tenant A can't touch tenant B's data
 ```
 
-Request and reply schemas live in `packages/contract/src/<module>.ts`. Modules use each other only through `<module>.service.ts`. A new resource is added to `apps/api/src/resources.ts`.
+Request and reply schemas live in `packages/contract/src/<module>.ts`. Modules use each other only through `<module>.service.ts`.
 
-**Tenants.** The tenant comes from the caller's `AuthContext`, never from the body or URL. Reads check `tenant_id` inside the SQL. Every module has tenant-isolation tests. Details: [docs/architecture/tenancy.md](docs/architecture/tenancy.md).
+**Tenants.** A leak between tenants is the worst bug here. The tenant comes from the caller's `AuthContext`, never the body or URL, and every query filters on `tenant_id` in the SQL; staff limited to some venues work the same way with `venueIds`. Details: [tenancy.md](docs/architecture/tenancy.md).
 
-**Outside services.** Auth0, SeaweedFS, WhatsApp, Gemini and payment providers are reached only through `ports/`. Vendor SDKs are imported only inside `adapters/<port>/<vendor>/`, and every port has a `fake` adapter for tests. Details: [docs/architecture/adapters.md](docs/architecture/adapters.md).
+**Outside services.** Auth0, file storage, WhatsApp, Gemini and payment providers are reached only through `ports()`, and each has a `fake` adapter for tests. Details: [adapters.md](docs/architecture/adapters.md).
 
-**Errors.** Business code throws a typed error (`NotFound`, `Conflict`, ...) from its `<module>.errors.ts` and lets it travel to the one central handler. `try`/`catch` belongs only at real edges: inside adapters, job handlers, hooks and `lib/`; the architecture test refuses it under `modules/`.
+**Errors.** Business code throws a typed error from its `<module>.errors.ts` and never catches; one central handler writes the reply. Details: [backend.md](docs/architecture/backend.md#errors).
 
 **Data.** Money is an integer of cents plus a currency. Times are `timestamptz`, sent as ISO strings with `Z`, and shown in the venue's time zone. Phone numbers are stored as `+94771234567`. Duplicates are caught by unique indexes, not by "check first, then insert". State changes are one conditional `UPDATE ... WHERE status = <expected>`. Jobs are queued inside the same transaction as the data they act on.
 
@@ -91,4 +97,3 @@ A good test fails when the behaviour breaks and keeps passing when the code is o
 - Format and lint only the files you touch.
 - Dependencies use their latest stable release. Holding one back is a decision for the user (see Decisions), and the reason is written in the docs.
 - Pull requests: one topic, a short plain description, story IDs listed.
-- Docs move with the code: a pull request that changes a rule, term or flow updates the glossary, spec, ADR or architecture page in the same pull request.

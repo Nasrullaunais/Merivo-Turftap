@@ -74,6 +74,17 @@ describe("SIG-06 bookings for staff limited to some venues", () => {
     expect(reply).toMatchObject({ status: 404, body: { code: "tt_bkg_001" } });
   });
 
+  it("bookings_cancelRepliesNotFoundForAnotherVenuesBooking", async () => {
+    const reply = await call("PATCH", `/v1/bookings/${bookingB}`, asStaff(tenant, tenant.manager), {
+      status: "CANCELLED",
+      cancelReason: "Rain",
+    });
+    expect(reply).toMatchObject({ status: 404, body: { code: "tt_bkg_001" } });
+    expect((await call("GET", `/v1/bookings/${bookingB}`, asStaff(tenant))).body.data.status).toBe(
+      "AWAITING_PAYMENT",
+    );
+  });
+
   it("availability_repliesNotFoundForAResourceAtAnotherVenue", async () => {
     const asManager = asStaff(tenant, tenant.manager);
     expect((await call("GET", availability(resourceA), asManager)).status).toBe(200);

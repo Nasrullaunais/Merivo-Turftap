@@ -144,8 +144,9 @@ A job gets a queue and a worker only if its file is loaded before `startJobs()`.
 
 See [adapters.md](adapters.md). `wiring.ts` picks the adapters from config and calls `installPorts()` at start-up; tests install fakes in `src/test/setup.ts`. Services call `ports()`.
 
-## Config and logs
+## Config, time and logs
 
+- Date and clock-time maths goes through `lib/time.ts` (`todayIn`, `addDays`, `weekdayOf`, `instantAt`). A venue's dates and times are its own clock (`venue.timeZone`), never the server's.
 - Settings are read once in `lib/config.ts` and checked by Zod. A missing secret stops the app. Fake adapters are refused when `NODE_ENV=production`.
 - `logger` from `lib/logger.ts` writes JSON. Every line written during a request or job carries its `requestId`, which errors return as `traceId`.
 
