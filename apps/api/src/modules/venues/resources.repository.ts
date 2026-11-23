@@ -21,7 +21,7 @@ export async function findById(
   tenantId: number,
   id: number,
   venueIds: number[] | undefined,
-  lock?: "share" | "update",
+  lock?: "update",
 ) {
   const query = db()
     .select()

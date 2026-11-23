@@ -5,6 +5,13 @@ const DATE_FORMAT = new Intl.DateTimeFormat("en-GB", {
   year: "numeric",
   timeZone: "UTC",
 });
+const clock = (timeZone: string) =>
+  new Intl.DateTimeFormat("en-GB", {
+    timeZone,
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  });
 
 export default {
   title: "Closed Dates",
@@ -18,4 +25,16 @@ export default {
   dateLabel: "Date",
   reasonLabel: "Reason customers see (optional)",
   submit: "Close this date",
+  affectedTitle: (count: number, day: string) =>
+    count === 1
+      ? `1 booking on ${day} still holds its slots`
+      : `${count} bookings on ${day} still hold their slots`,
+  affectedHint:
+    "Closing the venue doesn't cancel them. Contact these customers yourself, then close the date.",
+  /** "19:00–20:00" on the venue's clock. */
+  bookingTime: (startsAt: string, endsAt: string, timeZone: string) =>
+    `${clock(timeZone).format(new Date(startsAt))}–${clock(timeZone).format(new Date(endsAt))}`,
+  affectedListLabel: "Bookings on that date",
+  closeAnyway: "Close anyway",
+  goBack: "Go back",
 };

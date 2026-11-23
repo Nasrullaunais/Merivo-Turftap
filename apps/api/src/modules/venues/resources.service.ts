@@ -28,8 +28,11 @@ export function list(
   return resourcesRepository.list(auth.tenantId, auth.venueIds, { ...filters, active }, page);
 }
 
-/** With `lock: "share"`, the resource's settings can't change until the transaction ends. */
-export async function get(auth: AuthContext, id: number, lock?: "share") {
+/**
+ * With `lock`, other saves on the resource wait until this transaction ends, so a clash check
+ * sees every earlier save. Two clashing inserts at once can otherwise deadlock in Postgres.
+ */
+export async function get(auth: AuthContext, id: number, lock?: "update") {
   const resource = await resourcesRepository.findById(auth.tenantId, id, auth.venueIds, lock);
   if (!resource || (!resource.active && !seesInactive(auth)))
     throw venueErrors.resourceNotFound(id);

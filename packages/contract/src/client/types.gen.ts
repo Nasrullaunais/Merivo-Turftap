@@ -128,6 +128,8 @@ export type Booking = {
     venueId: number;
     resourceId: number;
     customerId: number;
+    customerName: string;
+    customerPhone: string;
     startsAt: string;
     endsAt: string;
     status: 'AWAITING_PAYMENT' | 'AWAITING_CHECK' | 'CONFIRMED' | 'EXPIRED' | 'CANCELLED';

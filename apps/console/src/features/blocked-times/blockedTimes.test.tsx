@@ -3,7 +3,7 @@ import type { StaffRole } from "@turftap/contract";
 import { describe, expect, it } from "vitest";
 
 import { signInForTesting } from "../../lib/auth/session";
-import { mockApi } from "../../test/mockApi";
+import { apiError, mockApi } from "../../test/mockApi";
 import { renderApp } from "../../test/renderApp";
 import { myTenant } from "../../test/tenants";
 
@@ -135,6 +135,26 @@ describe("VEN-07 block a resource", () => {
     fireEvent.click(screen.getByRole("button", { name: "Block" }));
     expect(await screen.findByText("Must end after it starts")).toBeInTheDocument();
     expect(requestsOf(fetch, "POST")).toHaveLength(0);
+  });
+
+  it("manager_isShownWhyTheAPIRefusedTheBlock", async () => {
+    const clash = "This overlaps the booking for Nimal Perera at Fri 25 Dec, 10:00";
+    signInForTesting(PHONE);
+    mockApi({
+      "GET /v1/me": meAs("MANAGER"),
+      "GET /v1/resources/11": court,
+      "GET /v1/venues/3": arena,
+      "GET /v1/price-rules": page([]),
+      "GET /v1/blocked-times": page([]),
+      "POST /v1/blocked-times": () => apiError(409, "tt_ven_014", clash),
+    });
+    renderApp("/resources/11");
+    await screen.findByRole("button", { name: "Block" });
+    type(/^From date/, "2026-12-25");
+    type(/^From time/, "09:00");
+    type(/^To time/, "12:00");
+    fireEvent.click(screen.getByRole("button", { name: "Block" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent(clash);
   });
 
   it("manager_unblocksATime", async () => {

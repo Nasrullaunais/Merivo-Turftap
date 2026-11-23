@@ -1,5 +1,5 @@
 import type { CreateCustomer, UpdateCustomer } from "@turftap/contract";
-import { and, eq, ilike, like, or, type SQL, sql } from "drizzle-orm";
+import { and, eq, ilike, inArray, like, or, type SQL, sql } from "drizzle-orm";
 
 import { db, pageOf, type PageRequest, sortBy } from "../../lib/db";
 import { customers } from "./customers.tables";
@@ -26,6 +26,13 @@ export async function findById(tenantId: number, id: number, ownPhone?: string) 
   const where = and(ownedBy(tenantId, id), ownPhone ? eq(customers.phone, ownPhone) : undefined);
   const [customer] = await db().select().from(customers).where(where);
   return customer;
+}
+
+export function findByIds(tenantId: number, ids: number[]) {
+  return db()
+    .select({ id: customers.id, name: customers.name, phone: customers.phone })
+    .from(customers)
+    .where(and(eq(customers.tenantId, tenantId), inArray(customers.id, ids)));
 }
 
 export async function findByPhone(tenantId: number, phone: string) {

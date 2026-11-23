@@ -43,6 +43,11 @@ export const venueErrors = {
       "tt_ven_013",
       `This Start Interval doesn't fit the Price Rule for ${describeRule(rule)}. Change or delete that rule first`,
     ),
+  blockedTimeOverBooking: (booking: { startsAt: Date; customerName: string }, timeZone: string) =>
+    new Conflict(
+      "tt_ven_014",
+      `This overlaps the booking for ${booking.customerName} at ${describeInstant(booking.startsAt, timeZone)}`,
+    ),
 };
 
 constraintErrors({

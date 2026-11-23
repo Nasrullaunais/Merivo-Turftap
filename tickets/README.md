@@ -14,7 +14,7 @@ Status: `todo`, `doing`, `done`, `blocked` (waiting on a decision or an outside 
 
 ## Already built
 
-`SIG-01` to `SIG-06`, `VEN-01` to `VEN-07`. Still open from those: the booking parts of `VEN-02` and `VEN-07` (T08), and the real WhatsApp, SMS and Auth0 connections (T40, T41, T42). Only fakes exist for those today.
+`SIG-01` to `SIG-06`, `VEN-01` to `VEN-07`. Still open from those: the real WhatsApp, SMS and Auth0 connections (T40, T41, T42). Only fakes exist for those today.
 
 ## Tickets
 
@@ -32,7 +32,7 @@ Status: `todo`, `doing`, `done`, `blocked` (waiting on a decision or an outside 
 | [T05](T05-bookings-table-and-free-slots.md) | Bookings table and free slots | BKG-01 | T01, T48 | done |
 | [T06](T06-book-online.md) | Book online, and expiry | BKG-02, BKG-03, PAY-01 | T02, T04, T05, T46 | done |
 | [T07](T07-cancel-bookings.md) | Cancel bookings | BKG-06, BKG-07 | T06 | done |
-| [T08](T08-closed-dates-and-blocks-vs-bookings.md) | Closed Dates and Blocked Times meet bookings | VEN-02, VEN-07 | T06 | todo |
+| [T08](T08-closed-dates-and-blocks-vs-bookings.md) | Closed Dates and Blocked Times meet bookings | VEN-02, VEN-07 | T06 | done |
 | [T09](T09-payments-cash-and-refunds.md) | Payments: cash and refunds | PAY-08, BKG-08 | T07 | todo |
 | [T10](T10-walk-in-booking-api.md) | Walk-in booking API | BKG-04 | T09 | todo |
 | [T11](T11-transfer-receipts.md) | Send a Transfer Receipt | PAY-02 | T09 | todo |

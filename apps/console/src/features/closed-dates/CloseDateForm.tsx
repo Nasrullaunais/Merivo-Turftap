@@ -1,43 +1,116 @@
-import { Button, FieldError, Form, Input, Label, TextField } from "@heroui/react";
+import { Alert, Button, FieldError, Form, Input, Label, TextField } from "@heroui/react";
 import { type FormEvent, useState } from "react";
 
 import m from "../../i18n/en/closedDates";
-import { useCloseDate } from "./useChangeClosedDates";
-import { today } from "./useClosedDates";
+import { type AffectedBooking, useCloseDate } from "./useChangeClosedDates";
+import { today, useResourceNames, useVenueTimeZone } from "./useClosedDates";
 
 export function CloseDateForm({ venueId }: { venueId: number }) {
+  const timeZone = useVenueTimeZone(venueId);
+  return timeZone ? <CloseForm venueId={venueId} timeZone={timeZone} /> : null;
+}
+
+function CloseForm({ venueId, timeZone }: { venueId: number; timeZone: string }) {
   const closeDate = useCloseDate();
   const [date, setDate] = useState("");
   const [reason, setReason] = useState("");
+  const [affected, setAffected] = useState<AffectedBooking[]>([]);
 
-  const submit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
+  const close = (confirmed: boolean) =>
     closeDate.mutate(
-      { body: { venueId, date, reason: reason.trim() || null } },
+      { venueId, date, reason: reason.trim() || null, timeZone, confirmed },
       {
-        onSuccess: () => {
+        onSuccess: (result) => {
+          setAffected(result.affected);
+          if (!result.closed) return;
           setDate("");
           setReason("");
         },
       },
     );
+
+  const submit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    close(false);
+  };
+
+  const edit = (set: (value: string) => void) => (value: string) => {
+    set(value);
+    setAffected([]);
   };
 
   return (
     <Form className="grid gap-4" onSubmit={submit}>
       <h2 className="text-lg font-semibold">{m.addTitle}</h2>
-      <TextField name="date" type="date" isRequired value={date} onChange={setDate}>
+      <TextField name="date" type="date" isRequired value={date} onChange={edit(setDate)}>
         <Label>{m.dateLabel}</Label>
         <Input min={today()} />
         <FieldError />
       </TextField>
-      <TextField name="reason" value={reason} onChange={setReason}>
+      <TextField name="reason" value={reason} onChange={edit(setReason)}>
         <Label>{m.reasonLabel}</Label>
         <Input placeholder="Vesak Poya" />
       </TextField>
-      <Button type="submit" isPending={closeDate.isPending}>
-        {m.submit}
-      </Button>
+      {affected.length > 0 ? (
+        <AffectedBookings
+          venueId={venueId}
+          date={date}
+          timeZone={timeZone}
+          bookings={affected}
+          isClosing={closeDate.isPending}
+          onConfirm={() => close(true)}
+          onBack={() => setAffected([])}
+        />
+      ) : (
+        <Button type="submit" isPending={closeDate.isPending}>
+          {m.submit}
+        </Button>
+      )}
     </Form>
+  );
+}
+
+type AffectedBookingsProps = {
+  venueId: number;
+  date: string;
+  timeZone: string;
+  bookings: AffectedBooking[];
+  isClosing: boolean;
+  onConfirm: () => void;
+  onBack: () => void;
+};
+
+function AffectedBookings(props: AffectedBookingsProps) {
+  const resourceNames = useResourceNames(props.venueId);
+  return (
+    <Alert status="warning">
+      <Alert.Indicator />
+      <Alert.Content className="grid gap-3">
+        <Alert.Title>{m.affectedTitle(props.bookings.length, m.day(props.date))}</Alert.Title>
+        <Alert.Description>{m.affectedHint}</Alert.Description>
+        <ul className="grid divide-y divide-separator" aria-label={m.affectedListLabel}>
+          {props.bookings.map((booking) => (
+            <li key={booking.id} className="flex flex-wrap gap-x-3 py-2">
+              <span className="font-medium">
+                {m.bookingTime(booking.startsAt, booking.endsAt, props.timeZone)}
+              </span>
+              <span>{resourceNames?.get(booking.resourceId)}</span>
+              <span>{booking.customerName}</span>
+              <a className="underline" href={`tel:${booking.customerPhone}`}>
+                {booking.customerPhone}
+              </a>
+            </li>
+          ))}
+        </ul>
+        <div className="flex gap-2">
+          <Button variant="danger" isPending={props.isClosing} onPress={props.onConfirm}>
+            {m.closeAnyway}
+          </Button>
+          <Button variant="secondary" onPress={props.onBack}>
+            {m.goBack}
+          </Button>
+        </div>
+      </Alert.Content>
+    </Alert>
   );
 }
