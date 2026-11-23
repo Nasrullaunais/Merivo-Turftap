@@ -9,10 +9,10 @@ import { tenants, users } from "../modules/platform/platform.tables";
 import { staff } from "../modules/staff/staff.tables";
 
 const PHONE_DIGITS = 7;
+let phonesHandedOut = 0;
 
-/** A phone number no other test uses. */
-export const uniquePhone = () =>
-  `+9477${String(Math.floor(Math.random() * 10 ** PHONE_DIGITS)).padStart(PHONE_DIGITS, "0")}`;
+/** A phone number no other test in this run uses. Tests that type a number use other prefixes. */
+export const uniquePhone = () => `+9470${String(++phonesHandedOut).padStart(PHONE_DIGITS, "0")}`;
 
 export type TestStaff = { phone: string; userId: number; staffId: number; auth: AuthContext };
 

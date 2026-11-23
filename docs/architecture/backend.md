@@ -149,6 +149,6 @@ See [adapters.md](adapters.md). `wiring.ts` picks the adapters from config and c
 
 ## Tests
 
-- `bun test` in `apps/api` uses the `turftap_test` database (never the development one), runs migrations first, installs fake ports and creates the job queues without working them. A test that needs a job's effect runs its handler itself (see `staff.routes.test.ts`).
+- `bun test` in `apps/api` uses the `turftap_test` database (never the development one), runs migrations first, empties every table, installs fake ports and creates the job queues without working them. A test that needs a job's effect runs its handler itself (see `staff.routes.test.ts`). A second `bun test` on the same database waits until the first one ends.
 - `src/test/fixtures.ts` has `createTenant()` (a tenant with an Owner, Manager and Front Desk), `venueInput()` and `call()`, which sends a request through the whole app signed in with the fake auth provider (`Bearer fake:+94771234567`).
 - Each module has service tests, route tests and a `<module>.tenancy.test.ts`.

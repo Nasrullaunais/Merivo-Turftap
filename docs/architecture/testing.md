@@ -16,6 +16,7 @@
 - Every bug fix starts with a failing test.
 - Outside services always use their `fake` adapter in tests.
 - API tests use the `turftap_test` database (`TEST_DATABASE_URL`), never the development one.
+- Each API test run starts from empty tables. `uniquePhone()` counts up within the run, so two tests never pick the same phone number by chance.
 - Story IDs (`BKG-06`) appear in the `describe` name of the tests that cover them.
 
 ## Architecture rules: API (`apps/api/src/architecture.test.ts`)
