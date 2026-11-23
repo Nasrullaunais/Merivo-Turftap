@@ -52,8 +52,8 @@ function listParameters(def: AnyDefinition) {
     `${field},desc`,
   ]);
   const filters = def.schemas.filters
-    ? (z.toJSONSchema(def.schemas.filters, { io: "input" }).properties ?? {})
-    : {};
+    ? z.toJSONSchema(def.schemas.filters, { io: "input" })
+    : { properties: {}, required: [] as string[] };
   return [
     { name: "page", in: "query", schema: { type: "integer", minimum: 0, default: 0 } },
     {
@@ -66,7 +66,12 @@ function listParameters(def: AnyDefinition) {
       in: "query",
       schema: { type: "string", enum: sortChoices, default: def.sort?.default },
     },
-    ...Object.entries(filters).map(([name, schema]) => ({ name, in: "query", schema })),
+    ...Object.entries(filters.properties ?? {}).map(([name, schema]) => ({
+      name,
+      in: "query",
+      ...(filters.required?.includes(name) && { required: true }),
+      schema,
+    })),
   ];
 }
 

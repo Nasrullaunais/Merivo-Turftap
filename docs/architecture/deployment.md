@@ -48,6 +48,10 @@ Sign-in uses Auth0's passwordless SMS connection ([ADR 0008](../adr/0008-phone-l
 - Migrations run as **their own step** before the new version starts, never on app start-up.
 - Removing or renaming a column takes two releases: first stop using it, then drop it.
 
+## Platform Admin scripts
+
+In v1 a Platform Admin links WhatsApp numbers (`bun run whatsapp:link`, `bun run whatsapp:unlink`) by running scripts on the server, against the production database and settings ([platform-admin.md](../spec/platform-admin.md)). The scripts go through the same services as the API, so the same rules apply.
+
 ## Releases
 
 1. A pull request merges into `main` after CI passes (lint, type check, all tests).

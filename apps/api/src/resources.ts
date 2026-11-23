@@ -1,7 +1,7 @@
 import type { Resource } from "./lib/resource";
 import { customersResource } from "./modules/customers/customers.routes";
 import { filesResource } from "./modules/files/files.routes";
-import { meResource } from "./modules/platform/platform.routes";
+import { meResource, whatsappNumbersResource } from "./modules/platform/platform.routes";
 import { staffResource } from "./modules/staff/staff.routes";
 import {
   blockedTimesResource,
@@ -14,6 +14,7 @@ import {
 
 export const RESOURCES: Resource[] = [
   meResource,
+  whatsappNumbersResource,
   staffResource,
   venuesResource,
   closedDatesResource,

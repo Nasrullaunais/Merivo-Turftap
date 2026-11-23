@@ -10,7 +10,9 @@
     "openapi": "bun --env-file=../../.env scripts/openapi.ts",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "bun --env-file=../../.env scripts/migrate.ts",
-    "db:seed": "bun --env-file=../../.env scripts/seed.ts"
+    "db:seed": "bun --env-file=../../.env scripts/seed.ts",
+    "whatsapp:link": "bun --env-file=../../.env scripts/whatsapp-link.ts",
+    "whatsapp:unlink": "bun --env-file=../../.env scripts/whatsapp-unlink.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3",

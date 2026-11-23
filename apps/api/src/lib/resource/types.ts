@@ -41,6 +41,11 @@ export type ResourceDefinition<
   public?: readonly NoInfer<Op>[];
   /** Operations customers and the Assistant may call; the service limits them to their own rows. */
   forCustomers?: readonly NoInfer<Op>[];
+  /**
+   * Operations only the Assistant may call, before it knows the tenant (finding a chat's tenant).
+   * Their service functions take a `Caller` with no tenant.
+   */
+  forAssistantWithoutTenant?: readonly NoInfer<Op>[];
   schemas: { item: Item; create?: Create; update?: Update; filters?: Filters };
   /** Create takes a multipart form carrying one file of at most `maxBytes`, instead of JSON. */
   upload?: { maxBytes: number };

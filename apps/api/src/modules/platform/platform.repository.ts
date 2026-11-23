@@ -1,7 +1,13 @@
-import { and, asc, desc, eq, gte, inArray, sql } from "drizzle-orm";
+import { and, asc, desc, eq, getTableColumns, gte, inArray, sql } from "drizzle-orm";
 
-import { db } from "../../lib/db";
-import { type LoginCodeChannel, loginCodeSends, tenants, users } from "./platform.tables";
+import { db, pageOf, type PageRequest, sortBy } from "../../lib/db";
+import {
+  type LoginCodeChannel,
+  loginCodeSends,
+  tenants,
+  users,
+  whatsappNumbers,
+} from "./platform.tables";
 
 // Platform tables belong to no tenant, so these functions don't take a tenant id.
 
@@ -54,4 +60,46 @@ export async function findTenantsByIds(ids: number[]) {
 export async function findUsersByIds(ids: number[]) {
   if (!ids.length) return [];
   return db().select().from(users).where(inArray(users.id, ids));
+}
+
+const WHATSAPP_NUMBER_SORTABLE = { createdAt: whatsappNumbers.createdAt };
+
+export function listWhatsAppNumbers(
+  phoneNumberId: string,
+  page: PageRequest<keyof typeof WHATSAPP_NUMBER_SORTABLE>,
+) {
+  const where = eq(whatsappNumbers.phoneNumberId, phoneNumberId);
+  return pageOf(
+    page,
+    db()
+      .select({ ...getTableColumns(whatsappNumbers), tenantActive: tenants.active })
+      .from(whatsappNumbers)
+      .innerJoin(tenants, eq(tenants.id, whatsappNumbers.tenantId))
+      .where(where)
+      .orderBy(...sortBy(page, WHATSAPP_NUMBER_SORTABLE, whatsappNumbers.id))
+      .limit(page.size)
+      .offset(page.page * page.size),
+    db().$count(whatsappNumbers, where),
+  );
+}
+
+export async function findWhatsAppNumberOfTenant(tenantId: number) {
+  const [number] = await db()
+    .select()
+    .from(whatsappNumbers)
+    .where(eq(whatsappNumbers.tenantId, tenantId));
+  return number;
+}
+
+export async function insertWhatsAppNumber(values: typeof whatsappNumbers.$inferInsert) {
+  const [number] = await db().insert(whatsappNumbers).values(values).returning();
+  return number!;
+}
+
+export async function deleteWhatsAppNumberOfTenant(tenantId: number) {
+  const [number] = await db()
+    .delete(whatsappNumbers)
+    .where(eq(whatsappNumbers.tenantId, tenantId))
+    .returning();
+  return number;
 }
