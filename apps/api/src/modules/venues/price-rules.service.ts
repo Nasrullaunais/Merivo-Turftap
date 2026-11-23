@@ -38,6 +38,12 @@ export async function get(auth: AuthContext, id: number) {
   return rule;
 }
 
+/** Every rule of a resource the caller may see. */
+export async function forResource(auth: AuthContext, resourceId: number) {
+  await resourcesService.get(auth, resourceId);
+  return priceRulesRepository.listForResource(auth.tenantId, resourceId);
+}
+
 export function create(auth: AuthContext, input: CreatePriceRule) {
   return transaction(async () => {
     const resource = await resourcesService.get(auth, input.resourceId, "share");

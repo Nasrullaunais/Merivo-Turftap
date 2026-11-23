@@ -1,4 +1,5 @@
 export * from "./blocked-times";
+export * from "./bookings";
 export * from "./closed-dates";
 export * from "./common";
 export * from "./customers";

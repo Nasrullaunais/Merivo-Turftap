@@ -1,6 +1,6 @@
 # T05 Bookings table and free slots
 
-Status: todo · Stories: `BKG-01` · Depends on: T01, T48 · Decisions: **D-05**, **D-06**, **D-20**, **D-21**
+Status: done · Stories: `BKG-01` · Depends on: T01, T48 · Decisions: **D-05**, **D-06**, **D-20**, **D-21**
 
 ## Goal
 `GET /v1/availability?resourceId=&date=` lists the slots of one resource on one date, each with its price and whether it's free. It is open without sign-in (`POR-02`). The bookings table exists so "already booked" can be checked.

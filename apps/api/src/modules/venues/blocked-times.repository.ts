@@ -73,6 +73,24 @@ export async function findOverlap(
   return block;
 }
 
+export function listOverlapping(
+  tenantId: number,
+  resourceId: number,
+  window: { startsAt: Date; endsAt: Date },
+) {
+  return db()
+    .select()
+    .from(blockedTimes)
+    .where(
+      and(
+        eq(blockedTimes.tenantId, tenantId),
+        eq(blockedTimes.resourceId, resourceId),
+        lt(blockedTimes.startsAt, window.endsAt),
+        gt(blockedTimes.endsAt, window.startsAt),
+      ),
+    );
+}
+
 export async function insert(tenantId: number, values: BlockedTimeFields & { resourceId: number }) {
   const [block] = await db()
     .insert(blockedTimes)

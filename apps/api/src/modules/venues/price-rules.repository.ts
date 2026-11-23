@@ -66,6 +66,14 @@ export function list(
   );
 }
 
+export async function listForResource(tenantId: number, resourceId: number) {
+  const rows = await db()
+    .select()
+    .from(priceRules)
+    .where(and(eq(priceRules.tenantId, tenantId), eq(priceRules.resourceId, resourceId)));
+  return rows.map(toPriceRule);
+}
+
 /** The same test as the price_rules_no_overlap constraint: a shared weekday and overlapping hours. */
 export async function findOverlap(
   tenantId: number,
