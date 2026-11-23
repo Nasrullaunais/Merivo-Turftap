@@ -31,6 +31,11 @@ export async function get(auth: AuthContext, id: number) {
   return closedDate;
 }
 
+export async function isClosed(auth: AuthContext, venueId: number, date: string) {
+  await venuesService.get(auth, venueId);
+  return closedDatesRepository.exists(auth.tenantId, venueId, date);
+}
+
 export function create(auth: AuthContext, input: CreateClosedDate) {
   return transaction(async () => {
     await checkNotPast(auth, input.venueId, input.date);

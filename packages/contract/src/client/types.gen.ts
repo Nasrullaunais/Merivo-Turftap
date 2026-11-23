@@ -53,6 +53,13 @@ export type UpdateBlockedTime = {
     reason?: string | null;
 };
 
+export type Slot = {
+    startsAt: string;
+    endsAt: string;
+    price: Money;
+    free: boolean;
+};
+
 export type ClosedDate = {
     id: number;
     venueId: number;
@@ -1723,3 +1730,44 @@ export type UpdateCustomerResponses = {
 };
 
 export type UpdateCustomerResponse = UpdateCustomerResponses[keyof UpdateCustomerResponses];
+
+export type ListAvailabilityData = {
+    body?: never;
+    path?: never;
+    query: {
+        page?: number;
+        size?: number;
+        sort?: 'startsAt,asc' | 'startsAt,desc';
+        resourceId: number;
+        date: string;
+    };
+    url: '/v1/availability';
+};
+
+export type ListAvailabilityErrors = {
+    /**
+     * Error
+     */
+    default: ErrorReply;
+};
+
+export type ListAvailabilityError = ListAvailabilityErrors[keyof ListAvailabilityErrors];
+
+export type ListAvailabilityResponses = {
+    /**
+     * One page
+     */
+    200: {
+        status: number;
+        message: string;
+        data: {
+            content: Array<Slot>;
+            page: number;
+            size: number;
+            totalElements: number;
+            totalPages: number;
+        };
+    };
+};
+
+export type ListAvailabilityResponse = ListAvailabilityResponses[keyof ListAvailabilityResponses];

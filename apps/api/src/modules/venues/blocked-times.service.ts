@@ -46,6 +46,12 @@ export async function get(auth: AuthContext, id: number) {
   return block;
 }
 
+/** The resource's Blocked Times that overlap the window. */
+export async function overlapping(auth: AuthContext, resourceId: number, window: Window) {
+  await resourcesService.get(auth, resourceId);
+  return blockedTimesRepository.listOverlapping(auth.tenantId, resourceId, window);
+}
+
 export function create(auth: AuthContext, input: CreateBlockedTime) {
   return transaction(async () => {
     await resourcesService.get(auth, input.resourceId);

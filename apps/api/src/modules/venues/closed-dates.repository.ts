@@ -45,6 +45,18 @@ export function list(
   );
 }
 
+export async function exists(tenantId: number, venueId: number, date: string) {
+  const count = await db().$count(
+    closedDates,
+    and(
+      eq(closedDates.tenantId, tenantId),
+      eq(closedDates.venueId, venueId),
+      eq(closedDates.date, date),
+    ),
+  );
+  return count > 0;
+}
+
 export async function insert(tenantId: number, values: CreateClosedDate) {
   const [closedDate] = await db()
     .insert(closedDates)

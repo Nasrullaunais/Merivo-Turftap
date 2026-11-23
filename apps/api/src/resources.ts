@@ -1,4 +1,5 @@
 import type { Resource } from "./lib/resource";
+import { availabilityResource } from "./modules/bookings/bookings.routes";
 import { customersResource } from "./modules/customers/customers.routes";
 import { filesResource } from "./modules/files/files.routes";
 import { meResource, whatsappNumbersResource } from "./modules/platform/platform.routes";
@@ -24,4 +25,5 @@ export const RESOURCES: Resource[] = [
   photosResource,
   filesResource,
   customersResource,
+  availabilityResource,
 ];
