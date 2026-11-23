@@ -1,11 +1,14 @@
 import { beforeAll, beforeEach, describe, expect, it } from "bun:test";
 
+import { addDays, instantAt, todayIn } from "../../lib/time";
 import {
+  asCustomer,
   asStaff,
   call,
   createTenant,
   resourceInput,
   type TestTenant,
+  uniquePhone,
   venueInput,
 } from "../../test/fixtures";
 
@@ -154,6 +157,141 @@ describe("VEN-07 block a resource", () => {
     const reply = await call("GET", `/v1/blocked-times?${query}`, asStaff(tenant));
     const starts = reply.body.data.content.map((row: { startsAt: string }) => row.startsAt);
     expect(starts).toEqual([at(2, 4), at(4, 4)]);
+  });
+});
+
+describe("VEN-07 a Blocked Time can't cover a booking", () => {
+  const TIME_ZONE = "Asia/Colombo";
+  const MINUTES_PER_HOUR = 60;
+  const openAllWeek = [1, 2, 3, 4, 5, 6, 7].map((weekday) => ({
+    weekday,
+    opens: "06:00",
+    closes: "23:00",
+  }));
+  /** `hour` o'clock in Colombo, two days from now, as ISO text. */
+  const colomboAt = (hour: number) =>
+    instantAt(addDays(todayIn(TIME_ZONE), 2), hour * MINUTES_PER_HOUR, TIME_ZONE).toISOString();
+  const shownInColombo = (iso: string) =>
+    new Intl.DateTimeFormat("en-GB", {
+      timeZone: TIME_ZONE,
+      weekday: "short",
+      day: "numeric",
+      month: "short",
+      hour: "2-digit",
+      minute: "2-digit",
+      hourCycle: "h23",
+    }).format(new Date(iso));
+
+  let tenant: TestTenant;
+  let resourceId: number;
+  beforeEach(async () => {
+    tenant = await createTenant();
+    const venue = await call(
+      "POST",
+      "/v1/venues",
+      asStaff(tenant),
+      venueInput({ openingHours: openAllWeek, payAtVenue: true }),
+    );
+    const resource = await call(
+      "POST",
+      "/v1/resources",
+      asStaff(tenant),
+      resourceInput(venue.body.data.id),
+    );
+    resourceId = resource.body.data.id;
+  });
+
+  async function newCustomer(name: string) {
+    const phone = uniquePhone();
+    await call("POST", "/v1/customers", asCustomer(tenant, phone), { name, phone });
+    return phone;
+  }
+
+  const bookAs = (phone: string, hour: number) =>
+    call("POST", "/v1/bookings", asCustomer(tenant, phone), {
+      resourceId,
+      startsAt: colomboAt(hour),
+    });
+
+  async function book(name: string, hour: number) {
+    const phone = await newCustomer(name);
+    return { reply: await bookAs(phone, hour), phone };
+  }
+
+  const block = (startHour: number, endHour: number) =>
+    call("POST", "/v1/blocked-times", asStaff(tenant, tenant.manager), {
+      resourceId,
+      startsAt: colomboAt(startHour),
+      endsAt: colomboAt(endHour),
+    });
+
+  it("create_overAConfirmedBooking_isRefusedNamingTheCustomerAndStartTime", async () => {
+    const { reply: booked } = await book("Nimal Perera", 10);
+    expect(booked.body.data.status).toBe("CONFIRMED");
+    const reply = await block(9, 12);
+    expect(reply).toMatchObject({
+      status: 409,
+      body: {
+        code: "tt_ven_014",
+        message: `This overlaps the booking for Nimal Perera at ${shownInColombo(colomboAt(10))}`,
+      },
+    });
+  });
+
+  it("create_overSeveralBookings_namesTheEarliest", async () => {
+    await book("Later Customer", 14);
+    await book("Earlier Customer", 11);
+    const reply = await block(9, 16);
+    expect(reply.body.message).toContain("Earlier Customer");
+  });
+
+  it("create_overABookingWaitingForPayment_isRefused", async () => {
+    const venue = await call(
+      "POST",
+      "/v1/venues",
+      asStaff(tenant),
+      venueInput({ openingHours: openAllWeek }),
+    );
+    const resource = await call(
+      "POST",
+      "/v1/resources",
+      asStaff(tenant),
+      resourceInput(venue.body.data.id),
+    );
+    resourceId = resource.body.data.id;
+    const { reply: booked } = await book("Kamal Silva", 10);
+    expect(booked.body.data.status).toBe("AWAITING_PAYMENT");
+    expect(await block(10, 11)).toMatchObject({ status: 409, body: { code: "tt_ven_014" } });
+  });
+
+  it("create_rightAfterABooking_isAllowed", async () => {
+    await book("Nimal Perera", 10);
+    expect((await block(11, 13)).status).toBe(201);
+  });
+
+  it("create_overACancelledBooking_isAllowed", async () => {
+    const { reply: booked, phone } = await book("Nimal Perera", 10);
+    await call("PATCH", `/v1/bookings/${booked.body.data.id}`, asCustomer(tenant, phone), {
+      status: "CANCELLED",
+    });
+    expect((await block(10, 11)).status).toBe(201);
+  });
+
+  it("bookingAndBlockSavedAtTheSameTime_onlyOneIsKept", async () => {
+    const phone = await newCustomer("Nimal Perera");
+    const [booked, blocked] = await Promise.all([bookAs(phone, 10), block(10, 11)]);
+    expect([booked.status, blocked.status].sort()).toEqual([201, 409]);
+  });
+
+  it("update_movingABlockOntoABooking_isRefused", async () => {
+    await book("Nimal Perera", 15);
+    const created = await block(10, 11);
+    const path = `/v1/blocked-times/${created.body.data.id}`;
+    const reply = await call("PATCH", path, asStaff(tenant, tenant.manager), {
+      endsAt: colomboAt(16),
+    });
+    expect(reply).toMatchObject({ status: 409, body: { code: "tt_ven_014" } });
+    expect(reply.body.message).toContain("Nimal Perera");
   });
 });
 

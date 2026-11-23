@@ -11,6 +11,7 @@ import * as priceRulesService from "./price-rules.service";
 import * as resourcesService from "./resources.service";
 import * as venuesService from "./venues.service";
 
+const SAVES_AT_ONCE = 10;
 const FIRST_PAGE = { page: 0, size: 100, sort: { field: "startTime", direction: "asc" } } as const;
 
 describe("VEN-05 Price Rules", () => {
@@ -82,15 +83,21 @@ describe("VEN-05 Price Rules", () => {
     expect(page.totalElements).toBe(3);
   });
 
-  it("create_refusesOneOfTwoClashingRulesSavedAtTheSameTime", async () => {
+  it("create_savedAtTheSameTime_keepsOneAndNamesItToTheOthers", async () => {
     const resourceId = await newResource();
-    const results = await Promise.allSettled([
-      priceRulesService.create(tenant.manager.auth, priceRuleInput(resourceId)),
-      priceRulesService.create(tenant.manager.auth, priceRuleInput(resourceId)),
-    ]);
+    const results = await Promise.allSettled(
+      Array.from({ length: SAVES_AT_ONCE }, () =>
+        priceRulesService.create(tenant.manager.auth, priceRuleInput(resourceId)),
+      ),
+    );
     const refused = results.filter((result) => result.status === "rejected");
-    expect(refused).toHaveLength(1);
-    expect(refused[0]!.reason).toMatchObject({ status: 409, code: "tt_ven_006" });
+    expect(refused).toHaveLength(SAVES_AT_ONCE - 1);
+    for (const { reason } of refused)
+      expect(reason).toMatchObject({
+        status: 409,
+        code: "tt_ven_006",
+        message: "This overlaps the Price Rule for Sat, Sun 18:00–22:00",
+      });
   });
 
   it("create_refusesTimesOffTheResourcesStartInterval", async () => {

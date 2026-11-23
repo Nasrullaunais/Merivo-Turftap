@@ -1,5 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
-import { listClosedDatesOptions } from "@turftap/contract/client/react-query";
+import {
+  getVenueOptions,
+  listClosedDatesOptions,
+  listResourcesOptions,
+} from "@turftap/contract/client/react-query";
 
 const LIST_SIZE = 100;
 
@@ -11,4 +15,20 @@ export function useClosedDates(venueId: number) {
     ...listClosedDatesOptions({ query: { venueId, from: today(), size: LIST_SIZE } }),
     select: (reply) => reply.data.content,
   });
+}
+
+export function useVenueTimeZone(venueId: number) {
+  const { data: timeZone } = useQuery({
+    ...getVenueOptions({ path: { id: venueId } }),
+    select: (reply) => reply.data.timeZone,
+  });
+  return timeZone;
+}
+
+export function useResourceNames(venueId: number) {
+  const { data: names } = useQuery({
+    ...listResourcesOptions({ query: { venueId, size: LIST_SIZE } }),
+    select: (reply) => new Map(reply.data.content.map(({ id, name }) => [id, name])),
+  });
+  return names;
 }

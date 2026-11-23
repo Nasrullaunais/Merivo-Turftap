@@ -46,7 +46,7 @@ export async function forResource(auth: AuthContext, resourceId: number) {
 
 export function create(auth: AuthContext, input: CreatePriceRule) {
   return transaction(async () => {
-    const resource = await resourcesService.get(auth, input.resourceId, "share");
+    const resource = await resourcesService.get(auth, input.resourceId, "update");
     checkFitsInterval(input, resource.startIntervalMinutes);
     const clashing = await priceRulesRepository.findOverlap(auth.tenantId, input.resourceId, input);
     if (clashing) throw venueErrors.priceRuleClash(clashing);
@@ -60,7 +60,7 @@ export function update(auth: AuthContext, id: number, input: UpdatePriceRule) {
     const changed = { ...rule, ...input };
     if (changed.startTime >= changed.endTime)
       throw httpErrors.invalidRequest([{ field: "endTime", message: "Must end after it starts" }]);
-    const resource = await resourcesService.get(auth, rule.resourceId, "share");
+    const resource = await resourcesService.get(auth, rule.resourceId, "update");
     checkFitsInterval(changed, resource.startIntervalMinutes);
     const clashing = await priceRulesRepository.findOverlap(
       auth.tenantId,

@@ -190,6 +190,30 @@ describe("BKG-02 bookings routes", () => {
     });
     expect(reply).toMatchObject({ status: 403, body: { code: "tt_htt_403" } });
   });
+
+  it("staff_seeWhoEachBookingIsForSoTheyCanContactThem", async () => {
+    const phone = uniquePhone();
+    await call("POST", "/v1/customers", asCustomer(tenant, phone), {
+      name: "Sunil Fernando",
+      phone,
+    });
+    const booking = (
+      await call("POST", "/v1/bookings", asCustomer(tenant, phone), {
+        resourceId,
+        startsAt: startAt(16),
+      })
+    ).body.data;
+    const who = { customerName: "Sunil Fernando", customerPhone: phone };
+    expect(booking).toMatchObject(who);
+    const asManager = asStaff(tenant, tenant.manager);
+    const list = await call("GET", `/v1/bookings?from=${startAt(16)}&to=${startAt(17)}`, asManager);
+    expect(list.body.data.content).toEqual([expect.objectContaining({ id: booking.id, ...who })]);
+    const cancelled = await call("PATCH", `/v1/bookings/${booking.id}`, asManager, {
+      status: "CANCELLED",
+      cancelReason: "Pitch flooded",
+    });
+    expect(cancelled.body.data).toMatchObject(who);
+  });
 });
 
 describe("BKG-06, BKG-07 cancel routes", () => {

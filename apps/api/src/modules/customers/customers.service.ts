@@ -57,6 +57,12 @@ export function update(auth: AuthContext, id: number, input: UpdateCustomer) {
   });
 }
 
+/** Name and phone of each customer, for showing who a booking belongs to. */
+export async function contactsOf(tenantId: number, ids: number[]) {
+  const found = ids.length ? await customersRepository.findByIds(tenantId, [...new Set(ids)]) : [];
+  return new Map(found.map(({ id, name, phone }) => [id, { name, phone }]));
+}
+
 export async function findIdByPhone(tenantId: number, phone: string) {
   return (await customersRepository.findByPhone(tenantId, phone))?.id;
 }

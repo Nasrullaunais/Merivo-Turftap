@@ -10,8 +10,13 @@ function useReloadList() {
   return () => queryClient.invalidateQueries({ queryKey: listBlockedTimesQueryKey() });
 }
 
+/** The form shows why a block was refused, such as a clash with a booking. */
 export function useBlockTime() {
-  return useMutation({ ...createBlockedTimeMutation(), onSuccess: useReloadList() });
+  return useMutation({
+    ...createBlockedTimeMutation(),
+    onSuccess: useReloadList(),
+    meta: { silent: true },
+  });
 }
 
 export function useUnblockTime() {

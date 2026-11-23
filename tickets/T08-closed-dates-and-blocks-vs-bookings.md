@@ -1,6 +1,6 @@
 # T08 Closed Dates and Blocked Times meet bookings
 
-Status: todo · Stories: `VEN-02`, `VEN-07` (the parts left "built with bookings") · Depends on: T06
+Status: done · Stories: `VEN-02`, `VEN-07` (the parts left "built with bookings") · Depends on: T06
 
 ## Goal
 Finish the two venue stories that were waiting for bookings.

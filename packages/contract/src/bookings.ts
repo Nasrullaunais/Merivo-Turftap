@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { Id, LocalDate, Money, Timestamp } from "./common";
+import { Id, LocalDate, Money, PhoneNumber, Timestamp } from "./common";
 import { BankAccount } from "./venues";
 
 export const BOOKING_STATUSES = [
@@ -26,6 +26,8 @@ export const Booking = z
     venueId: Id,
     resourceId: Id,
     customerId: Id,
+    customerName: z.string(),
+    customerPhone: PhoneNumber,
     startsAt: Timestamp,
     endsAt: Timestamp,
     status: z.enum(BOOKING_STATUSES),

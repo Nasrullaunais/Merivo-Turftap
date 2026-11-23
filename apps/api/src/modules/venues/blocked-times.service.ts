@@ -4,6 +4,7 @@ import type { AuthContext } from "../../lib/auth/context";
 import { transaction } from "../../lib/db";
 import { httpErrors } from "../../lib/errors";
 import type { ListQuery } from "../../lib/resource";
+import * as holdingBookingsService from "../bookings/holding-bookings.service";
 import * as blockedTimesRepository from "./blocked-times.repository";
 import * as resourcesService from "./resources.service";
 import { venueErrors } from "./venues.errors";
@@ -12,7 +13,12 @@ import * as venuesService from "./venues.service";
 type BlockedTimeSort = "startsAt" | "createdAt";
 type Window = { startsAt: Date; endsAt: Date };
 
-/** VEN-07: a block must still be ahead and may not overlap another block on the same resource. */
+async function timeZoneOf(auth: AuthContext, resourceId: number) {
+  const resource = await resourcesService.get(auth, resourceId);
+  return (await venuesService.get(auth, resource.venueId)).timeZone;
+}
+
+/** VEN-07: a block must still be ahead and may not overlap another block or a holding booking. */
 async function checkWindow(
   auth: AuthContext,
   resourceId: number,
@@ -27,10 +33,10 @@ async function checkWindow(
     window,
     exceptId,
   );
-  if (!clashing) return;
-  const resource = await resourcesService.get(auth, resourceId);
-  const venue = await venuesService.get(auth, resource.venueId);
-  throw venueErrors.blockedTimeClash(clashing, venue.timeZone);
+  if (clashing) throw venueErrors.blockedTimeClash(clashing, await timeZoneOf(auth, resourceId));
+  const booking = await holdingBookingsService.firstInWindow(auth, resourceId, window);
+  if (booking)
+    throw venueErrors.blockedTimeOverBooking(booking, await timeZoneOf(auth, resourceId));
 }
 
 export function list(
@@ -54,7 +60,7 @@ export async function overlapping(auth: AuthContext, resourceId: number, window:
 
 export function create(auth: AuthContext, input: CreateBlockedTime) {
   return transaction(async () => {
-    await resourcesService.get(auth, input.resourceId);
+    await resourcesService.get(auth, input.resourceId, "update");
     await checkWindow(auth, input.resourceId, input);
     return blockedTimesRepository.insert(auth.tenantId, input);
   });
@@ -64,6 +70,7 @@ export function update(auth: AuthContext, id: number, input: UpdateBlockedTime) 
   if (Object.keys(input).length === 0) return get(auth, id);
   return transaction(async () => {
     const block = await get(auth, id);
+    await resourcesService.get(auth, block.resourceId, "update");
     const changed = { ...block, ...input };
     if (changed.startsAt >= changed.endsAt)
       throw httpErrors.invalidRequest([{ field: "endsAt", message: "Must end after it starts" }]);

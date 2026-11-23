@@ -11,7 +11,7 @@ As a **Manager**, I want to mark a date as closed (a holiday), so that nobody ca
 - Given a date before today in the venue's time zone, when I save, then I'm told it must be today or later.
 - Given the venue is already closed that day, when I save, then I'm told so.
 - Given I reopen a Closed Date, then the venue follows its opening hours that day again.
-- Given existing bookings on that date, when I close it, then I see the list of affected bookings before confirming. Staff contact those customers themselves. _Built with bookings (`BKG-02`), since there are no bookings yet._
+- Given bookings that hold slots on that date (waiting for payment, waiting for a check, or confirmed), when I close it, then I see the list of affected bookings with each customer's name and phone before confirming. Closing still goes ahead; staff contact those customers themselves.
 
 ## VEN-03 Venue payment settings
 As an **Owner**, I want to set how customers pay at each venue, so that online bookings match how we take money.
@@ -47,4 +47,4 @@ As a **Manager**, I want to block a resource for a time window (maintenance, pri
 - Given the end is before the start, or already past, when I save, then I'm told so.
 - Given the window overlaps another Blocked Time on the same resource, when I save, then I'm told which one. Back-to-back blocks are fine.
 - Front Desk can see Blocked Times; customers don't see them, only that the slots aren't free.
-- Given a booking already exists in that window, when I try to block it, then I'm stopped and shown the booking. _Built with bookings (`BKG-02`), since there are no bookings yet._
+- Given a booking that holds slots (waiting for payment, waiting for a check, or confirmed) is in that window, when I save, then I'm stopped and told its start time and customer name. Cancelled and expired bookings don't count.

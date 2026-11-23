@@ -14,6 +14,7 @@ import { httpErrors } from "../../lib/errors";
 import { type ListQuery, statusChangedMeanwhile } from "../../lib/resource";
 import { describeInstant, wallClockAt } from "../../lib/time";
 import { WHATSAPP_TEMPLATES } from "../../ports/messaging-channel";
+import * as customersService from "../customers/customers.service";
 import * as notificationsService from "../notifications/notifications.service";
 import * as resourcesService from "../venues/resources.service";
 import * as venuesService from "../venues/venues.service";
@@ -24,7 +25,8 @@ import * as bookingsRepository from "./bookings.repository";
 import { bookingTransitions } from "./bookings.transitions";
 
 type BookingSort = "startsAt" | "createdAt";
-type StoredBooking = Omit<Booking, "bankAccount">;
+type StoredBooking = Omit<Booking, "bankAccount" | "customerName" | "customerPhone">;
+type Contact = { name: string; phone: string };
 type Venue = Awaited<ReturnType<typeof venuesService.get>>;
 
 const MS_PER_MINUTE = 60 * 1000;
@@ -44,23 +46,35 @@ const venueOf = (auth: AuthContext, venueId: number) =>
 
 const waitsForPayment = (booking: StoredBooking) => booking.status === "AWAITING_PAYMENT";
 
-/** PAY-01: bank details go with a booking while it waits for payment. */
-const withBankAccount = (booking: StoredBooking, venue?: Venue): Booking => ({
+/** Who the booking is for, and (PAY-01) bank details while it waits for payment. */
+const replyOf = (booking: StoredBooking, contact: Contact, venue?: Venue): Booking => ({
   ...booking,
+  customerName: contact.name,
+  customerPhone: contact.phone,
   bankAccount: waitsForPayment(booking) ? (venue?.bankAccount ?? null) : null,
 });
+
+async function contactOf(auth: AuthContext, booking: StoredBooking) {
+  const contacts = await customersService.contactsOf(auth.tenantId, [booking.customerId]);
+  return contacts.get(booking.customerId)!;
+}
 
 export async function list(
   auth: AuthContext,
   { filters, page }: ListQuery<BookingFilters, BookingSort>,
 ) {
   const found = await bookingsRepository.list(auth.tenantId, scopeOf(auth), filters, page);
+  const contacts = await customersService.contactsOf(
+    auth.tenantId,
+    found.content.map((booking) => booking.customerId),
+  );
   const venues = new Map<number, Promise<Venue>>();
   const content = await Promise.all(
     found.content.map(async (booking) => {
-      if (!waitsForPayment(booking)) return withBankAccount(booking);
+      const contact = contacts.get(booking.customerId)!;
+      if (!waitsForPayment(booking)) return replyOf(booking, contact);
       if (!venues.has(booking.venueId)) venues.set(booking.venueId, venueOf(auth, booking.venueId));
-      return withBankAccount(booking, await venues.get(booking.venueId));
+      return replyOf(booking, contact, await venues.get(booking.venueId));
     }),
   );
   return { ...found, content };
@@ -69,8 +83,9 @@ export async function list(
 export async function get(auth: AuthContext, id: number) {
   const booking = await bookingsRepository.findById(auth.tenantId, id, scopeOf(auth));
   if (!booking) throw bookingErrors.notFound(id);
-  if (!waitsForPayment(booking)) return withBankAccount(booking);
-  return withBankAccount(booking, await venueOf(auth, booking.venueId));
+  const contact = await contactOf(auth, booking);
+  if (!waitsForPayment(booking)) return replyOf(booking, contact);
+  return replyOf(booking, contact, await venueOf(auth, booking.venueId));
 }
 
 /** BKG-02: the full price, or the Advance rounded up to whole rupees. Nothing at Pay at Venue. */
@@ -89,7 +104,7 @@ function customerIdOf(auth: AuthContext): number {
 
 /** The slots asked for, priced. Someone else's booking in the way means it was just taken. */
 async function quoteFor(auth: AuthContext, input: CreateBooking, now: Date) {
-  const resource = await resourcesService.get(auth, input.resourceId);
+  const resource = await resourcesService.get(auth, input.resourceId, "update");
   const venue = await venuesService.get(auth, resource.venueId);
   const { date, minute } = wallClockAt(input.startsAt, venue.timeZone);
   const day = await availabilityService.loadDay(auth, resource.id, date);
@@ -102,14 +117,14 @@ async function quoteFor(auth: AuthContext, input: CreateBooking, now: Date) {
 }
 
 /**
- * BKG-02: an online booking of one or more back-to-back slots. Two customers who both saw the
- * slot free are kept apart by the bookings_no_overlap constraint.
+ * BKG-02: an online booking of one or more back-to-back slots. The resource stays locked from
+ * the free-slot check to the insert, so a booking or Blocked Time saved meanwhile waits.
  */
 export async function create(auth: AuthContext, input: CreateBooking) {
   const customerId = customerIdOf(auth);
   const now = new Date();
-  const { resource, venue, slot } = await quoteFor(auth, input, now);
   return transaction(async () => {
+    const { resource, venue, slot } = await quoteFor(auth, input, now);
     const expiresAt = venue.payAtVenue
       ? null
       : new Date(now.getTime() + venue.paymentTimeLimitMinutes * MS_PER_MINUTE);
@@ -132,7 +147,7 @@ export async function create(auth: AuthContext, input: CreateBooking) {
         { tenantId: auth.tenantId, bookingId: booking.id },
         { startAfter: expiresAt },
       );
-    return withBankAccount(booking, venue);
+    return replyOf(booking, await contactOf(auth, booking), venue);
   });
 }
 
@@ -182,6 +197,6 @@ export async function update(auth: AuthContext, id: number, input: UpdateBooking
     if (!cancelled) throw statusChangedMeanwhile();
     if (auth.actor === "staff" && cancelReason)
       await tellCustomerOfCancel(auth, cancelled, cancelReason);
-    return withBankAccount(cancelled);
+    return replyOf(cancelled, await contactOf(auth, cancelled));
   });
 }

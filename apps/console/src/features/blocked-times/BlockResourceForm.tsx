@@ -1,5 +1,5 @@
-import { Button, FieldError, Form, Input, Label, TextField } from "@heroui/react";
-import { instantInZone } from "@turftap/ui";
+import { Alert, Button, FieldError, Form, Input, Label, TextField } from "@heroui/react";
+import { ApiError, instantInZone } from "@turftap/ui";
 import { type FormEvent, useState } from "react";
 
 import m from "../../i18n/en/blockedTimes";
@@ -20,6 +20,7 @@ function BlockForm({ resourceId, timeZone }: { resourceId: number; timeZone: str
   const [reason, setReason] = useState("");
   const startsAt = () => instantInZone(startDate, startTime, timeZone);
   const endsAt = () => instantInZone(endDate || startDate, endTime, timeZone);
+  const refused = blockTime.error instanceof ApiError ? blockTime.error : undefined;
 
   const submit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -96,6 +97,17 @@ function BlockForm({ resourceId, timeZone }: { resourceId: number; timeZone: str
         <Label>{m.reasonLabel}</Label>
         <Input placeholder="Repainting" />
       </TextField>
+      {refused && (
+        <Alert status="danger" role="alert">
+          <Alert.Indicator />
+          <Alert.Content>
+            <Alert.Title>{refused.message}</Alert.Title>
+            {refused.fieldErrors.map(({ field, message }) => (
+              <Alert.Description key={field}>{message}</Alert.Description>
+            ))}
+          </Alert.Content>
+        </Alert>
+      )}
       <Button type="submit" isPending={blockTime.isPending}>
         {m.submit}
       </Button>

@@ -110,3 +110,26 @@ export function listHolding(
       ),
     );
 }
+
+/** The earliest booking that holds time on the resource inside the window. */
+export async function findFirstHolding(
+  tenantId: number,
+  resourceId: number,
+  window: { startsAt: Date; endsAt: Date },
+) {
+  const [booking] = await db()
+    .select({ startsAt: bookings.startsAt, customerId: bookings.customerId })
+    .from(bookings)
+    .where(
+      and(
+        eq(bookings.tenantId, tenantId),
+        eq(bookings.resourceId, resourceId),
+        inArray(bookings.status, HOLDING_STATUSES),
+        lt(bookings.startsAt, window.endsAt),
+        gt(bookings.endsAt, window.startsAt),
+      ),
+    )
+    .orderBy(bookings.startsAt)
+    .limit(1);
+  return booking;
+}
