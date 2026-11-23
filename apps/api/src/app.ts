@@ -13,6 +13,9 @@ import { requestContext } from "./lib/http/request-context";
 import { resolveCaller } from "./modules/platform/platform.service";
 import { RESOURCES } from "./resources";
 
+// Jobs only get a queue and a worker if loaded before startJobs(); notifications has no routes to load it.
+import "./modules/notifications/notifications.jobs";
+
 // Registers ErrorReply in the schema list, so OpenAPI includes it even before any route uses it.
 void ErrorReply;
 

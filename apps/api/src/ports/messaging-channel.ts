@@ -7,7 +7,9 @@ export const WHATSAPP_TEMPLATES = {
   staffInvite: "staff_invite",
 } as const;
 
-/** A WhatsApp message to send. `from` is a tenant number's id, or `TURFTAP_NUMBER`. */
+export type WhatsAppTemplate = (typeof WHATSAPP_TEMPLATES)[keyof typeof WHATSAPP_TEMPLATES];
+
+/** A WhatsApp message to send. `from` is a tenant number's Meta phone number id, or `TURFTAP_NUMBER`. */
 export type OutgoingMessage =
   | { kind: "text"; from: string; to: string; text: string }
   | { kind: "template"; from: string; to: string; template: string; values: string[] }

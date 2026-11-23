@@ -138,6 +138,8 @@ The handler uses the repository, not the service: the service imports the job to
 
 A job queued inside `transaction()` is saved with the data, so it never runs for a row that didn't save. Handlers must check the row's state when they run, because things may have moved on.
 
+A job gets a queue and a worker only if its file is loaded before `startJobs()`. `app.ts` loads most of them through the routes; a module with jobs but no routes, like `notifications`, is imported in `app.ts` directly.
+
 ## Ports and adapters
 
 See [adapters.md](adapters.md). `wiring.ts` picks the adapters from config and calls `installPorts()` at start-up; tests install fakes in `src/test/setup.ts`. Services call `ports()`.
