@@ -1,6 +1,6 @@
 # T11 Send a Transfer Receipt
 
-Status: todo · Stories: `PAY-02` · Depends on: T09
+Status: done · Stories: `PAY-02` · Depends on: T09
 
 ## Goal
 A customer uploads a photo, screenshot or PDF of their bank transfer. The booking stops expiring and waits for a Receipt Check.
@@ -14,8 +14,8 @@ A customer uploads a photo, screenshot or PDF of their bank transfer. The bookin
 - New file purpose `RECEIPT`: JPG, PNG or PDF, up to 5 MB, checked by first bytes. Receipts are private: only the uploader, the Assistant for that customer, and staff of that venue may open one.
 - `POST /v1/payments { kind: "TRANSFER", bookingId, fileId }` by a customer, the Assistant or staff. Status `PENDING_CHECK`. Amount = the booking's amount due.
 - In the same transaction, booking `AWAITING_PAYMENT → AWAITING_CHECK` with a conditional UPDATE, so a receipt at the last second and the expiry job can't both win.
-- Store a SHA-256 hash of the file's bytes on the payment (for T12, **D-13**).
-- Queue a `read-receipt` job (handler body comes in T12; here it can be an empty handler or left out).
+- Store a SHA-256 hash of the file's bytes (for T12, **D-13**). Built on the file row (`files.sha256`), which the payment points at through `fileId`.
+- Queue a `read-receipt` job (handler body comes in T12; here it can be an empty handler or left out). Left out: T12 adds the job and queues it in `payments.service` `sendTransferReceipt`.
 - Payment item has a short-lived `receiptUrl` for those allowed to see it.
 
 ## Done when

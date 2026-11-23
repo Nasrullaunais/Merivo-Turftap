@@ -4,7 +4,10 @@ import { and, eq, inArray } from "drizzle-orm";
 import { db } from "../../lib/db";
 import { type FileRow, files } from "./files.tables";
 
-type NewFile = Pick<FileRow, "purpose" | "key" | "contentType" | "sizeBytes">;
+type NewFile = Pick<
+  FileRow,
+  "purpose" | "key" | "contentType" | "sizeBytes" | "sha256" | "customerId" | "createdBy"
+>;
 
 export async function insert(tenantId: number, values: NewFile) {
   const [file] = await db()

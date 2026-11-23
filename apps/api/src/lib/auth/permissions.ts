@@ -31,6 +31,7 @@ export const ROLE_PERMISSIONS: Record<StaffRole, ReadonlySet<Permission>> = {
     ...readOnly("price-rules"),
     ...readOnly("blocked-times"),
     ...readOnly("photos"),
+    "files:create",
     "customers:read",
     "customers:create",
     "customers:update",

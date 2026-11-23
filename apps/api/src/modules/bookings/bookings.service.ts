@@ -207,6 +207,20 @@ async function createWalkIn(auth: AuthContext, input: CreateBooking, walkIn: Wal
   });
 }
 
+/**
+ * PAY-02: a Transfer Receipt arrived, so the booking waits for a Receipt Check instead of expiring.
+ * Called by payments inside the transaction that saves the receipt, after locking the booking.
+ */
+export async function receiptSent(auth: AuthContext, id: number) {
+  const booking = await bookingsRepository.setStatus(
+    auth.tenantId,
+    id,
+    "AWAITING_PAYMENT",
+    "AWAITING_CHECK",
+  );
+  if (!booking) throw statusChangedMeanwhile();
+}
+
 const isPastCancellationCutOff = (booking: StoredBooking, now: Date) =>
   booking.startsAt.getTime() - now.getTime() <= booking.cancellationCutOffHours * MS_PER_HOUR;
 

@@ -1,4 +1,4 @@
-import { BadRequest, Conflict, Forbidden, NotFound } from "../../lib/errors";
+import { BadRequest, Conflict, constraintErrors, Forbidden, NotFound } from "../../lib/errors";
 
 export const paymentErrors = {
   notFound: (id: number) => new NotFound("tt_pay_001", `Payment ${id} was not found`),
@@ -17,4 +17,10 @@ export const paymentErrors = {
     new BadRequest("tt_pay_008", "Use the booking's currency", [
       { field: "amount.currency", message: "Must match the booking's price" },
     ]),
+  paymentTimeLimitPassed: () =>
+    new Conflict("tt_pay_009", "The time to pay for this booking has passed. Please book again."),
+  notWaitingForPayment: () => new Conflict("tt_pay_010", "This booking is not waiting for payment"),
+  receiptAlreadySent: () => new Conflict("tt_pay_011", "This receipt was already sent"),
 };
+
+constraintErrors({ payments_file_unique: paymentErrors.receiptAlreadySent });

@@ -134,6 +134,13 @@
       "when": 1795470839329,
       "tag": "0018_payments",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1795473349217,
+      "tag": "0019_transfer_receipts",
+      "breakpoints": true
     }
   ]
 }
