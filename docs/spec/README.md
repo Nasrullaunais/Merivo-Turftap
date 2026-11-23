@@ -10,7 +10,7 @@ TurfTap lets sports and fitness venues in Sri Lanka take bookings and sell gym m
 | **Staff**: Owner | Phone number + WhatsApp code | Staff Console: everything in their tenant, including settings and staff |
 | **Staff**: Manager | Phone number + WhatsApp code | Staff Console: venues, prices, bookings, memberships, receipt checks |
 | **Staff**: Front Desk | Phone number + WhatsApp code | Staff Console: bookings, walk-ins, check-ins, receipt checks |
-| **Platform Admin** | Phone number + WhatsApp code | Staff Console: tenants and WhatsApp numbers |
+| **Platform Admin** | Phone number + WhatsApp code | Scripts on the server: tenants and WhatsApp numbers (`PLA-*`). Staff Console: any tenant's pages, for support |
 
 ## In v1
 

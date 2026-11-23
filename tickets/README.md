@@ -24,7 +24,7 @@ Status: `todo`, `doing`, `done`, `blocked` (waiting on a decision or an outside 
 | [T01](T01-customers-api.md) | Customers API | supports BKG-04, MEM-05, POR-03 | | done |
 | [T02](T02-customer-and-assistant-callers.md) | Customer and Assistant callers on the API | POR-03, AST-05 | T01 | done |
 | **B. Messages** |||||
-| [T03](T03-whatsapp-numbers-api.md) | WhatsApp numbers API | PLA-02 | | todo |
+| [T03](T03-whatsapp-numbers-api.md) | WhatsApp numbers: link script and Assistant lookup | PLA-02 | | done |
 | [T04](T04-notifications-module.md) | Notifications module | AST-07 | T01, T03 | todo |
 | **C. Bookings and payments (API)** |||||
 | [T46](T46-venue-payment-settings-2.md) | Venue payment settings: Pay at Venue, 20-minute default, series payment days | VEN-03 | | todo |
@@ -62,8 +62,7 @@ Status: `todo`, `doing`, `done`, `blocked` (waiting on a decision or an outside 
 | [T31](T31-portal-my-bookings.md) | My bookings and memberships | POR-04, BKG-06 | T30 | todo |
 | [T32](T32-portal-memberships.md) | Buy and renew a membership | MEM-02, MEM-04 | T23, T31 | todo |
 | **G. Platform admin** |||||
-| [T33](T33-tenants-api.md) | Tenants API: create, turn off, list | PLA-01, PLA-03, PLA-04 | T04, T06 | todo |
-| [T34](T34-console-platform-admin.md) | Platform admin screens | PLA-01 to PLA-04 | T33 | todo |
+| [T33](T33-tenants-api.md) | Tenant scripts: create, turn off, list | PLA-01, PLA-03, PLA-04 | T04, T06 | todo |
 | **H. Assistant (n8n)** |||||
 | [T35](T35-assistant-skeleton.md) | Assistant skeleton: tenant, customer, name, hand-over | AST-05, AST-06 | T02, T03 | todo |
 | [T36](T36-assistant-free-slots.md) | Ask about free slots and prices | AST-01 | T35, T05 | todo |
@@ -108,6 +107,7 @@ Settled in a grilling session with the user. Each answer is written here, then i
 | D-22 | Can staff change a customer's phone number, or only the name? | Both | Both. A phone another customer of the tenant already has is refused |
 | D-23 | How does customer `search` match phone numbers? | Ignore spaces and dashes; a leading 0 counts as +94 | Yes: "077 123" finds +94771234567 |
 | D-24 | Is a customer's name required? | Yes | Yes |
+| D-25 | Platform Admin work (create and turn off tenants, link WhatsApp numbers, list tenants): Staff Console screens, or scripts on the server? | Scripts for v1 | Scripts for v1. T34 (screens) is dropped, and T03 and T33 build scripts instead of API resources. Only the Assistant's number lookup stays in the API. Screens can come later if the number of tenants grows |
 
 ## Open questions for venue owners
 
