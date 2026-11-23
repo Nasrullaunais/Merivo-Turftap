@@ -1,6 +1,6 @@
 # T09 Payments: cash and refunds
 
-Status: todo · Stories: `PAY-08`, `BKG-08` · Depends on: T07
+Status: done · Stories: `PAY-08`, `BKG-08` · Depends on: T07
 
 ## Goal
 The `payments` module exists. Front Desk records cash paid at the venue, and a Manager records a refund on a cancelled booking. Each booking shows how much is paid and what is left.
@@ -10,7 +10,7 @@ The `payments` module exists. Front Desk records cash paid at the venue, and a M
 
 ## Build
 - Module `apps/api/src/modules/payments/` (area `pay`). Table `payments`: `tenantId`, `bookingId` (nullable; `membershipId` is added in T23), `kind` (`TRANSFER`, `CASH`, `REFUND`), `status` (`PENDING_CHECK`, `ACCEPTED`, `REJECTED`), `amount` (cents, negative for refunds), `note`, `createdBy`, timestamps. Venue scope through the booking's resource.
-- `payments` resource: list, get, create, update. This ticket handles `kind: CASH` and `kind: REFUND`; both are `ACCEPTED` straight away.
+- `payments` resource: list, get, create. (`update` waits for T13: cash and refunds never change once saved.) This ticket handles `kind: CASH` and `kind: REFUND`; both are `ACCEPTED` straight away.
 - `REFUND` only on a `CANCELLED` booking, only by Owner or Manager (a service rule: Front Desk holds `payments:create` for cash), and not more than what was paid.
 - `CASH` only on a `CONFIRMED` booking with a balance left (`PAY-08`), and not more than the balance.
 - The booking item gains `paid` and `balance` (Money), worked out from accepted payments.

@@ -5,6 +5,7 @@ export * from "./common";
 export * from "./customers";
 export * from "./files";
 export * from "./me";
+export * from "./payments";
 export * from "./permissions";
 export * from "./photos";
 export * from "./price-rules";

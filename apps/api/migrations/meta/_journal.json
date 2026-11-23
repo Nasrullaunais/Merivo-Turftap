@@ -127,6 +127,13 @@
       "when": 1795461382841,
       "tag": "0017_online_bookings",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1795470839329,
+      "tag": "0018_payments",
+      "breakpoints": true
     }
   ]
 }
