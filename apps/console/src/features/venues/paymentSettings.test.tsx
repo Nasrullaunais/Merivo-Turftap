@@ -32,8 +32,10 @@ const arena = {
   timeZone: "Asia/Colombo",
   bankAccount: null,
   advancePercent: 100,
-  paymentTimeLimitMinutes: 30,
+  paymentTimeLimitMinutes: 20,
   cancellationCutOffHours: 6,
+  payAtVenue: false,
+  seriesPaymentDaysBefore: 2,
   openingHours: [],
   active: true,
   createdAt: "2026-11-22T04:00:00.000Z",
@@ -90,18 +92,57 @@ describe("VEN-03 venue payment settings", () => {
     type(/^Advance \(%\)/, "30");
     type(/^Payment Time Limit/, "45");
     type(/^Cancellation Cut-off/, "12");
+    type(/^Repeat Series payment/, "3");
     fireEvent.click(screen.getByRole("button", { name: "Save payment settings" }));
     expect(await screen.findByRole("status")).toHaveTextContent(
       "Payment settings saved. They apply to new bookings.",
     );
     expect(await patchesOf(fetch)).toEqual([
       {
+        payAtVenue: false,
         bankAccount,
         advancePercent: 30,
         paymentTimeLimitMinutes: 45,
         cancellationCutOffHours: 12,
+        seriesPaymentDaysBefore: 3,
       },
     ]);
+  });
+
+  it("owner_turnsOnPayAtVenueWithoutBankDetailsOrAnAdvance", async () => {
+    const fetch = venuePageAs("OWNER");
+    fireEvent.click(await screen.findByRole("switch", { name: "Pay at Venue" }));
+    expect(
+      screen.getByText(
+        "Customers pay everything at the venue. Online bookings are confirmed straight away.",
+      ),
+    ).toBeInTheDocument();
+    for (const hidden of [/^Bank/, /^Account number/, /^Payment Time Limit/, /^Repeat Series/])
+      expect(screen.queryByLabelText(hidden)).not.toBeInTheDocument();
+    expect(screen.queryByRole("radio", { name: "An Advance" })).not.toBeInTheDocument();
+    type(/^Cancellation Cut-off/, "12");
+    fireEvent.click(screen.getByRole("button", { name: "Save payment settings" }));
+    await waitFor(async () =>
+      expect(await patchesOf(fetch)).toEqual([{ payAtVenue: true, cancellationCutOffHours: 12 }]),
+    );
+  });
+
+  it("owner_turningPayAtVenueOffShowsTheSavedBankDetailsAgain", async () => {
+    venuePageAs("OWNER", { ...arena, bankAccount, payAtVenue: true });
+    const payAtVenue = await screen.findByRole("switch", { name: "Pay at Venue" });
+    expect(payAtVenue).toBeChecked();
+    expect(screen.queryByLabelText(/^Account number/)).not.toBeInTheDocument();
+    fireEvent.click(payAtVenue);
+    expect(screen.getByLabelText(/^Account number/)).toHaveValue(bankAccount.accountNumber);
+  });
+
+  it.each(["0", "8"])("owner_isToldSeriesPaymentDaysMustBeOneToSeven %s", async (days) => {
+    const fetch = venuePageAs("OWNER", { ...arena, bankAccount });
+    await screen.findByRole("button", { name: "Save payment settings" });
+    type(/^Repeat Series payment/, days);
+    fireEvent.click(screen.getByRole("button", { name: "Save payment settings" }));
+    expect(await screen.findByText("Enter a whole number from 1 to 7")).toBeInTheDocument();
+    expect(await patchesOf(fetch)).toEqual([]);
   });
 
   it("owner_choosingTheFullAmountSendsOneHundredPercent", async () => {
@@ -152,10 +193,25 @@ describe("VEN-03 venue payment settings", () => {
       screen.getByText("Customers pay a 30% Advance when they book online."),
     ).toBeInTheDocument();
     expect(
-      screen.getByText("They have 30 minutes to send a Transfer Receipt."),
+      screen.getByText("They have 20 minutes to send a Transfer Receipt."),
     ).toBeInTheDocument();
     expect(screen.getByText("They can cancel up to 6 hours before the start.")).toBeInTheDocument();
+    expect(
+      screen.getByText("The Advance for each Repeat Series booking is asked for 2 days before it."),
+    ).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Save payment settings" })).not.toBeInTheDocument();
+  });
+
+  it("frontDesk_atAPayAtVenueVenueSeesNoBankDetails", async () => {
+    venuePageAs("FRONT_DESK", { ...arena, bankAccount, payAtVenue: true });
+    expect(
+      await screen.findByText(
+        "Customers pay everything at the venue. Online bookings are confirmed straight away.",
+      ),
+    ).toBeInTheDocument();
+    expect(screen.getByText("They can cancel up to 6 hours before the start.")).toBeInTheDocument();
+    expect(screen.queryByText(/Bank of Ceylon/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Transfer Receipt/)).not.toBeInTheDocument();
   });
 
   it("manager_seesWhenThereIsNoBankAccountYet", async () => {

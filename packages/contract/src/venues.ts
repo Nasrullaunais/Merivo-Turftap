@@ -7,10 +7,13 @@ const MAX_TEXT_LENGTH = 500;
 const MIN_PAYMENT_TIME_LIMIT_MINUTES = 10;
 const MAX_PAYMENT_TIME_LIMIT_MINUTES = 24 * 60;
 const MAX_CANCELLATION_CUT_OFF_HOURS = 7 * 24;
+const MIN_SERIES_PAYMENT_DAYS_BEFORE = 1;
+const MAX_SERIES_PAYMENT_DAYS_BEFORE = 7;
 
 export const FULL_AMOUNT_PERCENT = 100;
-export const DEFAULT_PAYMENT_TIME_LIMIT_MINUTES = 30;
+export const DEFAULT_PAYMENT_TIME_LIMIT_MINUTES = 20;
 export const DEFAULT_CANCELLATION_CUT_OFF_HOURS = 6;
+export const DEFAULT_SERIES_PAYMENT_DAYS_BEFORE = 2;
 
 /** Monday is 1 and Sunday is 7 (ISO weekdays). */
 export const Weekday = z.number().int().min(1).max(7);
@@ -66,6 +69,10 @@ export const Venue = z
     advancePercent: z.number().int(),
     paymentTimeLimitMinutes: z.number().int(),
     cancellationCutOffHours: z.number().int(),
+    /** Customers pay everything at the venue; bank account and Advance are not used. */
+    payAtVenue: z.boolean(),
+    /** How many days before each Repeat Series booking its Advance is asked for. */
+    seriesPaymentDaysBefore: z.number().int(),
     active: z.boolean(),
     createdAt: Timestamp,
     updatedAt: Timestamp,
@@ -86,6 +93,12 @@ const venueFields = {
     .min(MIN_PAYMENT_TIME_LIMIT_MINUTES)
     .max(MAX_PAYMENT_TIME_LIMIT_MINUTES),
   cancellationCutOffHours: z.number().int().min(0).max(MAX_CANCELLATION_CUT_OFF_HOURS),
+  payAtVenue: z.boolean(),
+  seriesPaymentDaysBefore: z
+    .number()
+    .int()
+    .min(MIN_SERIES_PAYMENT_DAYS_BEFORE)
+    .max(MAX_SERIES_PAYMENT_DAYS_BEFORE),
 };
 
 export const CreateVenue = z
@@ -99,6 +112,10 @@ export const CreateVenue = z
     ),
     cancellationCutOffHours: venueFields.cancellationCutOffHours.default(
       DEFAULT_CANCELLATION_CUT_OFF_HOURS,
+    ),
+    payAtVenue: venueFields.payAtVenue.default(false),
+    seriesPaymentDaysBefore: venueFields.seriesPaymentDaysBefore.default(
+      DEFAULT_SERIES_PAYMENT_DAYS_BEFORE,
     ),
   })
   .meta({ id: "CreateVenue" });

@@ -177,7 +177,7 @@ describe("VEN-03 venue payment settings", () => {
     accountNumber: "0071 2345 678",
   };
 
-  it("create_startsWithFullPaymentAThirtyMinuteLimitAndASixHourCutOff", async () => {
+  it("create_startsWithFullPaymentATwentyMinuteLimitAndASixHourCutOff", async () => {
     const reply = await call("POST", "/v1/venues", asStaff(tenant), {
       name: "Fresh Arena",
       address: "1 Main Street, Galle",
@@ -187,8 +187,10 @@ describe("VEN-03 venue payment settings", () => {
     expect(reply.body.data).toMatchObject({
       bankAccount: null,
       advancePercent: 100,
-      paymentTimeLimitMinutes: 30,
+      paymentTimeLimitMinutes: 20,
       cancellationCutOffHours: 6,
+      payAtVenue: false,
+      seriesPaymentDaysBefore: 2,
     });
   });
 
@@ -198,6 +200,7 @@ describe("VEN-03 venue payment settings", () => {
       advancePercent: 30,
       paymentTimeLimitMinutes: 45,
       cancellationCutOffHours: 12,
+      seriesPaymentDaysBefore: 3,
     });
     expect(reply.status).toBe(200);
     const saved = (await call("GET", path, asStaff(tenant))).body.data;
@@ -206,6 +209,29 @@ describe("VEN-03 venue payment settings", () => {
       advancePercent: 30,
       paymentTimeLimitMinutes: 45,
       cancellationCutOffHours: 12,
+      seriesPaymentDaysBefore: 3,
+    });
+  });
+
+  it("owner_turnsOnPayAtVenueWithoutABankAccount", async () => {
+    const created = await call(
+      "POST",
+      "/v1/venues",
+      asStaff(tenant),
+      venueInput({ payAtVenue: true }),
+    );
+    expect(created.status).toBe(201);
+    expect(created.body.data).toMatchObject({ payAtVenue: true, bankAccount: null });
+  });
+
+  it("owner_turningPayAtVenueOffAgainFindsTheBankAccountStillThere", async () => {
+    await call("PATCH", path, asStaff(tenant), { bankAccount, advancePercent: 30 });
+    await call("PATCH", path, asStaff(tenant), { payAtVenue: true });
+    const reply = await call("PATCH", path, asStaff(tenant), { payAtVenue: false });
+    expect(reply.body.data).toMatchObject({
+      payAtVenue: false,
+      bankAccount: { accountNumber: "0071 2345 678" },
+      advancePercent: 30,
     });
   });
 
@@ -226,14 +252,34 @@ describe("VEN-03 venue payment settings", () => {
       advancePercent: 0,
       paymentTimeLimitMinutes: 5,
       cancellationCutOffHours: -1,
+      seriesPaymentDaysBefore: 0,
     });
     expect(reply.status).toBe(400);
     const fields = reply.body.errors.map((error: { field: string }) => error.field).toSorted();
     expect(fields).toEqual(
-      ["advancePercent", "cancellationCutOffHours", "paymentTimeLimitMinutes"].toSorted(),
+      [
+        "advancePercent",
+        "cancellationCutOffHours",
+        "paymentTimeLimitMinutes",
+        "seriesPaymentDaysBefore",
+      ].toSorted(),
     );
-    const tooMuch = await call("PATCH", path, asStaff(tenant), { advancePercent: 101 });
+    const tooMuch = await call("PATCH", path, asStaff(tenant), {
+      advancePercent: 101,
+      seriesPaymentDaysBefore: 8,
+    });
     expect(tooMuch.status).toBe(400);
+    expect(tooMuch.body.errors.map((error: { field: string }) => error.field).toSorted()).toEqual([
+      "advancePercent",
+      "seriesPaymentDaysBefore",
+    ]);
+  });
+
+  it("update_acceptsSeriesPaymentDaysFromOneToSeven", async () => {
+    for (const days of [1, 7]) {
+      const reply = await call("PATCH", path, asStaff(tenant), { seriesPaymentDaysBefore: days });
+      expect(reply.body.data.seriesPaymentDaysBefore).toBe(days);
+    }
   });
 
   it("update_refusesAnAccountNumberWithLetters", async () => {
@@ -247,10 +293,10 @@ describe("VEN-03 venue payment settings", () => {
   });
 
   it("manager_cannotChangePaymentSettings", async () => {
-    const reply = await call("PATCH", path, asStaff(tenant, tenant.manager), {
-      advancePercent: 50,
-    });
-    expect(reply).toMatchObject({ status: 403, body: { code: "tt_htt_403" } });
+    for (const change of [{ advancePercent: 50 }, { payAtVenue: true }]) {
+      const reply = await call("PATCH", path, asStaff(tenant, tenant.manager), change);
+      expect(reply).toMatchObject({ status: 403, body: { code: "tt_htt_403" } });
+    }
   });
 
   it("customers_seeTheBankAccountAndTerms", async () => {

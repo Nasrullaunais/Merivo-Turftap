@@ -33,6 +33,8 @@ const arena = {
   advancePercent: 100,
   paymentTimeLimitMinutes: 30,
   cancellationCutOffHours: 6,
+  payAtVenue: false,
+  seriesPaymentDaysBefore: 2,
   openingHours: [{ weekday: 1, opens: "06:00", closes: "22:00" }],
   active: true,
   createdAt: "2026-11-22T04:00:00.000Z",

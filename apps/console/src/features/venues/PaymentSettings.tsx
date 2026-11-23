@@ -6,6 +6,7 @@ import {
   Label,
   Radio,
   RadioGroup,
+  Switch,
   TextField,
 } from "@heroui/react";
 import { BankAccountInput, CreateVenue, FULL_AMOUNT_PERCENT } from "@turftap/contract";
@@ -32,6 +33,13 @@ export function PaymentSettings({ venueId, canChange }: Props) {
 
 function PaymentSettingsSummary({ venue }: { venue: Venue }) {
   const account = venue.bankAccount;
+  if (venue.payAtVenue)
+    return (
+      <div className="grid gap-1">
+        <p>{m.paysAtVenue}</p>
+        <p className="text-muted">{m.cutOff(venue.cancellationCutOffHours)}</p>
+      </div>
+    );
   return (
     <div className="grid gap-1">
       <p>
@@ -50,12 +58,19 @@ function PaymentSettingsSummary({ venue }: { venue: Venue }) {
       </p>
       <p className="text-muted">{m.timeLimit(venue.paymentTimeLimitMinutes)}</p>
       <p className="text-muted">{m.cutOff(venue.cancellationCutOffHours)}</p>
+      <p className="text-muted">{m.seriesDays(venue.seriesPaymentDaysBefore)}</p>
     </div>
   );
 }
 
 const fits =
-  (field: "advancePercent" | "paymentTimeLimitMinutes" | "cancellationCutOffHours") =>
+  (
+    field:
+      | "advancePercent"
+      | "paymentTimeLimitMinutes"
+      | "cancellationCutOffHours"
+      | "seriesPaymentDaysBefore",
+  ) =>
   (value: string) =>
     /^\d+$/.test(value) && CreateVenue.shape[field].safeParse(Number(value)).success;
 const isAccountNumber = (value: string) =>
@@ -66,6 +81,7 @@ type Amount = "FULL" | "ADVANCE";
 function PaymentSettingsForm({ venue }: { venue: Venue }) {
   const changeVenue = useChangeVenue(venue.id);
   const account = venue.bankAccount;
+  const [payAtVenue, setPayAtVenue] = useState(venue.payAtVenue);
   const [bankName, setBankName] = useState(account?.bankName ?? "");
   const [branch, setBranch] = useState(account?.branch ?? "");
   const [accountName, setAccountName] = useState(account?.accountName ?? "");
@@ -78,99 +94,122 @@ function PaymentSettingsForm({ venue }: { venue: Venue }) {
   );
   const [timeLimit, setTimeLimit] = useState(String(venue.paymentTimeLimitMinutes));
   const [cutOff, setCutOff] = useState(String(venue.cancellationCutOffHours));
+  const [seriesDays, setSeriesDays] = useState(String(venue.seriesPaymentDaysBefore));
 
   const submit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    changeVenue.mutate({
-      path: { id: venue.id },
-      body: {
-        bankAccount: { bankName, branch: branch.trim() || null, accountName, accountNumber },
-        advancePercent: amount === "FULL" ? FULL_AMOUNT_PERCENT : Number(advancePercent),
-        paymentTimeLimitMinutes: Number(timeLimit),
-        cancellationCutOffHours: Number(cutOff),
-      },
-    });
+    const cancellationCutOffHours = Number(cutOff);
+    // At Pay at Venue the online-payment fields are hidden; their saved values stay untouched.
+    const body = payAtVenue
+      ? { payAtVenue, cancellationCutOffHours }
+      : {
+          payAtVenue,
+          bankAccount: { bankName, branch: branch.trim() || null, accountName, accountNumber },
+          advancePercent: amount === "FULL" ? FULL_AMOUNT_PERCENT : Number(advancePercent),
+          paymentTimeLimitMinutes: Number(timeLimit),
+          cancellationCutOffHours,
+          seriesPaymentDaysBefore: Number(seriesDays),
+        };
+    changeVenue.mutate({ path: { id: venue.id }, body });
   };
 
   return (
     <Form className="grid gap-4" onSubmit={submit}>
-      <h3 className="font-medium">{m.bankTitle}</h3>
-      <div className="grid grid-cols-2 gap-3">
-        <TextField name="bankName" isRequired value={bankName} onChange={setBankName}>
-          <Label>{m.bankNameLabel}</Label>
-          <Input placeholder="Bank of Ceylon" />
-          <FieldError />
-        </TextField>
-        <TextField name="branch" value={branch} onChange={setBranch}>
-          <Label>{m.branchLabel}</Label>
-          <Input />
-        </TextField>
-        <TextField name="accountName" isRequired value={accountName} onChange={setAccountName}>
-          <Label>{m.accountNameLabel}</Label>
-          <Input />
-          <FieldError />
-        </TextField>
-        <TextField
-          name="accountNumber"
-          isRequired
-          value={accountNumber}
-          onChange={setAccountNumber}
-          validate={(value) => (isAccountNumber(value) ? null : m.accountNumberInvalid)}
-        >
-          <Label>{m.accountNumberLabel}</Label>
-          <Input inputMode="numeric" />
-          <FieldError />
-        </TextField>
-      </div>
-      <RadioGroup
-        name="amount"
-        orientation="horizontal"
-        value={amount}
-        onChange={(value) => setAmount(value as Amount)}
-      >
-        <Label>{m.amountLabel}</Label>
-        {(["FULL", "ADVANCE"] as const).map((value) => (
-          <Radio key={value} value={value}>
-            <Radio.Control>
-              <Radio.Indicator />
-            </Radio.Control>
-            <Radio.Content>
-              <Label>{value === "FULL" ? m.fullAmount : m.advance}</Label>
-            </Radio.Content>
-          </Radio>
-        ))}
-      </RadioGroup>
-      {amount === "ADVANCE" && (
-        <TextField
-          name="advancePercent"
-          type="number"
-          isRequired
-          value={advancePercent}
-          onChange={setAdvancePercent}
-          validate={(value) =>
-            fits("advancePercent")(value) && Number(value) < FULL_AMOUNT_PERCENT
-              ? null
-              : m.advancePercentInvalid
-          }
-        >
-          <Label>{m.advancePercentLabel}</Label>
-          <Input min={1} max={FULL_AMOUNT_PERCENT - 1} step={1} />
-          <FieldError />
-        </TextField>
+      <Switch isSelected={payAtVenue} onChange={setPayAtVenue}>
+        <Switch.Content>
+          <Switch.Control>
+            <Switch.Thumb />
+          </Switch.Control>
+          <Label>{m.payAtVenueLabel}</Label>
+        </Switch.Content>
+      </Switch>
+      {payAtVenue ? (
+        <p className="text-muted">{m.paysAtVenue}</p>
+      ) : (
+        <>
+          <h3 className="font-medium">{m.bankTitle}</h3>
+          <div className="grid grid-cols-2 gap-3">
+            <TextField name="bankName" isRequired value={bankName} onChange={setBankName}>
+              <Label>{m.bankNameLabel}</Label>
+              <Input placeholder="Bank of Ceylon" />
+              <FieldError />
+            </TextField>
+            <TextField name="branch" value={branch} onChange={setBranch}>
+              <Label>{m.branchLabel}</Label>
+              <Input />
+            </TextField>
+            <TextField name="accountName" isRequired value={accountName} onChange={setAccountName}>
+              <Label>{m.accountNameLabel}</Label>
+              <Input />
+              <FieldError />
+            </TextField>
+            <TextField
+              name="accountNumber"
+              isRequired
+              value={accountNumber}
+              onChange={setAccountNumber}
+              validate={(value) => (isAccountNumber(value) ? null : m.accountNumberInvalid)}
+            >
+              <Label>{m.accountNumberLabel}</Label>
+              <Input inputMode="numeric" />
+              <FieldError />
+            </TextField>
+          </div>
+          <RadioGroup
+            name="amount"
+            orientation="horizontal"
+            value={amount}
+            onChange={(value) => setAmount(value as Amount)}
+          >
+            <Label>{m.amountLabel}</Label>
+            {(["FULL", "ADVANCE"] as const).map((value) => (
+              <Radio key={value} value={value}>
+                <Radio.Control>
+                  <Radio.Indicator />
+                </Radio.Control>
+                <Radio.Content>
+                  <Label>{value === "FULL" ? m.fullAmount : m.advance}</Label>
+                </Radio.Content>
+              </Radio>
+            ))}
+          </RadioGroup>
+          {amount === "ADVANCE" && (
+            <TextField
+              name="advancePercent"
+              type="number"
+              isRequired
+              value={advancePercent}
+              onChange={setAdvancePercent}
+              validate={(value) =>
+                fits("advancePercent")(value) && Number(value) < FULL_AMOUNT_PERCENT
+                  ? null
+                  : m.advancePercentInvalid
+              }
+            >
+              <Label>{m.advancePercentLabel}</Label>
+              <Input min={1} max={FULL_AMOUNT_PERCENT - 1} step={1} />
+              <FieldError />
+            </TextField>
+          )}
+        </>
       )}
       <div className="grid grid-cols-2 gap-3">
-        <TextField
-          name="paymentTimeLimitMinutes"
-          type="number"
-          isRequired
-          value={timeLimit}
-          onChange={setTimeLimit}
-          validate={(value) => (fits("paymentTimeLimitMinutes")(value) ? null : m.timeLimitInvalid)}
-        >
-          <Label>{m.timeLimitLabel}</Label>
-          <Input step={1} />
-          <FieldError />
-        </TextField>
+        {!payAtVenue && (
+          <TextField
+            name="paymentTimeLimitMinutes"
+            type="number"
+            isRequired
+            value={timeLimit}
+            onChange={setTimeLimit}
+            validate={(value) =>
+              fits("paymentTimeLimitMinutes")(value) ? null : m.timeLimitInvalid
+            }
+          >
+            <Label>{m.timeLimitLabel}</Label>
+            <Input step={1} />
+            <FieldError />
+          </TextField>
+        )}
         <TextField
           name="cancellationCutOffHours"
           type="number"
@@ -183,6 +222,22 @@ function PaymentSettingsForm({ venue }: { venue: Venue }) {
           <Input step={1} />
           <FieldError />
         </TextField>
+        {!payAtVenue && (
+          <TextField
+            name="seriesPaymentDaysBefore"
+            type="number"
+            isRequired
+            value={seriesDays}
+            onChange={setSeriesDays}
+            validate={(value) =>
+              fits("seriesPaymentDaysBefore")(value) ? null : m.seriesDaysInvalid
+            }
+          >
+            <Label>{m.seriesDaysLabel}</Label>
+            <Input step={1} />
+            <FieldError />
+          </TextField>
+        )}
       </div>
       <Button type="submit" isPending={changeVenue.isPending}>
         {m.save}

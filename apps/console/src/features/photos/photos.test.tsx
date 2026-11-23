@@ -55,6 +55,8 @@ const arena = {
   advancePercent: 100,
   paymentTimeLimitMinutes: 30,
   cancellationCutOffHours: 6,
+  payAtVenue: false,
+  seriesPaymentDaysBefore: 2,
   openingHours: [],
   active: true,
   ...times,

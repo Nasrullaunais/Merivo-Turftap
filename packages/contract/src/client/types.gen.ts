@@ -259,6 +259,8 @@ export type Venue = {
     advancePercent: number;
     paymentTimeLimitMinutes: number;
     cancellationCutOffHours: number;
+    payAtVenue: boolean;
+    seriesPaymentDaysBefore: number;
     active: boolean;
     createdAt: string;
     updatedAt: string;
@@ -274,6 +276,8 @@ export type CreateVenue = {
     advancePercent?: number;
     paymentTimeLimitMinutes?: number;
     cancellationCutOffHours?: number;
+    payAtVenue?: boolean;
+    seriesPaymentDaysBefore?: number;
 };
 
 export type UpdateVenue = {
@@ -286,6 +290,8 @@ export type UpdateVenue = {
     advancePercent?: number;
     paymentTimeLimitMinutes?: number;
     cancellationCutOffHours?: number;
+    payAtVenue?: boolean;
+    seriesPaymentDaysBefore?: number;
 };
 
 export type PriceRule = {

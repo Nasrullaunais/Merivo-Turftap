@@ -1,5 +1,8 @@
 export default {
   title: "Payment settings",
+  payAtVenueLabel: "Pay at Venue",
+  paysAtVenue:
+    "Customers pay everything at the venue. Online bookings are confirmed straight away.",
   bankTitle: "Bank account customers pay into",
   bankNameLabel: "Bank",
   branchLabel: "Branch (optional)",
@@ -15,6 +18,8 @@ export default {
   timeLimitInvalid: "Enter a whole number from 10 to 1440",
   cutOffLabel: "Cancellation Cut-off (hours before the start)",
   cutOffInvalid: "Enter a whole number from 0 to 168",
+  seriesDaysLabel: "Repeat Series payment (days before each booking)",
+  seriesDaysInvalid: "Enter a whole number from 1 to 7",
   save: "Save payment settings",
   saved: "Payment settings saved. They apply to new bookings.",
   noBankAccount: "No bank account yet. The Owner adds it here.",
@@ -23,4 +28,6 @@ export default {
   paysAdvance: (percent: number) => `Customers pay a ${percent}% Advance when they book online.`,
   timeLimit: (minutes: number) => `They have ${minutes} minutes to send a Transfer Receipt.`,
   cutOff: (hours: number) => `They can cancel up to ${hours} hours before the start.`,
+  seriesDays: (days: number) =>
+    `The Advance for each Repeat Series booking is asked for ${days} ${days === 1 ? "day" : "days"} before it.`,
 };

@@ -2,6 +2,7 @@ import {
   type BankAccount,
   DEFAULT_CANCELLATION_CUT_OFF_HOURS,
   DEFAULT_PAYMENT_TIME_LIMIT_MINUTES,
+  DEFAULT_SERIES_PAYMENT_DAYS_BEFORE,
   DEFAULT_START_INTERVAL_MINUTES,
   FULL_AMOUNT_PERCENT,
   type OpeningHours,
@@ -48,6 +49,10 @@ export const venues = pgTable(
     cancellationCutOffHours: integer("cancellation_cut_off_hours")
       .notNull()
       .default(DEFAULT_CANCELLATION_CUT_OFF_HOURS),
+    payAtVenue: boolean("pay_at_venue").notNull().default(false),
+    seriesPaymentDaysBefore: integer("series_payment_days_before")
+      .notNull()
+      .default(DEFAULT_SERIES_PAYMENT_DAYS_BEFORE),
     active: boolean("active").notNull().default(true),
     ...timestampColumns(),
   },

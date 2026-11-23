@@ -50,6 +50,28 @@ describe("VEN-01 venue schemas", () => {
   });
 });
 
+describe("VEN-03 venue payment settings schemas", () => {
+  const venue = { name: "Arena", address: "Colombo", phone: "0112345678", openingHours: [] };
+
+  it("CreateVenue_startsWithTwentyMinutesNoPayAtVenueAndTwoSeriesPaymentDays", () => {
+    expect(CreateVenue.parse(venue)).toMatchObject({
+      paymentTimeLimitMinutes: 20,
+      payAtVenue: false,
+      seriesPaymentDaysBefore: 2,
+    });
+  });
+
+  it.each([1, 7])("UpdateVenue_acceptsSeriesPaymentDays %i", (days) => {
+    expect(UpdateVenue.parse({ seriesPaymentDaysBefore: days })).toEqual({
+      seriesPaymentDaysBefore: days,
+    });
+  });
+
+  it.each([0, 8, 2.5])("UpdateVenue_refusesSeriesPaymentDays %d", (days) => {
+    expect(UpdateVenue.safeParse({ seriesPaymentDaysBefore: days }).success).toBe(false);
+  });
+});
+
 describe("VEN-04 resource schemas", () => {
   const court = {
     venueId: 1,
