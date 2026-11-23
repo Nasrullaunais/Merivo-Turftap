@@ -2,6 +2,7 @@ import { describe, expect, it } from "bun:test";
 import { z } from "zod";
 
 import { PhoneInput, Timestamp } from "./common";
+import { CreateResource, UpdateResource } from "./resources";
 import { CreateVenue, UpdateVenue } from "./venues";
 
 describe("SIG-01 phone numbers", () => {
@@ -46,5 +47,43 @@ describe("VEN-01 venue schemas", () => {
   it("CreateVenue_refusesTheSameWeekdayTwice", () => {
     const twice = { ...venue, openingHours: [venue.openingHours[0], venue.openingHours[0]] };
     expect(CreateVenue.safeParse(twice).success).toBe(false);
+  });
+});
+
+describe("VEN-04 resource schemas", () => {
+  const court = {
+    venueId: 1,
+    name: "Court 1",
+    type: "FUTSAL_COURT",
+    slotMinutes: 60,
+    price: { amount: 450_000, currency: "LKR" },
+  };
+  const errorsOf = (result: { error?: z.ZodError }) =>
+    result.error?.issues.map((issue) => ({ path: issue.path, message: issue.message }));
+
+  it("CreateResource_startsBookingsEvery30MinutesUnlessTold", () => {
+    expect(CreateResource.parse(court).startIntervalMinutes).toBe(30);
+    expect(CreateResource.parse({ ...court, startIntervalMinutes: 60 }).startIntervalMinutes).toBe(
+      60,
+    );
+  });
+
+  it.each([45, 90, 20])("CreateResource_refusesA %i-minute slot", (slotMinutes) => {
+    expect(CreateResource.safeParse({ ...court, slotMinutes }).success).toBe(false);
+  });
+
+  it("CreateResource_refusesAStartIntervalLongerThanTheSlot", () => {
+    const result = CreateResource.safeParse({
+      ...court,
+      slotMinutes: 15,
+      startIntervalMinutes: 30,
+    });
+    expect(errorsOf(result)).toEqual([
+      { path: ["startIntervalMinutes"], message: "Must not be longer than the slot length" },
+    ]);
+  });
+
+  it("UpdateResource_neverPicksUpTheDefaultStartInterval", () => {
+    expect(UpdateResource.parse({ slotMinutes: 15 })).toEqual({ slotMinutes: 15 });
   });
 });

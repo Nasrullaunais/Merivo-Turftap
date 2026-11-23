@@ -26,7 +26,12 @@ export function ResourceList({ venueId, canTurnOff }: Props) {
             {resource.name}
           </Link>
           <span className="text-muted">
-            {m.details(m.types[resource.type], resource.slotMinutes, formatMoney(resource.price))}
+            {m.details(
+              m.types[resource.type],
+              resource.slotMinutes,
+              resource.startIntervalMinutes,
+              formatMoney(resource.price),
+            )}
           </span>
           <span className="ml-auto">
             {!resource.active && <Chip size="sm">{m.turnedOff}</Chip>}

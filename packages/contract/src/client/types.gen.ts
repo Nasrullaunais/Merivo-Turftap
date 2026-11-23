@@ -321,6 +321,7 @@ export type Resource = {
     name: string;
     type: ResourceType;
     slotMinutes: number;
+    startIntervalMinutes: number;
     price: Money;
     active: boolean;
     createdAt: string;
@@ -331,14 +332,16 @@ export type CreateResource = {
     venueId: number;
     name: string;
     type: ResourceType;
-    slotMinutes: number;
+    slotMinutes: 15 | 30 | 60;
+    startIntervalMinutes?: 15 | 30 | 60;
     price: PriceInput;
 };
 
 export type UpdateResource = {
     name?: string;
     type?: ResourceType;
-    slotMinutes?: number;
+    slotMinutes?: 15 | 30 | 60;
+    startIntervalMinutes?: 15 | 30 | 60;
     price?: PriceInput;
 };
 

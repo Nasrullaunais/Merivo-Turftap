@@ -16,11 +16,18 @@ const inVenues = (venueIds: number[] | undefined) =>
 const ownedBy = (tenantId: number, id: number, venueIds: number[] | undefined) =>
   and(eq(resources.tenantId, tenantId), eq(resources.id, id), inVenues(venueIds));
 
-export async function findById(tenantId: number, id: number, venueIds: number[] | undefined) {
-  const [resource] = await db()
+/** With `lock`, no other transaction can change the row until this one ends. */
+export async function findById(
+  tenantId: number,
+  id: number,
+  venueIds: number[] | undefined,
+  lock?: "share" | "update",
+) {
+  const query = db()
     .select()
     .from(resources)
     .where(ownedBy(tenantId, id, venueIds));
+  const [resource] = await (lock ? query.for(lock) : query);
   return resource && toResource(resource);
 }
 

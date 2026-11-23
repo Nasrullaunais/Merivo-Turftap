@@ -27,7 +27,7 @@ describe("resources routes", () => {
     const reply = await call("POST", "/v1/resources", asStaff(tenant), {
       ...resourceInput(venueId),
       type: "SQUASH_COURT",
-      slotMinutes: 50,
+      slotMinutes: 45,
     });
     expect(reply.status).toBe(400);
     const fields = reply.body.errors.map((error: { field: string }) => error.field);

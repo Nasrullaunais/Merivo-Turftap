@@ -93,6 +93,35 @@ describe("VEN-05 Price Rules", () => {
     expect(refused[0]!.reason).toMatchObject({ status: 409, code: "tt_ven_006" });
   });
 
+  it("create_refusesTimesOffTheResourcesStartInterval", async () => {
+    const resourceId = await newResource();
+    const quarterPast = priceRulesService.create(
+      tenant.manager.auth,
+      priceRuleInput(resourceId, { startTime: "18:15", endTime: "22:00" }),
+    );
+    await expect(quarterPast).rejects.toMatchObject({
+      status: 400,
+      fieldErrors: [
+        {
+          field: "startTime",
+          message: "Must be on the resource's Start Interval, every 30 minutes",
+        },
+      ],
+    });
+  });
+
+  it("create_allowsQuarterHoursOnA15MinuteStartInterval", async () => {
+    const { id } = await resourcesService.create(
+      tenant.manager.auth,
+      resourceInput(venueId, { startIntervalMinutes: 15 }),
+    );
+    const rule = await priceRulesService.create(
+      tenant.manager.auth,
+      priceRuleInput(id, { startTime: "18:15", endTime: "21:45" }),
+    );
+    expect(rule).toMatchObject({ startTime: "18:15", endTime: "21:45" });
+  });
+
   it("create_refusesAResourceThatDoesNotExist", async () => {
     const created = priceRulesService.create(tenant.manager.auth, priceRuleInput(999_999_999));
     await expect(created).rejects.toMatchObject({ status: 404, code: "tt_ven_003" });
@@ -134,6 +163,18 @@ describe("VEN-05 Price Rules", () => {
     );
     const late = priceRulesService.update(tenant.manager.auth, rule.id, { startTime: "23:00" });
     await expect(late).rejects.toMatchObject({ status: 400, code: "tt_htt_400" });
+  });
+
+  it("update_refusesMovingTheEndOffTheStartInterval", async () => {
+    const rule = await priceRulesService.create(
+      tenant.manager.auth,
+      priceRuleInput(await newResource()),
+    );
+    const moved = priceRulesService.update(tenant.manager.auth, rule.id, { endTime: "21:50" });
+    await expect(moved).rejects.toMatchObject({
+      status: 400,
+      fieldErrors: [{ field: "endTime" }],
+    });
   });
 
   it("remove_deletesTheRuleSoItsHoursCanBeReused", async () => {

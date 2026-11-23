@@ -1,35 +1,25 @@
-import type { CreatePriceRule } from "@turftap/contract";
+import { type CreatePriceRule, localTimeAt, minuteOfDay } from "@turftap/contract";
 import { and, eq, inArray, ne, type SQL, sql } from "drizzle-orm";
 
 import { db, pageOf, type PageRequest, sortBy } from "../../lib/db";
 import { priceFields, priceOf } from "../../lib/db/columns";
 import { type PriceRuleRow, priceRules, resources } from "./venues.tables";
 
-const MINUTES_PER_HOUR = 60;
 const SORTABLE = { startTime: priceRules.startMinute, createdAt: priceRules.createdAt };
 
 export type PriceRuleFields = Omit<CreatePriceRule, "resourceId">;
 
-const toMinute = (time: string) => {
-  const [hours, minutes] = time.split(":").map(Number);
-  return hours! * MINUTES_PER_HOUR + minutes!;
-};
-const toTime = (minute: number) =>
-  [Math.floor(minute / MINUTES_PER_HOUR), minute % MINUTES_PER_HOUR]
-    .map((part) => String(part).padStart(2, "0"))
-    .join(":");
-
 const toColumns = ({ weekdays, startTime, endTime, price }: PriceRuleFields) => ({
   weekdays: weekdays.toSorted((a, b) => a - b),
-  startMinute: toMinute(startTime),
-  endMinute: toMinute(endTime),
+  startMinute: minuteOfDay(startTime),
+  endMinute: minuteOfDay(endTime),
   ...priceFields(price),
 });
 
 const toPriceRule = (row: PriceRuleRow) => ({
   ...row,
-  startTime: toTime(row.startMinute),
-  endTime: toTime(row.endMinute),
+  startTime: localTimeAt(row.startMinute),
+  endTime: localTimeAt(row.endMinute),
   price: priceOf(row),
 });
 
@@ -96,6 +86,23 @@ export async function findOverlap(
         sql`int4range(${priceRules.startMinute}, ${priceRules.endMinute}) && int4range(${startMinute}, ${endMinute})`,
       ),
     )
+    .limit(1);
+  return rule && toPriceRule(rule);
+}
+
+/** A rule of the resource whose start or end isn't on a Start Interval of this many minutes. */
+export async function findOffInterval(tenantId: number, resourceId: number, minutes: number) {
+  const [rule] = await db()
+    .select()
+    .from(priceRules)
+    .where(
+      and(
+        eq(priceRules.tenantId, tenantId),
+        eq(priceRules.resourceId, resourceId),
+        sql`(${priceRules.startMinute} % ${minutes} <> 0 OR ${priceRules.endMinute} % ${minutes} <> 0)`,
+      ),
+    )
+    .orderBy(priceRules.startMinute)
     .limit(1);
   return rule && toPriceRule(rule);
 }

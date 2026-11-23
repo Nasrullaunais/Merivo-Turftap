@@ -121,6 +121,7 @@ const resource = (
   name: string,
   type: ResourceType,
   slotMinutes: number,
+  startIntervalMinutes: number,
   rupees: number,
 ): typeof resources.$inferInsert => ({
   tenantId: tenant.id,
@@ -128,15 +129,16 @@ const resource = (
   name,
   type,
   slotMinutes,
+  startIntervalMinutes,
   ...lkr(rupees),
 });
 
 const demoResources = [
-  resource(kickOff, "Futsal Court 1", "FUTSAL_COURT", 60, 4500),
-  resource(kickOff, "Futsal Court 2", "FUTSAL_COURT", 60, 4500),
-  resource(cueClub, "Pool Table 1", "POOL_TABLE", 30, 600),
-  resource(cueClub, "Pool Table 2", "POOL_TABLE", 30, 600),
-  resource(cueClub, "Table Tennis 1", "TABLE_TENNIS_TABLE", 30, 500),
+  resource(kickOff, "Futsal Court 1", "FUTSAL_COURT", 60, 30, 4500),
+  resource(kickOff, "Futsal Court 2", "FUTSAL_COURT", 60, 30, 4500),
+  resource(cueClub, "Pool Table 1", "POOL_TABLE", 30, 30, 600),
+  resource(cueClub, "Pool Table 2", "POOL_TABLE", 30, 30, 600),
+  resource(cueClub, "Table Tennis 1", "TABLE_TENNIS_TABLE", 30, 30, 500),
 ];
 await db().insert(resources).values(demoResources).onConflictDoNothing();
 

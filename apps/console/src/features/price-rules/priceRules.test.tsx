@@ -30,6 +30,7 @@ const court = {
   name: "Court 1",
   type: "FUTSAL_COURT",
   slotMinutes: 60,
+  startIntervalMinutes: 30,
   price: { amount: 450_000, currency: "LKR" },
   active: true,
   ...times,
@@ -63,7 +64,7 @@ describe("VEN-05 set prices", () => {
     renderApp("/resources/11");
     expect(await screen.findByRole("heading", { name: "Court 1" })).toBeInTheDocument();
     expect(
-      screen.getByText("Futsal court · 60 min slots · LKR 4,500 per slot"),
+      screen.getByText("Futsal court · 60 min slots, starting every 30 min · LKR 4,500 per slot"),
     ).toBeInTheDocument();
     expect(await screen.findByText("Sat, Sun · 18:00–22:00")).toBeInTheDocument();
     expect(screen.getByText("LKR 6,000 per slot")).toBeInTheDocument();
@@ -91,7 +92,9 @@ describe("VEN-05 set prices", () => {
     fireEvent.click(screen.getByRole("button", { name: "Save price" }));
 
     expect(
-      await screen.findByText("Futsal court · 60 min slots · LKR 5,000 per slot"),
+      await screen.findByText(
+        "Futsal court · 60 min slots, starting every 30 min · LKR 5,000 per slot",
+      ),
     ).toBeInTheDocument();
     expect(await bodiesOf(fetch, "PATCH")).toEqual([
       { price: { amount: 500_000, currency: "LKR" } },
@@ -138,7 +141,8 @@ describe("VEN-05 set prices", () => {
     });
     renderApp("/resources/11");
     await screen.findByRole("heading", { name: "Add a Price Rule" });
-    fireEvent.change(screen.getByLabelText(/^To/), { target: { value: "17:00" } });
+    fireEvent.click(screen.getByRole("button", { name: /To$/ }));
+    fireEvent.click(await screen.findByRole("option", { name: "17:00" }));
     fireEvent.change(screen.getByLabelText(/^Price per slot/), { target: { value: "99.5" } });
     fireEvent.click(screen.getByRole("button", { name: "Add Price Rule" }));
 
@@ -147,6 +151,22 @@ describe("VEN-05 set prices", () => {
     expect(screen.getByText("Enter whole rupees above 0, such as 4500")).toBeInTheDocument();
     const methods = fetch.mock.calls.map(([request]) => (request as Request).method);
     expect(methods).not.toContain("POST");
+  });
+
+  it("addPriceRule_offersOnlyTimesOnTheStartInterval", async () => {
+    signInForTesting(PHONE);
+    mockApi({
+      "GET /v1/me": meAs("MANAGER"),
+      "GET /v1/resources/11": { ...court, startIntervalMinutes: 60 },
+      "GET /v1/price-rules": page([]),
+    });
+    renderApp("/resources/11");
+    await screen.findByRole("heading", { name: "Add a Price Rule" });
+    fireEvent.click(screen.getByRole("button", { name: /From$/ }));
+    const starts = (await screen.findAllByRole("option")).map((option) => option.textContent);
+    expect(starts).toHaveLength(24);
+    expect(starts.slice(0, 3)).toEqual(["00:00", "01:00", "02:00"]);
+    expect(starts.at(-1)).toBe("23:00");
   });
 
   it("manager_isToldWhichRuleClashes", async () => {

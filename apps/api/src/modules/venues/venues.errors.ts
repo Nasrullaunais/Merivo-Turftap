@@ -48,6 +48,11 @@ export const venueErrors = {
     ),
   photoNotFound: (id: number) => new NotFound("tt_ven_011", `Photo ${id} was not found`),
   photoFileInUse: () => new Conflict("tt_ven_012", "This file is already used by another photo"),
+  intervalMisfitsPriceRule: (rule: PriceRule) =>
+    new Conflict(
+      "tt_ven_013",
+      `This Start Interval doesn't fit the Price Rule for ${describeRule(rule)}. Change or delete that rule first`,
+    ),
 };
 
 constraintErrors({

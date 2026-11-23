@@ -1,4 +1,9 @@
-import type { CreatePriceRule, PriceRuleFilters, UpdatePriceRule } from "@turftap/contract";
+import {
+  type CreatePriceRule,
+  minuteOfDay,
+  type PriceRuleFilters,
+  type UpdatePriceRule,
+} from "@turftap/contract";
 
 import type { AuthContext } from "../../lib/auth/context";
 import { transaction } from "../../lib/db";
@@ -9,6 +14,16 @@ import * as resourcesService from "./resources.service";
 import { venueErrors } from "./venues.errors";
 
 type PriceRuleSort = "startTime" | "createdAt";
+
+/** VEN-05: a rule starts and ends on the resource's Start Interval. */
+function checkFitsInterval(rule: { startTime: string; endTime: string }, intervalMinutes: number) {
+  const message = `Must be on the resource's Start Interval, every ${intervalMinutes} minutes`;
+  const misfits = (["startTime", "endTime"] as const).filter(
+    (field) => minuteOfDay(rule[field]) % intervalMinutes !== 0,
+  );
+  if (misfits.length > 0)
+    throw httpErrors.invalidRequest(misfits.map((field) => ({ field, message })));
+}
 
 export function list(
   auth: AuthContext,
@@ -25,7 +40,8 @@ export async function get(auth: AuthContext, id: number) {
 
 export function create(auth: AuthContext, input: CreatePriceRule) {
   return transaction(async () => {
-    await resourcesService.get(auth, input.resourceId);
+    const resource = await resourcesService.get(auth, input.resourceId, "share");
+    checkFitsInterval(input, resource.startIntervalMinutes);
     const clashing = await priceRulesRepository.findOverlap(auth.tenantId, input.resourceId, input);
     if (clashing) throw venueErrors.priceRuleClash(clashing);
     return priceRulesRepository.insert(auth.tenantId, input);
@@ -38,6 +54,8 @@ export function update(auth: AuthContext, id: number, input: UpdatePriceRule) {
     const changed = { ...rule, ...input };
     if (changed.startTime >= changed.endTime)
       throw httpErrors.invalidRequest([{ field: "endTime", message: "Must end after it starts" }]);
+    const resource = await resourcesService.get(auth, rule.resourceId, "share");
+    checkFitsInterval(changed, resource.startIntervalMinutes);
     const clashing = await priceRulesRepository.findOverlap(
       auth.tenantId,
       rule.resourceId,

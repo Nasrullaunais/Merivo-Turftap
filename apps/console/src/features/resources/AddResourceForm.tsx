@@ -1,5 +1,6 @@
 import {
   Button,
+  Description,
   FieldError,
   Form,
   Input,
@@ -8,7 +9,12 @@ import {
   RadioGroup,
   TextField,
 } from "@heroui/react";
-import { CreateResource, RESOURCE_TYPES, type ResourceType } from "@turftap/contract";
+import {
+  DEFAULT_START_INTERVAL_MINUTES,
+  RESOURCE_MINUTES,
+  RESOURCE_TYPES,
+  type ResourceType,
+} from "@turftap/contract";
 import { lkr } from "@turftap/ui";
 import { type FormEvent, useState } from "react";
 
@@ -17,22 +23,31 @@ import m from "../../i18n/en/resources";
 import { useAddResource } from "./useChangeResources";
 
 const DEFAULT_TYPE: ResourceType = "FUTSAL_COURT";
-const DEFAULT_SLOT_MINUTES = "60";
-const isSlotLength = (value: string) =>
-  CreateResource.shape.slotMinutes.safeParse(Number(value)).success;
+type Minutes = (typeof RESOURCE_MINUTES)[number];
+const DEFAULT_SLOT_MINUTES: Minutes = 60;
 
 export function AddResourceForm({ venueId }: { venueId: number }) {
   const addResource = useAddResource();
   const [name, setName] = useState("");
   const [type, setType] = useState<ResourceType>(DEFAULT_TYPE);
-  const [slotMinutes, setSlotMinutes] = useState(DEFAULT_SLOT_MINUTES);
+  const [slotMinutes, setSlotMinutes] = useState<Minutes>(DEFAULT_SLOT_MINUTES);
+  const [startIntervalMinutes, setStartIntervalMinutes] = useState<Minutes>(
+    DEFAULT_START_INTERVAL_MINUTES,
+  );
   const [rupees, setRupees] = useState("");
 
   const submit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     addResource.mutate(
       {
-        body: { venueId, name, type, slotMinutes: Number(slotMinutes), price: lkr(Number(rupees)) },
+        body: {
+          venueId,
+          name,
+          type,
+          slotMinutes,
+          startIntervalMinutes,
+          price: lkr(Number(rupees)),
+        },
       },
       {
         onSuccess: () => {
@@ -69,22 +84,69 @@ export function AddResourceForm({ venueId }: { venueId: number }) {
           </Radio>
         ))}
       </RadioGroup>
-      <TextField
+      <MinutesChoice
         name="slotMinutes"
-        type="number"
-        isRequired
+        label={m.slotLabel}
         value={slotMinutes}
-        onChange={setSlotMinutes}
-        validate={(value) => (isSlotLength(value) ? null : m.slotInvalid)}
-      >
-        <Label>{m.slotLabel}</Label>
-        <Input />
-        <FieldError />
-      </TextField>
+        onChange={(minutes) => {
+          setSlotMinutes(minutes);
+          setStartIntervalMinutes((interval) => Math.min(interval, minutes) as Minutes);
+        }}
+      />
+      <MinutesChoice
+        name="startIntervalMinutes"
+        label={m.intervalLabel}
+        description={m.intervalHint}
+        value={startIntervalMinutes}
+        onChange={setStartIntervalMinutes}
+        longest={slotMinutes}
+      />
       <PriceField label={m.priceLabel} value={rupees} onChange={setRupees} />
       <Button type="submit" isPending={addResource.isPending}>
         {m.submit}
       </Button>
     </Form>
+  );
+}
+
+function MinutesChoice({
+  name,
+  label,
+  description,
+  value,
+  onChange,
+  longest,
+}: {
+  name: string;
+  label: string;
+  description?: string;
+  value: Minutes;
+  onChange: (minutes: Minutes) => void;
+  longest?: Minutes;
+}) {
+  return (
+    <RadioGroup
+      name={name}
+      orientation="horizontal"
+      value={String(value)}
+      onChange={(picked) => onChange(Number(picked) as Minutes)}
+    >
+      <Label>{label}</Label>
+      {description && <Description>{description}</Description>}
+      {RESOURCE_MINUTES.map((minutes) => (
+        <Radio
+          key={minutes}
+          value={String(minutes)}
+          isDisabled={longest !== undefined && minutes > longest}
+        >
+          <Radio.Control>
+            <Radio.Indicator />
+          </Radio.Control>
+          <Radio.Content>
+            <Label>{m.minutes(minutes)}</Label>
+          </Radio.Content>
+        </Radio>
+      ))}
+    </RadioGroup>
   );
 }

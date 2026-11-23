@@ -2,6 +2,7 @@ import {
   type BankAccount,
   DEFAULT_CANCELLATION_CUT_OFF_HOURS,
   DEFAULT_PAYMENT_TIME_LIMIT_MINUTES,
+  DEFAULT_START_INTERVAL_MINUTES,
   FULL_AMOUNT_PERCENT,
   type OpeningHours,
   RESOURCE_TYPES,
@@ -91,6 +92,9 @@ export const resources = pgTable(
     name: text("name").notNull(),
     type: resourceType("type").notNull(),
     slotMinutes: integer("slot_minutes").notNull(),
+    startIntervalMinutes: integer("start_interval_minutes")
+      .notNull()
+      .default(DEFAULT_START_INTERVAL_MINUTES),
     ...priceColumns(),
     active: boolean("active").notNull().default(true),
     ...timestampColumns(),
@@ -101,6 +105,11 @@ export const resources = pgTable(
     uniqueIndex("resources_venue_name_unique")
       .on(table.venueId, sql`lower(${table.name})`)
       .where(sql`${table.active}`),
+    check("resources_slot_minutes_allowed", sql`${table.slotMinutes} IN (15, 30, 60)`),
+    check(
+      "resources_start_interval_allowed",
+      sql`${table.startIntervalMinutes} IN (15, 30, 60) AND ${table.startIntervalMinutes} <= ${table.slotMinutes}`,
+    ),
   ],
 );
 

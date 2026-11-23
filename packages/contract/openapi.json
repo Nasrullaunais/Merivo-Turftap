@@ -1204,6 +1204,11 @@
             "minimum": -9007199254740991,
             "maximum": 9007199254740991
           },
+          "startIntervalMinutes": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
           "price": {
             "$ref": "#/components/schemas/Money"
           },
@@ -1227,6 +1232,7 @@
           "name",
           "type",
           "slotMinutes",
+          "startIntervalMinutes",
           "price",
           "active",
           "createdAt",
@@ -1250,10 +1256,21 @@
             "$ref": "#/components/schemas/ResourceType"
           },
           "slotMinutes": {
-            "type": "integer",
-            "minimum": 15,
-            "maximum": 240,
-            "multipleOf": 15
+            "type": "number",
+            "enum": [
+              15,
+              30,
+              60
+            ]
+          },
+          "startIntervalMinutes": {
+            "default": 30,
+            "type": "number",
+            "enum": [
+              15,
+              30,
+              60
+            ]
           },
           "price": {
             "$ref": "#/components/schemas/PriceInput"
@@ -1279,10 +1296,20 @@
             "$ref": "#/components/schemas/ResourceType"
           },
           "slotMinutes": {
-            "type": "integer",
-            "minimum": 15,
-            "maximum": 240,
-            "multipleOf": 15
+            "type": "number",
+            "enum": [
+              15,
+              30,
+              60
+            ]
+          },
+          "startIntervalMinutes": {
+            "type": "number",
+            "enum": [
+              15,
+              30,
+              60
+            ]
           },
           "price": {
             "$ref": "#/components/schemas/PriceInput"
