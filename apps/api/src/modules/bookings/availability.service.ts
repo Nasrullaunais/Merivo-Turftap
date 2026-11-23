@@ -39,6 +39,8 @@ export type Day = {
   blocked: Window[];
   /** Bookings that hold their slots. */
   booked: Window[];
+  /** D-06: customers book only up to the horizon; staff book any date. */
+  limitedToHorizon: boolean;
 };
 
 export async function loadDay(auth: AuthContext, resourceId: number, date: string): Promise<Day> {
@@ -74,6 +76,7 @@ export async function loadDay(auth: AuthContext, resourceId: number, date: strin
     closed,
     blocked: blocks,
     booked: bookings,
+    limitedToHorizon: auth.actor !== "staff",
   };
 }
 
@@ -117,7 +120,7 @@ export function quote(day: Day, start: number, end: number, now = new Date()): S
     day.bookable &&
     !day.closed &&
     startsAt > now &&
-    day.date <= lastBookableDate &&
+    (!day.limitedToHorizon || day.date <= lastBookableDate) &&
     ![...day.blocked, ...day.booked].some(
       (taken) => taken.startsAt < endsAt && taken.endsAt > startsAt,
     );

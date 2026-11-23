@@ -53,6 +53,24 @@ export type UpdateBlockedTime = {
     reason?: string | null;
 };
 
+export type Customer = {
+    id: number;
+    phone: string;
+    name: string;
+    createdAt: string;
+    updatedAt: string;
+};
+
+export type CreateCustomer = {
+    phone: string;
+    name: string;
+};
+
+export type UpdateCustomer = {
+    phone?: string;
+    name?: string;
+};
+
 /**
  * A weekday that is not listed is closed.
  */
@@ -146,10 +164,17 @@ export type Booking = {
     updatedAt: string;
 };
 
+export type WalkIn = {
+    customerName: string;
+    customerPhone: string;
+    payment: 'CASH' | 'PAY_LATER';
+};
+
 export type CreateBooking = {
     resourceId: number;
     startsAt: string;
     slots?: number;
+    walkIn?: WalkIn;
 };
 
 export type UpdateBooking = {
@@ -182,24 +207,6 @@ export type CreateClosedDate = {
 export type UpdateClosedDate = {
     date?: string;
     reason?: string | null;
-};
-
-export type Customer = {
-    id: number;
-    phone: string;
-    name: string;
-    createdAt: string;
-    updatedAt: string;
-};
-
-export type CreateCustomer = {
-    phone: string;
-    name: string;
-};
-
-export type UpdateCustomer = {
-    phone?: string;
-    name?: string;
 };
 
 export const FilePurpose = { PHOTO: 'PHOTO' } as const;

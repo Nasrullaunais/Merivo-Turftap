@@ -22,8 +22,9 @@ As an **Owner**, I want unpaid bookings to free their slots, so that slots aren'
 
 ## BKG-04 Walk-in booking
 As **Front Desk**, I want to book for someone at the desk or on the phone, so that every booking lives in one calendar.
-- I type a name and phone number. An existing customer with that number is reused.
-- The booking is confirmed straight away, marked "paid in cash" or "pay later".
+- I type a name and phone number. An existing customer with that number is reused, and their name on record stays as it is.
+- The booking is confirmed straight away, marked "paid in cash" or "pay later". Paid in cash records a cash payment for the full price, so nothing is left to pay; pay later leaves the full price as the balance.
+- I can book any free slot, including later today and more than 30 days ahead. If someone else just took it, I'm told so, the same as a customer.
 
 ## BKG-05 Booking calendar
 As **Staff**, I want a day and week calendar per venue, so that I can see what's happening at a glance.

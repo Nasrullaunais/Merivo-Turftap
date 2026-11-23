@@ -14,7 +14,7 @@ A customer buys a membership online and pays with a Transfer Receipt; Front Desk
 - `memberships` resource: list, get, create, update. `forCustomers`: list, get, create, update (cancel own).
 - Online: `startsOn` today or later (venue's time zone); `endsOn` from the plan length; waits for payment with the venue's Payment Time Limit, then expires like a booking.
 - Renew: if the customer has an `ACTIVE` membership of the same plan, `startsOn` = the day after it ends (`MEM-04`).
-- Desk sale (`MEM-03`): staff create with name, phone and `CASH` or `PAY_LATER`; `ACTIVE` straight away.
+- Desk sale (`MEM-03`): staff create with name, phone and `CASH` or `PAY_LATER`; `ACTIVE` straight away. Reuse the `walkIn` object from `CreateBooking` (T10).
 - `payments.membershipId` (a payment points at a booking **or** a membership, a check constraint makes sure of exactly one). Receipt send, accept and reject (T11, T13) now work for memberships too. Templates `membershipActive`, `membershipExpired`.
 - States (D-08): `EXPIRED` means not paid in time, like bookings; `ENDED` means the end date passed (already written in `docs/architecture/payments.md`).
 - Buying online at a Pay at Venue venue: **OQ-03**. Until answered, refuse it with a clear error ("buy this at the desk").

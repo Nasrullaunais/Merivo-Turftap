@@ -85,6 +85,19 @@ describe("SIG-06 bookings for staff limited to some venues", () => {
     );
   });
 
+  it("walkIn_onlyAtTheirVenues", async () => {
+    const asManager = asStaff(tenant, tenant.manager);
+    const walkIn = (resourceId: number) =>
+      call("POST", "/v1/bookings", asManager, {
+        resourceId,
+        startsAt: instantAt(date, TEN_O_CLOCK + 2 * 60, "Asia/Colombo").toISOString(),
+        walkIn: { customerName: "Kasun", customerPhone: uniquePhone(), payment: "CASH" },
+      });
+    expect((await walkIn(resourceA)).status).toBe(201);
+    const reply = await walkIn(resourceB);
+    expect(reply).toMatchObject({ status: 404, body: { code: "tt_ven_003" } });
+  });
+
   it("availability_repliesNotFoundForAResourceAtAnotherVenue", async () => {
     const asManager = asStaff(tenant, tenant.manager);
     expect((await call("GET", availability(resourceA), asManager)).status).toBe(200);

@@ -165,7 +165,7 @@ describe("BKG-02 bookings routes", () => {
     expect(stranger.body.data.content).toEqual([]);
   });
 
-  it("frontDesk_seesAndFiltersEveryBookingButCannotBookOnlineForSomeone", async () => {
+  it("frontDesk_seesAndFiltersEveryBookingAndMustSayWhoAWalkInIsFor", async () => {
     const phone = await newCustomer();
     const booking = (
       await call("POST", "/v1/bookings", asCustomer(tenant, phone), {
@@ -187,6 +187,61 @@ describe("BKG-02 bookings routes", () => {
     const reply = await call("POST", "/v1/bookings", asFrontDesk, {
       resourceId,
       startsAt: startAt(21),
+    });
+    expect(reply).toMatchObject({
+      status: 400,
+      body: { code: "tt_bkg_008", errors: [{ field: "walkIn" }] },
+    });
+  });
+
+  it("frontDesk_booksAWalkInPaidInCash_andTheCashIsRecorded", async () => {
+    const asFrontDesk = asStaff(tenant, tenant.frontDesk);
+    const customerPhone = uniquePhone();
+    const reply = await call("POST", "/v1/bookings", asFrontDesk, {
+      resourceId,
+      startsAt: startAt(18),
+      walkIn: { customerName: "Kasun Silva", customerPhone, payment: "CASH" },
+    });
+    expect(reply).toMatchObject({
+      status: 201,
+      body: {
+        data: {
+          status: "CONFIRMED",
+          source: "WALK_IN",
+          customerName: "Kasun Silva",
+          customerPhone,
+          paid: { amount: 300_000, currency: "LKR" },
+          balance: { amount: 0, currency: "LKR" },
+          expiresAt: null,
+        },
+      },
+    });
+    const payments = await call("GET", `/v1/payments?bookingId=${reply.body.data.id}`, asFrontDesk);
+    expect(payments.body.data.content).toMatchObject([
+      { kind: "CASH", status: "ACCEPTED", amount: { amount: 300_000, currency: "LKR" } },
+    ]);
+  });
+
+  it("walkIn_withABlankNameOrBadPhone_namesEachField", async () => {
+    const reply = await call("POST", "/v1/bookings", asStaff(tenant, tenant.frontDesk), {
+      resourceId,
+      startsAt: startAt(11),
+      walkIn: { customerName: " ", customerPhone: "12", payment: "CARD" },
+    });
+    expect(reply.status).toBe(400);
+    expect(reply.body.errors.map((error: { field: string }) => error.field).sort()).toEqual([
+      "walkIn.customerName",
+      "walkIn.customerPhone",
+      "walkIn.payment",
+    ]);
+  });
+
+  it("customer_cannotBookAWalkIn", async () => {
+    const phone = await newCustomer();
+    const reply = await call("POST", "/v1/bookings", asCustomer(tenant, phone), {
+      resourceId,
+      startsAt: startAt(12),
+      walkIn: { customerName: "Kasun", customerPhone: uniquePhone(), payment: "PAY_LATER" },
     });
     expect(reply).toMatchObject({ status: 403, body: { code: "tt_htt_403" } });
   });

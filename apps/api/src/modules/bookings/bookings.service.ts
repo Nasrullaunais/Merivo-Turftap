@@ -7,6 +7,7 @@ import {
   HOLDING_STATUSES,
   type Money,
   type UpdateBooking,
+  type WalkIn,
 } from "@turftap/contract";
 
 import type { AuthContext } from "../../lib/auth/context";
@@ -17,7 +18,7 @@ import { describeInstant, wallClockAt } from "../../lib/time";
 import { WHATSAPP_TEMPLATES } from "../../ports/messaging-channel";
 import * as customersService from "../customers/customers.service";
 import * as notificationsService from "../notifications/notifications.service";
-import * as paidAmountsService from "../payments/paid-amounts.service";
+import * as bookingPaymentsService from "../payments/booking-payments.service";
 import * as resourcesService from "../venues/resources.service";
 import * as venuesService from "../venues/venues.service";
 import * as availabilityService from "./availability.service";
@@ -72,7 +73,7 @@ async function detailsOf(auth: AuthContext, bookings: StoredBooking[]) {
     auth.tenantId,
     bookings.map((booking) => booking.customerId),
   );
-  const paidFor = await paidAmountsService.paidFor(
+  const paidFor = await bookingPaymentsService.paidFor(
     auth,
     bookings.map((booking) => booking.id),
   );
@@ -118,9 +119,8 @@ function amountDueOf(price: Money, venue: Venue): number {
   return Math.ceil(centsTimesPercent / (FULL_AMOUNT_PERCENT * CENTS_PER_RUPEE)) * CENTS_PER_RUPEE;
 }
 
-function customerIdOf(auth: AuthContext): number {
-  // Staff book walk-ins, which come with T10.
-  if (!isCustomerSide(auth)) throw httpErrors.notAllowed();
+function ownCustomerIdOf(auth: AuthContext): number {
+  if (!isCustomerSide(auth)) throw bookingErrors.walkInMissing();
   if (auth.customerId === undefined) throw bookingErrors.noCustomerRecord();
   return auth.customerId;
 }
@@ -144,7 +144,8 @@ async function quoteFor(auth: AuthContext, input: CreateBooking, now: Date) {
  * the free-slot check to the insert, so a booking or Blocked Time saved meanwhile waits.
  */
 export async function create(auth: AuthContext, input: CreateBooking) {
-  const customerId = customerIdOf(auth);
+  if (input.walkIn) return createWalkIn(auth, input, input.walkIn);
+  const customerId = ownCustomerIdOf(auth);
   const now = new Date();
   return transaction(async () => {
     const { resource, venue, slot } = await quoteFor(auth, input, now);
@@ -171,6 +172,38 @@ export async function create(auth: AuthContext, input: CreateBooking) {
         { startAfter: expiresAt },
       );
     return replyOf(booking, await detailsOfOne(auth, booking), venue);
+  });
+}
+
+/**
+ * BKG-04: staff book for someone at the desk or on the phone. Confirmed straight away, with no
+ * Advance and no expiry; a cash walk-in pays the full price in the same transaction.
+ */
+async function createWalkIn(auth: AuthContext, input: CreateBooking, walkIn: WalkIn) {
+  if (isCustomerSide(auth)) throw httpErrors.notAllowed();
+  return transaction(async () => {
+    const { resource, venue, slot } = await quoteFor(auth, input, new Date());
+    const customer = await customersService.findOrCreateByPhone(
+      auth,
+      walkIn.customerPhone,
+      walkIn.customerName,
+    );
+    const booking = await bookingsRepository.insert(auth.tenantId, {
+      venueId: venue.id,
+      resourceId: resource.id,
+      customerId: customer.id,
+      startsAt: slot.startsAt,
+      endsAt: slot.endsAt,
+      status: "CONFIRMED",
+      source: "WALK_IN",
+      priceAmount: slot.price.amount,
+      priceCurrency: slot.price.currency,
+      amountDue: 0,
+      expiresAt: null,
+      cancellationCutOffHours: venue.cancellationCutOffHours,
+    });
+    if (walkIn.payment === "CASH") await bookingPaymentsService.recordWalkInCash(auth, booking);
+    return replyOf(booking, await detailsOfOne(auth, booking));
   });
 }
 

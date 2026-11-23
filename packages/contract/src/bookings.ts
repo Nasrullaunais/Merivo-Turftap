@@ -1,6 +1,7 @@
 import { z } from "zod";
 
-import { Id, LocalDate, Money, PhoneNumber, Timestamp } from "./common";
+import { Id, LocalDate, Money, PhoneInput, PhoneNumber, Timestamp } from "./common";
+import { CustomerName } from "./customers";
 import { BankAccount } from "./venues";
 
 export const BOOKING_STATUSES = [
@@ -13,6 +14,7 @@ export const BOOKING_STATUSES = [
 /** Bookings in these states hold their slots; nobody else can book the same time. */
 export const HOLDING_STATUSES = ["AWAITING_PAYMENT", "AWAITING_CHECK", "CONFIRMED"] as const;
 export const BOOKING_SOURCES = ["ONLINE", "WALK_IN"] as const;
+export const WALK_IN_PAYMENTS = ["CASH", "PAY_LATER"] as const;
 
 /** D-06: customers can book up to this many days ahead of the venue's today. */
 export const BOOKING_HORIZON_DAYS = 30;
@@ -51,12 +53,25 @@ export const Booking = z
   })
   .meta({ id: "Booking" });
 
-/** BKG-02: one or more back-to-back slots from `startsAt`. The server works out the rest. */
+/** BKG-04: who staff book for, and whether they paid the full price in cash at the desk. */
+export const WalkIn = z
+  .object({
+    customerName: CustomerName,
+    customerPhone: PhoneInput,
+    payment: z.enum(WALK_IN_PAYMENTS),
+  })
+  .meta({ id: "WalkIn" });
+
+/**
+ * BKG-02: one or more back-to-back slots from `startsAt`. The server works out the rest.
+ * Staff always send `walkIn` (BKG-04); customers and the Assistant never do.
+ */
 export const CreateBooking = z
   .object({
     resourceId: Id,
     startsAt: Timestamp,
     slots: z.number().int().min(1).max(MAX_SLOTS_PER_BOOKING).default(1),
+    walkIn: WalkIn.optional(),
   })
   .meta({ id: "CreateBooking" });
 
@@ -101,6 +116,8 @@ export const AVAILABILITY_SORT_FIELDS = ["startsAt"] as const;
 
 export type BookingStatus = (typeof BOOKING_STATUSES)[number];
 export type BookingSource = (typeof BOOKING_SOURCES)[number];
+export type WalkInPayment = (typeof WALK_IN_PAYMENTS)[number];
+export type WalkIn = z.output<typeof WalkIn>;
 export type Booking = z.output<typeof Booking>;
 export type CreateBooking = z.output<typeof CreateBooking>;
 export type UpdateBooking = z.output<typeof UpdateBooking>;

@@ -58,7 +58,7 @@ These came up while writing the spec and were approved afterwards:
 Decided on 2026-11-23 while planning the tickets (`tickets/README.md`, D-05 to D-21):
 
 9. **Slot length and Start Interval per resource**: slots are 15, 30 or 60 minutes, and bookings start every 15, 30 or 60 minutes on the clock. Price Rules fit the Start Interval; a booking running into one pays each part at the price then. `VEN-04`, `VEN-05`, `BKG-01`.
-10. **One unpaid booking at a time**: a customer may have one booking waiting for payment per tenant, and can cancel it any time. Customers book up to 30 days ahead. `BKG-02`, `BKG-06`.
+10. **One unpaid booking at a time**: a customer may have one booking waiting for payment per tenant, and can cancel it any time. Customers book up to 30 days ahead; staff have no limit. `BKG-02`, `BKG-06`.
 11. **Pay at Venue**: a venue setting; online bookings there are confirmed straight away. `VEN-03`, `BKG-02`.
 12. **Payment Time Limit default is 20 minutes**, down from 30. `VEN-03`.
 13. **Repeat series are confirmed when created**, and the Advance is asked for a few days before each booking (venue setting, default 2). `BKG-09`.

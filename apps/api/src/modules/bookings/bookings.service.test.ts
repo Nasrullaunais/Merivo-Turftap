@@ -38,6 +38,13 @@ const bankAccount = {
   accountNumber: "0071 2345 678",
 };
 
+const expireJobsFor = async (bookingId: number) => {
+  const { rows } = await db().execute(
+    sql`select start_after from pgboss.job where name = 'expire-booking' and (data->>'bookingId')::int = ${bookingId}`,
+  );
+  return rows.map((row) => new Date(row.start_after as string));
+};
+
 describe("BKG-02 book online", () => {
   let tenant: TestTenant;
   const owner = () => tenant.owner.auth;
@@ -75,13 +82,6 @@ describe("BKG-02 book online", () => {
 
   const book = async (resourceId: number, startsAt: Date, slots = 1, auth?: AuthContext) =>
     bookingsService.create(auth ?? (await newCustomer()), { resourceId, startsAt, slots });
-
-  const expireJobsFor = async (bookingId: number) => {
-    const { rows } = await db().execute(
-      sql`select start_after from pgboss.job where name = 'expire-booking' and (data->>'bookingId')::int = ${bookingId}`,
-    );
-    return rows.map((row) => new Date(row.start_after as string));
-  };
 
   describe("price and amount due", () => {
     it("create_waitsForPaymentAndHoldsTheSlotsForThePaymentTimeLimit", async () => {
@@ -246,11 +246,143 @@ describe("BKG-02 book online", () => {
       });
     });
 
-    it("create_refusesStaffUntilWalkInsArrive", async () => {
+    it("create_staffWithoutWalkInDetails_isAskedForThem", async () => {
       const { resourceId } = await setUp();
       await expect(book(resourceId, at(inDays(2), "10:00"), 1, owner())).rejects.toMatchObject({
-        code: "tt_htt_403",
+        code: "tt_bkg_008",
       });
+    });
+
+    it("create_customerSendingWalkInDetails_isRefused", async () => {
+      const { resourceId } = await setUp();
+      const walkIn = {
+        customerName: "Kasun",
+        customerPhone: uniquePhone(),
+        payment: "CASH" as const,
+      };
+      await expect(
+        bookingsService.create(await newCustomer(), {
+          resourceId,
+          startsAt: at(inDays(2), "10:00"),
+          slots: 1,
+          walkIn,
+        }),
+      ).rejects.toMatchObject({ code: "tt_htt_403" });
+    });
+  });
+});
+
+describe("BKG-04 walk-in booking", () => {
+  let tenant: TestTenant;
+  let resourceId: number;
+  let venueId: number;
+  const frontDesk = () => tenant.frontDesk.auth;
+
+  beforeAll(async () => {
+    tenant = await createTenant();
+    const openingHours = ALL_WEEKDAYS.map((weekday) => ({
+      weekday,
+      opens: "06:00",
+      closes: "23:00",
+    }));
+    venueId = (
+      await venuesService.create(tenant.owner.auth, venueInput({ openingHours, bankAccount }))
+    ).id;
+    resourceId = (
+      await resourcesService.create(
+        tenant.owner.auth,
+        resourceInput(venueId, { slotMinutes: 60, startIntervalMinutes: 30, price: rupees(2_000) }),
+      )
+    ).id;
+  });
+
+  const walkIn = (
+    startsAt: Date,
+    payment: "CASH" | "PAY_LATER",
+    customer: { customerName: string; customerPhone: string } = {
+      customerName: "Kasun Silva",
+      customerPhone: uniquePhone(),
+    },
+  ) =>
+    bookingsService.create(frontDesk(), {
+      resourceId,
+      startsAt,
+      slots: 2,
+      walkIn: { ...customer, payment },
+    });
+
+  it("walkIn_paidInCash_isConfirmedAndFullyPaid", async () => {
+    const booking = await walkIn(at(inDays(2), "18:00"), "CASH");
+    const expected = {
+      venueId,
+      status: "CONFIRMED",
+      source: "WALK_IN",
+      price: rupees(4_000),
+      amountDue: rupees(0),
+      paid: rupees(4_000),
+      balance: rupees(0),
+      expiresAt: null,
+      bankAccount: null,
+    };
+    expect(booking).toMatchObject(expected);
+    expect(await bookingsService.get(frontDesk(), booking.id)).toMatchObject(expected);
+    expect(await expireJobsFor(booking.id)).toEqual([]);
+  });
+
+  it("walkIn_payLater_owesTheFullPrice", async () => {
+    const booking = await walkIn(at(inDays(2), "08:00"), "PAY_LATER");
+    expect(booking).toMatchObject({
+      status: "CONFIRMED",
+      paid: rupees(0),
+      balance: rupees(4_000),
+      expiresAt: null,
+    });
+  });
+
+  it("walkIn_knownPhone_reusesTheCustomerAndKeepsTheirName", async () => {
+    const phone = uniquePhone();
+    const known = await customersService.create(tenant.owner.auth, { name: "Nimal Perera", phone });
+    const booking = await walkIn(at(inDays(3), "08:00"), "PAY_LATER", {
+      customerName: "Nimal",
+      customerPhone: phone,
+    });
+    expect(booking).toMatchObject({
+      customerId: known.id,
+      customerName: "Nimal Perera",
+      customerPhone: phone,
+    });
+    expect(await customersService.get(tenant.owner.auth, known.id)).toMatchObject({
+      name: "Nimal Perera",
+    });
+  });
+
+  it("walkIn_newPhone_createsTheCustomer", async () => {
+    const phone = uniquePhone();
+    const booking = await walkIn(at(inDays(3), "12:00"), "CASH", {
+      customerName: "Kasun Silva",
+      customerPhone: phone,
+    });
+    const customer = await customersService.get(tenant.owner.auth, booking.customerId);
+    expect(customer).toMatchObject({ name: "Kasun Silva", phone });
+  });
+
+  it("walkIn_slotHeldBySomeoneElse_isToldItWasJustTaken", async () => {
+    await walkIn(at(inDays(4), "10:00"), "PAY_LATER");
+    await expect(walkIn(at(inDays(4), "11:00"), "CASH")).rejects.toMatchObject({
+      code: "tt_bkg_002",
+      message: "That slot was just taken. Please pick another time",
+    });
+  });
+
+  it("walkIn_moreThanThirtyDaysAhead_isAllowedForStaff", async () => {
+    expect(await walkIn(at(inDays(45), "10:00"), "PAY_LATER")).toMatchObject({
+      status: "CONFIRMED",
+    });
+  });
+
+  it("walkIn_inThePast_isRefused", async () => {
+    await expect(walkIn(at(inDays(-1), "10:00"), "CASH")).rejects.toMatchObject({
+      code: "tt_bkg_004",
     });
   });
 });
