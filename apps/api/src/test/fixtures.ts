@@ -72,6 +72,7 @@ export const resourceInput = (
   name: `Court ${crypto.randomUUID().slice(0, 6)}`,
   type: "FUTSAL_COURT",
   slotMinutes: 60,
+  startIntervalMinutes: 30,
   price: { amount: 250_000, currency: "LKR" },
   ...overrides,
 });

@@ -1,8 +1,15 @@
-import type { CreateResource, ResourceFilters, UpdateResource } from "@turftap/contract";
+import {
+  type CreateResource,
+  INTERVAL_LONGER_THAN_SLOT,
+  type ResourceFilters,
+  type UpdateResource,
+} from "@turftap/contract";
 
 import type { AuthContext } from "../../lib/auth/context";
 import { transaction } from "../../lib/db";
+import { httpErrors } from "../../lib/errors";
 import type { ListQuery } from "../../lib/resource";
+import * as priceRulesRepository from "./price-rules.repository";
 import * as resourcesRepository from "./resources.repository";
 import { venueErrors } from "./venues.errors";
 import * as venuesService from "./venues.service";
@@ -21,8 +28,9 @@ export function list(
   return resourcesRepository.list(auth.tenantId, auth.venueIds, { ...filters, active }, page);
 }
 
-export async function get(auth: AuthContext, id: number) {
-  const resource = await resourcesRepository.findById(auth.tenantId, id, auth.venueIds);
+/** With `lock: "share"`, the resource's settings can't change until the transaction ends. */
+export async function get(auth: AuthContext, id: number, lock?: "share") {
+  const resource = await resourcesRepository.findById(auth.tenantId, id, auth.venueIds, lock);
   if (!resource || (!resource.active && !seesInactive(auth)))
     throw venueErrors.resourceNotFound(id);
   return resource;
@@ -38,6 +46,21 @@ export function create(auth: AuthContext, input: CreateResource) {
 export function update(auth: AuthContext, id: number, input: UpdateResource) {
   if (Object.keys(input).length === 0) return get(auth, id);
   return transaction(async () => {
+    const saved = await resourcesRepository.findById(auth.tenantId, id, auth.venueIds, "update");
+    if (!saved) throw venueErrors.resourceNotFound(id);
+    const { slotMinutes, startIntervalMinutes } = { ...saved, ...input };
+    if (startIntervalMinutes > slotMinutes)
+      throw httpErrors.invalidRequest([
+        { field: "startIntervalMinutes", message: INTERVAL_LONGER_THAN_SLOT },
+      ]);
+    if (startIntervalMinutes !== saved.startIntervalMinutes) {
+      const misfit = await priceRulesRepository.findOffInterval(
+        auth.tenantId,
+        id,
+        startIntervalMinutes,
+      );
+      if (misfit) throw venueErrors.intervalMisfitsPriceRule(misfit);
+    }
     const resource = await resourcesRepository.update(auth.tenantId, id, auth.venueIds, input);
     if (!resource) throw venueErrors.resourceNotFound(id);
     return resource;

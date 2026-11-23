@@ -1,6 +1,6 @@
 # T48 Slot length and Start Interval per resource
 
-Status: todo · Stories: `VEN-04`, `VEN-05` (changed) · Depends on: none · Decisions: **D-20**, **D-21**
+Status: done · Stories: `VEN-04`, `VEN-05` (changed) · Depends on: none · Decisions: **D-20**, **D-21**
 
 ## Goal
 Each resource says how long one slot is and how often a booking may start, and its Price Rules fit those start times. Free slots (T05) are built on this.

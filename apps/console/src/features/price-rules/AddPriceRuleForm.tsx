@@ -4,21 +4,43 @@ import {
   CheckboxGroup,
   FieldError,
   Form,
-  Input,
   Label,
-  TextField,
+  ListBox,
+  Select,
 } from "@heroui/react";
+import { localTimeAt } from "@turftap/contract";
 import { lkr } from "@turftap/ui";
 import { type FormEvent, useState } from "react";
 
 import { PriceField } from "../../components/PriceField";
 import m from "../../i18n/en/prices";
 import { useAddPriceRule } from "./useChangePriceRules";
+import { useStartInterval } from "./usePriceRules";
 
 const DEFAULT_START = "18:00";
 const DEFAULT_END = "22:00";
+const MINUTES_PER_DAY = 24 * 60;
+
+/** Every time on the Start Interval from `first` minute to `last` minute of the day. */
+const timesEvery = (intervalMinutes: number, first: number, last: number) =>
+  Array.from({ length: (last - first) / intervalMinutes + 1 }, (_, index) =>
+    localTimeAt(first + index * intervalMinutes),
+  );
 
 export function AddPriceRuleForm({ resourceId }: { resourceId: number }) {
+  const intervalMinutes = useStartInterval(resourceId);
+  return intervalMinutes ? (
+    <PriceRuleForm resourceId={resourceId} intervalMinutes={intervalMinutes} />
+  ) : null;
+}
+
+function PriceRuleForm({
+  resourceId,
+  intervalMinutes,
+}: {
+  resourceId: number;
+  intervalMinutes: number;
+}) {
   const addRule = useAddPriceRule();
   const [weekdays, setWeekdays] = useState<string[]>([]);
   const [startTime, setStartTime] = useState(DEFAULT_START);
@@ -72,27 +94,64 @@ export function AddPriceRuleForm({ resourceId }: { resourceId: number }) {
         <FieldError />
       </CheckboxGroup>
       <div className="grid grid-cols-2 gap-3">
-        <TextField type="time" isRequired value={startTime} onChange={setStartTime}>
-          <Label>{m.startLabel}</Label>
-          <Input />
-          <FieldError />
-        </TextField>
-        <TextField
-          type="time"
-          isRequired
+        <TimeSelect
+          label={m.startLabel}
+          times={timesEvery(intervalMinutes, 0, MINUTES_PER_DAY - intervalMinutes)}
+          value={startTime}
+          onChange={setStartTime}
+        />
+        <TimeSelect
+          label={m.endLabel}
+          times={timesEvery(intervalMinutes, intervalMinutes, MINUTES_PER_DAY)}
           value={endTime}
           onChange={setEndTime}
           validate={(end) => (end > startTime ? null : m.endBeforeStart)}
-        >
-          <Label>{m.endLabel}</Label>
-          <Input />
-          <FieldError />
-        </TextField>
+        />
       </div>
       <PriceField label={m.rulePriceLabel} value={rupees} onChange={setRupees} />
       <Button type="submit" isPending={addRule.isPending}>
         {m.addRule}
       </Button>
     </Form>
+  );
+}
+
+function TimeSelect({
+  label,
+  times,
+  value,
+  onChange,
+  validate,
+}: {
+  label: string;
+  times: string[];
+  value: string;
+  onChange: (time: string) => void;
+  validate?: (time: string) => string | null;
+}) {
+  return (
+    <Select
+      isRequired
+      value={value}
+      onChange={(time) => onChange(String(time))}
+      validate={validate && ((time) => validate(String(time)))}
+    >
+      <Label>{label}</Label>
+      <Select.Trigger>
+        <Select.Value />
+        <Select.Indicator />
+      </Select.Trigger>
+      <FieldError />
+      <Select.Popover>
+        <ListBox>
+          {times.map((time) => (
+            <ListBox.Item key={time} id={time} textValue={time}>
+              {time}
+              <ListBox.ItemIndicator />
+            </ListBox.Item>
+          ))}
+        </ListBox>
+      </Select.Popover>
+    </Select>
   );
 }

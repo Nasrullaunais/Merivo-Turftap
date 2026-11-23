@@ -45,6 +45,7 @@ const court = {
   name: "Court 1",
   type: "FUTSAL_COURT",
   slotMinutes: 60,
+  startIntervalMinutes: 30,
   price: { amount: 450_000, currency: "LKR" },
   active: true,
   ...times,

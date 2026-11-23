@@ -20,7 +20,12 @@ export function ResourceHeading({ resourceId }: { resourceId: number }) {
       </Link>
       <h1 className="text-2xl font-semibold">{resource.name}</h1>
       <p className="text-muted">
-        {m.details(m.types[resource.type], resource.slotMinutes, formatMoney(resource.price))}
+        {m.details(
+          m.types[resource.type],
+          resource.slotMinutes,
+          resource.startIntervalMinutes,
+          formatMoney(resource.price),
+        )}
       </p>
     </header>
   );

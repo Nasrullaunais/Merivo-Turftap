@@ -16,6 +16,18 @@ export const Timestamp = z.codec(z.iso.datetime(), z.date(), {
 /** A wall-clock time in the venue's time zone, such as "18:30". "24:00" means midnight at day end. */
 export const LocalTime = z.string().regex(/^(([01]\d|2[0-3]):[0-5]\d|24:00)$/, "Must be HH:MM");
 
+const MINUTES_PER_HOUR = 60;
+/** "18:30" → 1110, the minutes since the start of the day. */
+export const minuteOfDay = (time: string) => {
+  const [hours, minutes] = time.split(":").map(Number);
+  return hours! * MINUTES_PER_HOUR + minutes!;
+};
+/** 1110 → "18:30". */
+export const localTimeAt = (minute: number) =>
+  [Math.floor(minute / MINUTES_PER_HOUR), minute % MINUTES_PER_HOUR]
+    .map((part) => String(part).padStart(2, "0"))
+    .join(":");
+
 /** A calendar date in the venue's time zone, such as "2026-12-25". */
 export const LocalDate = z.iso.date();
 

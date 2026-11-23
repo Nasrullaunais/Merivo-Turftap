@@ -45,6 +45,7 @@ const court = {
   name: "Court 1",
   type: "FUTSAL_COURT",
   slotMinutes: 60,
+  startIntervalMinutes: 30,
   price: { amount: 450_000, currency: "LKR" },
   active: true,
   ...times,
@@ -55,8 +56,14 @@ const table = {
   name: "Pool Table 3",
   type: "POOL_TABLE",
   slotMinutes: 30,
+  startIntervalMinutes: 15,
   price: { amount: 60_000, currency: "LKR" },
 };
+
+const choiceIn = (group: string) => (name: string) =>
+  within(screen.getByRole("radiogroup", { name: group })).getByRole("radio", { name });
+const slotChoice = choiceIn("Slot length");
+const intervalChoice = choiceIn("Bookings start every");
 
 describe("VEN-04 add resources to a venue", () => {
   it("venueName_opensItsResources", async () => {
@@ -72,7 +79,7 @@ describe("VEN-04 add resources to a venue", () => {
     expect(await screen.findByRole("heading", { name: "City Arena" })).toBeInTheDocument();
     expect(await screen.findByText("Court 1")).toBeInTheDocument();
     expect(
-      screen.getByText("Futsal court · 60 min slots · LKR 4,500 per slot"),
+      screen.getByText("Futsal court · 60 min slots, starting every 30 min · LKR 4,500 per slot"),
     ).toBeInTheDocument();
   });
 
@@ -94,7 +101,8 @@ describe("VEN-04 add resources to a venue", () => {
     await screen.findByText("Court 1");
     fireEvent.change(screen.getByLabelText(/^Name/), { target: { value: "Pool Table 3" } });
     fireEvent.click(screen.getByRole("radio", { name: "Pool table" }));
-    fireEvent.change(screen.getByLabelText(/^Slot length/), { target: { value: "30" } });
+    fireEvent.click(slotChoice("30 minutes"));
+    fireEvent.click(intervalChoice("15 minutes"));
     fireEvent.change(screen.getByLabelText(/^Price per slot/), { target: { value: "600" } });
     fireEvent.click(screen.getByRole("button", { name: "Add resource" }));
 
@@ -105,6 +113,7 @@ describe("VEN-04 add resources to a venue", () => {
         name: "Pool Table 3",
         type: "POOL_TABLE",
         slotMinutes: 30,
+        startIntervalMinutes: 15,
         price: { amount: 60_000, currency: "LKR" },
       },
     ]);
@@ -114,21 +123,22 @@ describe("VEN-04 add resources to a venue", () => {
     expect(listed.every((url) => url.searchParams.get("venueId") === "3")).toBe(true);
   });
 
-  it("addResource_refusesASlotLengthThatIsNotInQuarterHours", async () => {
+  it("addResource_neverStartsBookingsLessOftenThanOneSlot", async () => {
     signInForTesting(PHONE);
-    const fetch = mockApi({
+    mockApi({
       "GET /v1/me": meAs("MANAGER"),
       "GET /v1/venues/3": arena,
       "GET /v1/resources": page([]),
     });
     renderApp("/venues/3");
     await screen.findByRole("heading", { name: "Add a resource" });
-    fireEvent.change(screen.getByLabelText(/^Name/), { target: { value: "Court 2" } });
-    fireEvent.change(screen.getByLabelText(/^Slot length/), { target: { value: "50" } });
-    fireEvent.click(screen.getByRole("button", { name: "Add resource" }));
-    expect(await screen.findByText("Use 15, 30, 45 … up to 240 minutes")).toBeInTheDocument();
-    const methods = fetch.mock.calls.map(([request]) => (request as Request).method);
-    expect(methods).not.toContain("POST");
+    expect(slotChoice("60 minutes")).toBeChecked();
+    expect(intervalChoice("30 minutes")).toBeChecked();
+
+    fireEvent.click(slotChoice("15 minutes"));
+    expect(intervalChoice("15 minutes")).toBeChecked();
+    expect(intervalChoice("30 minutes")).toBeDisabled();
+    expect(intervalChoice("60 minutes")).toBeDisabled();
   });
 
   it("manager_isToldTheNameIsTaken", async () => {
