@@ -1,5 +1,5 @@
 import { type CreatePriceRule, type CreateResource, CreateVenue } from "@turftap/contract";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import type { z } from "zod";
 
 import { fakeTokenFor } from "../adapters/auth-provider/fake/fake-auth-provider";
@@ -7,9 +7,11 @@ import { createApp } from "../app";
 import type { AuthContext, StaffRole } from "../lib/auth/context";
 import { config } from "../lib/config";
 import { db } from "../lib/db";
+import { type MessageData, sendMessage } from "../modules/notifications/notifications.jobs";
 import { tenants, users } from "../modules/platform/platform.tables";
 import * as whatsappNumbersService from "../modules/platform/whatsapp-numbers.service";
 import { staff } from "../modules/staff/staff.tables";
+import { testPorts } from "./ports";
 
 const PHONE_DIGITS = 7;
 let phonesHandedOut = 0;
@@ -187,3 +189,19 @@ export function linkWhatsAppNumber(tenant: TestTenant) {
     phone: uniquePhone(),
   });
 }
+
+/** AST-07: the customer messages queued for this customer and not yet sent. */
+export async function queuedMessagesFor(customerId: number) {
+  const { rows } = await db().execute(
+    sql`select data from pgboss.job where name = 'send-message' and (data->>'customerId')::int = ${customerId}`,
+  );
+  return rows.map((row) => row.data as MessageData);
+}
+
+/** Runs the message jobs queued for this customer, as the job worker would. */
+export async function sendQueuedMessages(customerId: number) {
+  for (const data of await queuedMessagesFor(customerId)) await sendMessage(data);
+}
+
+export const messagesTo = (phone: string) =>
+  testPorts.messaging.sent.filter((message) => message.to === phone);

@@ -25,7 +25,7 @@ Status: `todo`, `doing`, `done`, `blocked` (waiting on a decision or an outside 
 | [T02](T02-customer-and-assistant-callers.md) | Customer and Assistant callers on the API | POR-03, AST-05 | T01 | done |
 | **B. Messages** |||||
 | [T03](T03-whatsapp-numbers-api.md) | WhatsApp numbers: link script and Assistant lookup | PLA-02 | | done |
-| [T04](T04-notifications-module.md) | Notifications module | AST-07 | T01, T03 | todo |
+| [T04](T04-notifications-module.md) | Notifications module | AST-07 | T01, T03 | done |
 | **C. Bookings and payments (API)** |||||
 | [T46](T46-venue-payment-settings-2.md) | Venue payment settings: Pay at Venue, 20-minute default, series payment days | VEN-03 | | todo |
 | [T48](T48-slot-length-and-start-interval.md) | Slot length and Start Interval per resource | VEN-04, VEN-05 | | todo |

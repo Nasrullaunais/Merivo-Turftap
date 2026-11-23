@@ -1,6 +1,6 @@
 # T04 Notifications module
 
-Status: todo · Stories: `AST-07` · Depends on: T01, T03 · Decision: **D-04**
+Status: done · Stories: `AST-07` · Depends on: T01, T03 · Decision: **D-04**
 
 ## Goal
 One place sends every WhatsApp message about a booking or membership, from the tenant's own number, as a queued job so a message is only sent for data that really saved.
