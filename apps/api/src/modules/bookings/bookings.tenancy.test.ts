@@ -59,6 +59,16 @@ describe("bookings tenant isolation", () => {
     ).toHaveLength(1);
   });
 
+  it("cancel_cannotCancelAnotherTenantsBooking", async () => {
+    const cancel = { status: "CANCELLED", cancelReason: "Rain" };
+    for (const as of [asStaff(tenantA), asCustomer(tenantA, phone), asAssistant(tenantA, phone)]) {
+      const reply = await call("PATCH", `/v1/bookings/${bookingOfB.id}`, as, cancel);
+      expect(reply).toMatchObject({ status: 404, body: { code: "tt_bkg_001" } });
+    }
+    const stillThere = await call("GET", `/v1/bookings/${bookingOfB.id}`, asStaff(tenantB));
+    expect(stillThere.body.data.status).toBe("AWAITING_PAYMENT");
+  });
+
   it("create_cannotBookAnotherTenantsResource", async () => {
     const reply = await call("POST", "/v1/bookings", asCustomer(tenantA, phone), {
       resourceId: resourceOfB,

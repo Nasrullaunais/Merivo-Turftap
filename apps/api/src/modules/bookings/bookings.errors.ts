@@ -1,4 +1,4 @@
-import { constraintErrors, Conflict, NotFound } from "../../lib/errors";
+import { BadRequest, constraintErrors, Conflict, NotFound } from "../../lib/errors";
 
 export const bookingErrors = {
   notFound: (id: number) => new NotFound("tt_bkg_001", `Booking ${id} was not found`),
@@ -12,6 +12,15 @@ export const bookingErrors = {
     new Conflict("tt_bkg_004", "That time can't be booked. Please pick a free slot"),
   noCustomerRecord: () =>
     new Conflict("tt_bkg_005", "Please add your name before your first booking"),
+  pastCancellationCutOff: (venueName: string, venuePhone: string) =>
+    new Conflict(
+      "tt_bkg_006",
+      `It's too late to cancel online. Please call ${venueName} on ${venuePhone}`,
+    ),
+  cancelReasonMissing: () =>
+    new BadRequest("tt_bkg_007", "Please give a reason for cancelling", [
+      { field: "cancelReason", message: "Required when staff cancel a booking" },
+    ]),
 };
 
 constraintErrors({

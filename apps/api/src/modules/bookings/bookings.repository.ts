@@ -81,10 +81,11 @@ export async function setStatus(
   id: number,
   from: BookingStatus,
   to: BookingStatus,
+  changes: Pick<NewBooking, "cancelReason"> = {},
 ) {
   const [booking] = await db()
     .update(bookings)
-    .set({ status: to })
+    .set({ ...changes, status: to })
     .where(and(eq(bookings.tenantId, tenantId), eq(bookings.id, id), eq(bookings.status, from)))
     .returning();
   return booking && toBooking(booking);

@@ -623,6 +623,12 @@
             "minimum": -9007199254740991,
             "maximum": 9007199254740991
           },
+          "cancelReason": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
           "bankAccount": {
             "anyOf": [
               {
@@ -657,6 +663,7 @@
           "amountDue",
           "expiresAt",
           "cancellationCutOffHours",
+          "cancelReason",
           "bankAccount",
           "createdAt",
           "updatedAt"
@@ -685,6 +692,29 @@
         "required": [
           "resourceId",
           "startsAt"
+        ]
+      },
+      "UpdateBooking": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "AWAITING_PAYMENT",
+              "AWAITING_CHECK",
+              "CONFIRMED",
+              "EXPIRED",
+              "CANCELLED"
+            ]
+          },
+          "cancelReason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          }
+        },
+        "required": [
+          "status"
         ]
       },
       "Slot": {
@@ -5121,6 +5151,75 @@
         "responses": {
           "200": {
             "description": "Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "status",
+                    "message",
+                    "data"
+                  ],
+                  "properties": {
+                    "status": {
+                      "type": "integer"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Booking"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorReply"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "bookings"
+        ],
+        "operationId": "updateBooking",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateBooking"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Changed",
             "content": {
               "application/json": {
                 "schema": {

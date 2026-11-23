@@ -314,3 +314,173 @@ describe("BKG-03 bookings expire without payment", () => {
     expect(await queuedMessagesFor(customerId)).toEqual([]);
   });
 });
+
+describe("BKG-06, BKG-07 cancel bookings", () => {
+  let tenant: TestTenant;
+  const frontDesk = () => tenant.frontDesk.auth;
+  const date = inDays(2);
+  let venueCount = 0;
+
+  beforeAll(async () => {
+    tenant = await createTenant();
+  });
+
+  /** Bookings two days ahead are 30 to 60 hours away: before a 12-hour cut-off, after a 72-hour one. */
+  async function setUp(venue: Parameters<typeof venueInput>[0] = {}) {
+    venueCount += 1;
+    const openingHours = ALL_WEEKDAYS.map((weekday) => ({
+      weekday,
+      opens: "06:00",
+      closes: "23:00",
+    }));
+    const created = await venuesService.create(
+      tenant.owner.auth,
+      venueInput({
+        name: `Kick Off Arena ${venueCount}`,
+        phone: "+94112345678",
+        openingHours,
+        bankAccount,
+        ...venue,
+      }),
+    );
+    const resource = await resourcesService.create(
+      tenant.owner.auth,
+      resourceInput(created.id, { name: "Court 1" }),
+    );
+    return resource.id;
+  }
+
+  async function newCustomer(): Promise<AuthContext & { customerId: number }> {
+    const phone = uniquePhone();
+    const customer = await customersService.create(tenant.owner.auth, { name: "Kamal", phone });
+    return { actor: "customer", tenantId: tenant.id, phone, customerId: customer.id };
+  }
+
+  async function bookAs(customer: AuthContext, resourceId: number, time: string) {
+    return bookingsService.create(customer, { resourceId, startsAt: at(date, time), slots: 1 });
+  }
+
+  const cancel = (auth: AuthContext, id: number, cancelReason?: string) =>
+    bookingsService.update(auth, id, { status: "CANCELLED", cancelReason });
+
+  it("cancel_customerBeforeTheCutOff_freesTheSlotWithoutAMessage", async () => {
+    const resourceId = await setUp({ payAtVenue: true, cancellationCutOffHours: 12 });
+    const customer = await newCustomer();
+    const booking = await bookAs(customer, resourceId, "10:00");
+    expect(booking.status).toBe("CONFIRMED");
+
+    expect(await cancel(customer, booking.id)).toMatchObject({
+      status: "CANCELLED",
+      cancelReason: null,
+    });
+    expect(await queuedMessagesFor(customer.customerId)).toEqual([]);
+    expect(await bookAs(await newCustomer(), resourceId, "10:00")).toMatchObject({
+      status: "CONFIRMED",
+    });
+  });
+
+  it("cancel_customerAfterTheCutOff_isToldToCallTheVenue", async () => {
+    const resourceId = await setUp({ payAtVenue: true, cancellationCutOffHours: 72 });
+    const customer = await newCustomer();
+    const booking = await bookAs(customer, resourceId, "10:00");
+    for (const auth of [customer, { ...customer, actor: "assistant" as const }]) {
+      await expect(cancel(auth, booking.id)).rejects.toMatchObject({
+        code: "tt_bkg_006",
+        message: `It's too late to cancel online. Please call Kick Off Arena ${venueCount} on +94112345678`,
+      });
+    }
+    expect((await bookingsService.get(customer, booking.id)).status).toBe("CONFIRMED");
+  });
+
+  it("cancel_bookingWaitingForPayment_customerCanCancelAfterTheCutOff", async () => {
+    const resourceId = await setUp({ cancellationCutOffHours: 72 });
+    const customer = await newCustomer();
+    const booking = await bookAs(customer, resourceId, "10:00");
+    expect(booking.status).toBe("AWAITING_PAYMENT");
+
+    expect(await cancel(customer, booking.id)).toMatchObject({
+      status: "CANCELLED",
+      bankAccount: null,
+    });
+    expect(await bookAs(customer, resourceId, "12:00")).toMatchObject({
+      status: "AWAITING_PAYMENT",
+    });
+  });
+
+  it("cancel_bookingWaitingForACheck_onlyStaffMayCancel", async () => {
+    const resourceId = await setUp();
+    const customer = await newCustomer();
+    const booking = await bookAs(customer, resourceId, "10:00");
+    await bookingsRepository.setStatus(tenant.id, booking.id, "AWAITING_PAYMENT", "AWAITING_CHECK");
+    await expect(cancel(customer, booking.id)).rejects.toMatchObject({ code: "tt_htt_403" });
+    expect(await cancel(frontDesk(), booking.id, "Wrong court")).toMatchObject({
+      status: "CANCELLED",
+    });
+  });
+
+  it("cancel_frontDeskAfterTheCutOff_givesAReasonAndTheCustomerIsTold", async () => {
+    const resourceId = await setUp({ payAtVenue: true, cancellationCutOffHours: 72 });
+    const customer = await newCustomer();
+    const booking = await bookAs(customer, resourceId, "18:00");
+
+    expect(await cancel(frontDesk(), booking.id, "Rain")).toMatchObject({
+      status: "CANCELLED",
+      cancelReason: "Rain",
+    });
+    expect(await queuedMessagesFor(customer.customerId)).toEqual([
+      {
+        tenantId: tenant.id,
+        customerId: customer.customerId,
+        template: "booking_cancelled",
+        values: [
+          `Kick Off Arena ${venueCount}`,
+          "Court 1",
+          expect.stringMatching(/ 18:00$/),
+          "Rain",
+        ],
+      },
+    ]);
+  });
+
+  it("cancel_staffWithoutAReason_isRefused", async () => {
+    const resourceId = await setUp();
+    const booking = await bookAs(await newCustomer(), resourceId, "10:00");
+    await expect(cancel(frontDesk(), booking.id)).rejects.toMatchObject({
+      status: 400,
+      code: "tt_bkg_007",
+    });
+    expect((await bookingsService.get(frontDesk(), booking.id)).status).toBe("AWAITING_PAYMENT");
+  });
+
+  it("cancel_anAlreadyCancelledBooking_isRefused", async () => {
+    const resourceId = await setUp();
+    const customer = await newCustomer();
+    const booking = await bookAs(customer, resourceId, "10:00");
+    await cancel(customer, booking.id);
+    await expect(cancel(frontDesk(), booking.id, "Rain")).rejects.toMatchObject({
+      code: "tt_sts_001",
+    });
+  });
+
+  it("cancel_twoAtOnce_oneIsToldItChangedMeanwhile", async () => {
+    const resourceId = await setUp({ payAtVenue: true });
+    const customer = await newCustomer();
+    const booking = await bookAs(customer, resourceId, "10:00");
+    const results = await Promise.allSettled([
+      cancel(customer, booking.id),
+      cancel(frontDesk(), booking.id, "Rain"),
+    ]);
+    expect(results.filter((result) => result.status === "fulfilled")).toHaveLength(1);
+    expect(results.find((result) => result.status === "rejected")).toMatchObject({
+      reason: { code: "tt_sts_002" },
+    });
+  });
+
+  it("cancel_anotherCustomersBooking_isNotFound", async () => {
+    const resourceId = await setUp();
+    const booking = await bookAs(await newCustomer(), resourceId, "10:00");
+    await expect(cancel(await newCustomer(), booking.id)).rejects.toMatchObject({
+      code: "tt_bkg_001",
+    });
+  });
+});

@@ -136,6 +136,7 @@ export type Booking = {
     amountDue: Money;
     expiresAt: string | null;
     cancellationCutOffHours: number;
+    cancelReason: string | null;
     bankAccount: BankAccount | null;
     createdAt: string;
     updatedAt: string;
@@ -145,6 +146,11 @@ export type CreateBooking = {
     resourceId: number;
     startsAt: string;
     slots?: number;
+};
+
+export type UpdateBooking = {
+    status: 'AWAITING_PAYMENT' | 'AWAITING_CHECK' | 'CONFIRMED' | 'EXPIRED' | 'CANCELLED';
+    cancelReason?: string;
 };
 
 export type Slot = {
@@ -1910,3 +1916,34 @@ export type GetBookingResponses = {
 };
 
 export type GetBookingResponse = GetBookingResponses[keyof GetBookingResponses];
+
+export type UpdateBookingData = {
+    body: UpdateBooking;
+    path: {
+        id: number;
+    };
+    query?: never;
+    url: '/v1/bookings/{id}';
+};
+
+export type UpdateBookingErrors = {
+    /**
+     * Error
+     */
+    default: ErrorReply;
+};
+
+export type UpdateBookingError = UpdateBookingErrors[keyof UpdateBookingErrors];
+
+export type UpdateBookingResponses = {
+    /**
+     * Changed
+     */
+    200: {
+        status: number;
+        message: string;
+        data: Booking;
+    };
+};
+
+export type UpdateBookingResponse = UpdateBookingResponses[keyof UpdateBookingResponses];

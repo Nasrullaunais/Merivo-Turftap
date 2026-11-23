@@ -1,6 +1,6 @@
 # T07 Cancel bookings
 
-Status: todo · Stories: `BKG-06`, `BKG-07` · Depends on: T06
+Status: done · Stories: `BKG-06`, `BKG-07` · Depends on: T06
 
 ## Goal
 A customer cancels before the Cancellation Cut-off; staff cancel any booking with a reason. The slots become free again and the customer gets a WhatsApp message.

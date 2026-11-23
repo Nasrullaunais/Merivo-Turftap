@@ -5,25 +5,30 @@ import {
   type CreateBooking,
   FULL_AMOUNT_PERCENT,
   type Money,
+  type UpdateBooking,
 } from "@turftap/contract";
 
 import type { AuthContext } from "../../lib/auth/context";
 import { transaction } from "../../lib/db";
 import { httpErrors } from "../../lib/errors";
-import type { ListQuery } from "../../lib/resource";
-import { wallClockAt } from "../../lib/time";
+import { type ListQuery, statusChangedMeanwhile } from "../../lib/resource";
+import { describeInstant, wallClockAt } from "../../lib/time";
+import { WHATSAPP_TEMPLATES } from "../../ports/messaging-channel";
+import * as notificationsService from "../notifications/notifications.service";
 import * as resourcesService from "../venues/resources.service";
 import * as venuesService from "../venues/venues.service";
 import * as availabilityService from "./availability.service";
 import { bookingErrors } from "./bookings.errors";
 import { expireBookingJob } from "./bookings.jobs";
 import * as bookingsRepository from "./bookings.repository";
+import { bookingTransitions } from "./bookings.transitions";
 
 type BookingSort = "startsAt" | "createdAt";
 type StoredBooking = Omit<Booking, "bankAccount">;
 type Venue = Awaited<ReturnType<typeof venuesService.get>>;
 
 const MS_PER_MINUTE = 60 * 1000;
+const MS_PER_HOUR = 60 * MS_PER_MINUTE;
 
 const isCustomerSide = (auth: AuthContext) =>
   auth.actor === "customer" || auth.actor === "assistant";
@@ -128,5 +133,55 @@ export async function create(auth: AuthContext, input: CreateBooking) {
         { startAfter: expiresAt },
       );
     return withBankAccount(booking, venue);
+  });
+}
+
+const isPastCancellationCutOff = (booking: StoredBooking, now: Date) =>
+  booking.startsAt.getTime() - now.getTime() <= booking.cancellationCutOffHours * MS_PER_HOUR;
+
+/** BKG-07: the customer hears why staff cancelled. */
+async function tellCustomerOfCancel(auth: AuthContext, booking: StoredBooking, reason: string) {
+  const system: AuthContext = { actor: "system", tenantId: auth.tenantId };
+  const [venue, resource] = await Promise.all([
+    venuesService.get(system, booking.venueId),
+    resourcesService.get(system, booking.resourceId),
+  ]);
+  await notificationsService.notifyCustomer(auth, {
+    customerId: booking.customerId,
+    template: WHATSAPP_TEMPLATES.bookingCancelled,
+    values: [venue.name, resource.name, describeInstant(booking.startsAt, venue.timeZone), reason],
+  });
+}
+
+/**
+ * BKG-06, BKG-07: cancelling frees the slots. Customers and the Assistant may cancel a confirmed
+ * booking only before its Cancellation Cut-off; staff cancel any booking, with a reason.
+ */
+export async function update(auth: AuthContext, id: number, input: UpdateBooking) {
+  const booking = await bookingsRepository.findById(auth.tenantId, id, scopeOf(auth));
+  if (!booking) throw bookingErrors.notFound(id);
+  bookingTransitions.check(auth.actor, booking.status, input.status);
+  const cancelReason = input.cancelReason ?? null;
+  if (auth.actor === "staff" && !cancelReason) throw bookingErrors.cancelReasonMissing();
+  if (
+    isCustomerSide(auth) &&
+    booking.status === "CONFIRMED" &&
+    isPastCancellationCutOff(booking, new Date())
+  ) {
+    const venue = await venueOf(auth, booking.venueId);
+    throw bookingErrors.pastCancellationCutOff(venue.name, venue.phone);
+  }
+  return transaction(async () => {
+    const cancelled = await bookingsRepository.setStatus(
+      auth.tenantId,
+      id,
+      booking.status,
+      input.status,
+      { cancelReason },
+    );
+    if (!cancelled) throw statusChangedMeanwhile();
+    if (auth.actor === "staff" && cancelReason)
+      await tellCustomerOfCancel(auth, cancelled, cancelReason);
+    return withBankAccount(cancelled);
   });
 }
