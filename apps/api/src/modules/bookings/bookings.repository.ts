@@ -37,11 +37,13 @@ export async function insert(tenantId: number, values: NewBooking) {
   return toBooking(booking!);
 }
 
-export async function findById(tenantId: number, id: number, scope: BookingScope) {
-  const [booking] = await db()
+/** With `lock`, no other transaction can change the row until this one ends. */
+export async function findById(tenantId: number, id: number, scope: BookingScope, lock?: "update") {
+  const query = db()
     .select()
     .from(bookings)
     .where(and(eq(bookings.tenantId, tenantId), eq(bookings.id, id), inScope(scope)));
+  const [booking] = await (lock ? query.for(lock) : query);
   return booking && toBooking(booking);
 }
 

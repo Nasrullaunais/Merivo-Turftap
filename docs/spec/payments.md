@@ -33,3 +33,6 @@ As **Staff**, I want one list of receipts waiting for a check, oldest first, so 
 
 ## PAY-08 Pay the rest at the venue
 As **Front Desk**, I want to mark the remaining balance as paid in cash, so that the booking shows fully paid.
+- Every booking shows what is paid and its balance. Once a booking is cancelled or expired, its balance is zero.
+- Cash is recorded only on a confirmed booking, for any amount up to its balance.
+- Given two staff record cash at once, when both save, then only what fits in the balance is saved and the other is told it is more than the balance.

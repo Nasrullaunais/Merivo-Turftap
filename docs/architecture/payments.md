@@ -39,6 +39,12 @@ A booking or membership has a list of **payments**. Each payment has a `kind` an
 | `CASH` | Front Desk | `ACCEPTED` straight away |
 | `REFUND` | Manager, as a record only (negative amount) | `ACCEPTED` straight away |
 
+Each booking shows **paid** (its `ACCEPTED` payments added up, refunds included) and **balance** (the price less what was paid, or zero once the booking no longer holds its slots).
+
+- Rules that compare with what was paid (cash up to the balance, refunds up to what was paid) lock the booking first with `bookingsService.get(auth, id, "update")`, so two payments saved together can't both fit.
+- Each payment keeps its booking's `venueId`, so staff limited to some venues are filtered in the SQL, the same way as bookings.
+- Refunds are for Owners and Managers only. Front Desk holds `payments:create` for cash, so the service refuses their refunds with 403 (`tt_pay_007`).
+
 A **Receipt Check** is staff PATCHing a `TRANSFER` payment to `ACCEPTED` or `REJECTED` (`rejectReason` required). In the same transaction, the service moves the booking forward or back.
 
 ## Flow

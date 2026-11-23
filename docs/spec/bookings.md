@@ -43,6 +43,7 @@ As **Staff**, I want to cancel any booking with a reason, so that I can handle s
 ## BKG-08 Record a refund
 As a **Manager**, I want to record a refund on a cancelled booking, so that our books show what we paid back.
 - The refund itself is a bank transfer made outside TurfTap; we only record the amount and a note.
+- Only an Owner or Manager records a refund, only on a cancelled booking, and never more than was paid for it.
 
 ## BKG-09 Repeat series
 As **Staff**, I want to book the same resource and time every week for a number of weeks, so that regular teams don't have to rebook.

@@ -83,6 +83,7 @@ export async function findById(tenantId: number, id: number, venueIds: number[] 
 - "Find" functions return `undefined` when nothing matches. The service decides that this is a 404.
 - Lists use `pageOf()` and `sortBy()` from `lib/db`. Sort text columns by `sql\`lower(column)\`` so names sort the way people expect.
 - Rules about overlapping times live in the database as an `EXCLUDE` constraint, written by hand ([ADR 0009](../adr/0009-drizzle-migrations.md)). `price_rules_no_overlap` is the working example; it uses the `btree_gist` and `intarray` Postgres extensions. To name the row that clashes, the service looks for it first, after locking the resource with `resourcesService.get(auth, id, "update")`. The lock makes a second save on that resource wait, then find the first one and name it. It also keeps apart clashes no constraint can see, such as a booking and a Blocked Time saved together. Without it, two clashing inserts at once can deadlock in Postgres and reply 500. The constraint stays as a last guard.
+- A rule that adds up rows, such as a booking's balance, locks the row they belong to before reading them (`bookingsService.get(auth, id, "update")`), so two saves at once can't both pass the check. `payments.service.ts` is the working example.
 - State changes are one conditional UPDATE: `.where(and(ownedBy(tenantId, id), eq(bookings.status, expected)))`. No row back means someone else got there first: throw `statusChangedMeanwhile()`.
 
 ## Errors

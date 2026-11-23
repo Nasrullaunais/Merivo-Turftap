@@ -4,6 +4,7 @@ import {
   CENTS_PER_RUPEE,
   type CreateBooking,
   FULL_AMOUNT_PERCENT,
+  HOLDING_STATUSES,
   type Money,
   type UpdateBooking,
 } from "@turftap/contract";
@@ -16,6 +17,7 @@ import { describeInstant, wallClockAt } from "../../lib/time";
 import { WHATSAPP_TEMPLATES } from "../../ports/messaging-channel";
 import * as customersService from "../customers/customers.service";
 import * as notificationsService from "../notifications/notifications.service";
+import * as paidAmountsService from "../payments/paid-amounts.service";
 import * as resourcesService from "../venues/resources.service";
 import * as venuesService from "../venues/venues.service";
 import * as availabilityService from "./availability.service";
@@ -25,8 +27,11 @@ import * as bookingsRepository from "./bookings.repository";
 import { bookingTransitions } from "./bookings.transitions";
 
 type BookingSort = "startsAt" | "createdAt";
-type StoredBooking = Omit<Booking, "bankAccount" | "customerName" | "customerPhone">;
-type Contact = { name: string; phone: string };
+type StoredBooking = Omit<
+  Booking,
+  "bankAccount" | "customerName" | "customerPhone" | "paid" | "balance"
+>;
+type Details = { contact: { name: string; phone: string }; paidCents: number };
 type Venue = Awaited<ReturnType<typeof venuesService.get>>;
 
 const MS_PER_MINUTE = 60 * 1000;
@@ -45,47 +50,65 @@ const venueOf = (auth: AuthContext, venueId: number) =>
   venuesService.get({ actor: "system", tenantId: auth.tenantId }, venueId);
 
 const waitsForPayment = (booking: StoredBooking) => booking.status === "AWAITING_PAYMENT";
+const holdsSlots = (booking: StoredBooking) =>
+  (HOLDING_STATUSES as readonly string[]).includes(booking.status);
 
-/** Who the booking is for, and (PAY-01) bank details while it waits for payment. */
-const replyOf = (booking: StoredBooking, contact: Contact, venue?: Venue): Booking => ({
-  ...booking,
-  customerName: contact.name,
-  customerPhone: contact.phone,
-  bankAccount: waitsForPayment(booking) ? (venue?.bankAccount ?? null) : null,
-});
-
-async function contactOf(auth: AuthContext, booking: StoredBooking) {
-  const contacts = await customersService.contactsOf(auth.tenantId, [booking.customerId]);
-  return contacts.get(booking.customerId)!;
+/** Who the booking is for, what is paid and left (PAY-08), and bank details (PAY-01). */
+function replyOf(booking: StoredBooking, { contact, paidCents }: Details, venue?: Venue): Booking {
+  const { currency } = booking.price;
+  const balanceCents = holdsSlots(booking) ? booking.price.amount - paidCents : 0;
+  return {
+    ...booking,
+    customerName: contact.name,
+    customerPhone: contact.phone,
+    paid: { amount: paidCents, currency },
+    balance: { amount: balanceCents, currency },
+    bankAccount: waitsForPayment(booking) ? (venue?.bankAccount ?? null) : null,
+  };
 }
+
+async function detailsOf(auth: AuthContext, bookings: StoredBooking[]) {
+  const contacts = await customersService.contactsOf(
+    auth.tenantId,
+    bookings.map((booking) => booking.customerId),
+  );
+  const paidFor = await paidAmountsService.paidFor(
+    auth,
+    bookings.map((booking) => booking.id),
+  );
+  return (booking: StoredBooking): Details => ({
+    contact: contacts.get(booking.customerId)!,
+    paidCents: paidFor(booking.id),
+  });
+}
+
+const detailsOfOne = async (auth: AuthContext, booking: StoredBooking) =>
+  (await detailsOf(auth, [booking]))(booking);
 
 export async function list(
   auth: AuthContext,
   { filters, page }: ListQuery<BookingFilters, BookingSort>,
 ) {
   const found = await bookingsRepository.list(auth.tenantId, scopeOf(auth), filters, page);
-  const contacts = await customersService.contactsOf(
-    auth.tenantId,
-    found.content.map((booking) => booking.customerId),
-  );
+  const details = await detailsOf(auth, found.content);
   const venues = new Map<number, Promise<Venue>>();
   const content = await Promise.all(
     found.content.map(async (booking) => {
-      const contact = contacts.get(booking.customerId)!;
-      if (!waitsForPayment(booking)) return replyOf(booking, contact);
+      if (!waitsForPayment(booking)) return replyOf(booking, details(booking));
       if (!venues.has(booking.venueId)) venues.set(booking.venueId, venueOf(auth, booking.venueId));
-      return replyOf(booking, contact, await venues.get(booking.venueId));
+      return replyOf(booking, details(booking), await venues.get(booking.venueId));
     }),
   );
   return { ...found, content };
 }
 
-export async function get(auth: AuthContext, id: number) {
-  const booking = await bookingsRepository.findById(auth.tenantId, id, scopeOf(auth));
+/** With `lock`, changes to the booking and payments on it wait until this transaction ends. */
+export async function get(auth: AuthContext, id: number, lock?: "update") {
+  const booking = await bookingsRepository.findById(auth.tenantId, id, scopeOf(auth), lock);
   if (!booking) throw bookingErrors.notFound(id);
-  const contact = await contactOf(auth, booking);
-  if (!waitsForPayment(booking)) return replyOf(booking, contact);
-  return replyOf(booking, contact, await venueOf(auth, booking.venueId));
+  const details = await detailsOfOne(auth, booking);
+  if (!waitsForPayment(booking)) return replyOf(booking, details);
+  return replyOf(booking, details, await venueOf(auth, booking.venueId));
 }
 
 /** BKG-02: the full price, or the Advance rounded up to whole rupees. Nothing at Pay at Venue. */
@@ -147,7 +170,7 @@ export async function create(auth: AuthContext, input: CreateBooking) {
         { tenantId: auth.tenantId, bookingId: booking.id },
         { startAfter: expiresAt },
       );
-    return replyOf(booking, await contactOf(auth, booking), venue);
+    return replyOf(booking, await detailsOfOne(auth, booking), venue);
   });
 }
 
@@ -197,6 +220,6 @@ export async function update(auth: AuthContext, id: number, input: UpdateBooking
     if (!cancelled) throw statusChangedMeanwhile();
     if (auth.actor === "staff" && cancelReason)
       await tellCustomerOfCancel(auth, cancelled, cancelReason);
-    return replyOf(cancelled, await contactOf(auth, cancelled));
+    return replyOf(cancelled, await detailsOfOne(auth, cancelled));
   });
 }

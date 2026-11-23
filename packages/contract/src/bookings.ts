@@ -35,6 +35,10 @@ export const Booking = z
     price: Money,
     /** What to pay online now: the full price or the Advance. Zero at a Pay at Venue venue. */
     amountDue: Money,
+    /** The accepted payments added up, less refunds. */
+    paid: Money,
+    /** What is still to pay: the price less what was paid. Zero once cancelled or expired. */
+    balance: Money,
     /** When the booking expires if no Transfer Receipt arrives. Missing when nothing is due online. */
     expiresAt: Timestamp.nullable(),
     cancellationCutOffHours: z.number().int(),

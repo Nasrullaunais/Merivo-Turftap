@@ -122,6 +122,18 @@ _Avoid_: Bot, chatbot, agent
 
 ## Payments
 
+**Payment**:
+Money recorded on a booking: a bank transfer with its Transfer Receipt, cash taken at the venue, or a refund.
+_Avoid_: Transaction, charge
+
+**Balance**:
+What is still to pay on a booking: its price minus the payments accepted so far. Front Desk takes it in cash at the venue.
+_Avoid_: Outstanding, remaining amount, amount owed
+
+**Refund**:
+Money a venue pays back on a cancelled booking, by bank transfer outside TurfTap. TurfTap only records the amount and a note.
+_Avoid_: Reversal, chargeback, return
+
 **Transfer Receipt**:
 The proof a customer sends after paying by bank transfer, such as a screenshot or photo of the bank slip.
 _Avoid_: Slip, payment proof, invoice

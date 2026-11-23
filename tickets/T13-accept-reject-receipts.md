@@ -9,6 +9,7 @@ Staff accept a receipt (booking confirmed) or reject it with a reason (booking g
 - `docs/spec/payments.md` (`PAY-04`, `PAY-05`), `docs/architecture/payments.md` (state diagram, "Receipt Check").
 
 ## Build
+- Add `update` to the `payments` resource (T09 left it out).
 - `payments.transitions.ts`: `PENDING_CHECK → ACCEPTED | REJECTED`, staff only. `rejectReason` required for `REJECTED`.
 - Same transaction: accept → booking `AWAITING_CHECK → CONFIRMED`; reject → booking `AWAITING_CHECK → AWAITING_PAYMENT` with a fresh `expiresAt` (venue's current limit) and a new expiry job. The old expiry job is still queued, so the expiry handler must also check `expiresAt <= now`, not only the status.
 - Templates `bookingConfirmed`, `receiptRejected` (with reason), queued in the same transaction.

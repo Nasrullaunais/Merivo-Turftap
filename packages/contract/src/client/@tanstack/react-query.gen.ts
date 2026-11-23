@@ -3,8 +3,8 @@
 import { type InfiniteData, infiniteQueryOptions, queryOptions, type UseMutationOptions } from '@tanstack/react-query';
 
 import { client } from '../client.gen';
-import { createBlockedTime, createBooking, createClosedDate, createCustomer, createPhoto, createPriceRule, createResource, createStaff, createUploadedFile, createVenue, deleteBlockedTime, deleteClosedDate, deletePhoto, deletePriceRule, deleteResource, deleteStaff, deleteVenue, getBlockedTime, getBooking, getClosedDate, getCustomer, getMe, getPhoto, getPriceRule, getResource, getStaff, getVenue, listAvailability, listBlockedTimes, listBookings, listClosedDates, listCustomers, listPhotos, listPriceRules, listResources, listStaff, listVenues, listWhatsappNumbers, type Options, updateBlockedTime, updateBooking, updateClosedDate, updateCustomer, updatePhoto, updatePriceRule, updateResource, updateStaff, updateVenue } from '../sdk.gen';
-import type { CreateBlockedTimeData, CreateBlockedTimeError, CreateBlockedTimeResponse, CreateBookingData, CreateBookingError, CreateBookingResponse, CreateClosedDateData, CreateClosedDateError, CreateClosedDateResponse, CreateCustomerData, CreateCustomerError, CreateCustomerResponse, CreatePhotoData, CreatePhotoError, CreatePhotoResponse, CreatePriceRuleData, CreatePriceRuleError, CreatePriceRuleResponse, CreateResourceData, CreateResourceError, CreateResourceResponse, CreateStaffData, CreateStaffError, CreateStaffResponse, CreateUploadedFileData, CreateUploadedFileError, CreateUploadedFileResponse, CreateVenueData, CreateVenueError, CreateVenueResponse, DeleteBlockedTimeData, DeleteBlockedTimeError, DeleteBlockedTimeResponse, DeleteClosedDateData, DeleteClosedDateError, DeleteClosedDateResponse, DeletePhotoData, DeletePhotoError, DeletePhotoResponse, DeletePriceRuleData, DeletePriceRuleError, DeletePriceRuleResponse, DeleteResourceData, DeleteResourceError, DeleteResourceResponse, DeleteStaffData, DeleteStaffError, DeleteStaffResponse, DeleteVenueData, DeleteVenueError, DeleteVenueResponse, GetBlockedTimeData, GetBlockedTimeError, GetBlockedTimeResponse, GetBookingData, GetBookingError, GetBookingResponse, GetClosedDateData, GetClosedDateError, GetClosedDateResponse, GetCustomerData, GetCustomerError, GetCustomerResponse, GetMeData, GetMeError, GetMeResponse, GetPhotoData, GetPhotoError, GetPhotoResponse, GetPriceRuleData, GetPriceRuleError, GetPriceRuleResponse, GetResourceData, GetResourceError, GetResourceResponse, GetStaffData, GetStaffError, GetStaffResponse, GetVenueData, GetVenueError, GetVenueResponse, ListAvailabilityData, ListAvailabilityError, ListAvailabilityResponse, ListBlockedTimesData, ListBlockedTimesError, ListBlockedTimesResponse, ListBookingsData, ListBookingsError, ListBookingsResponse, ListClosedDatesData, ListClosedDatesError, ListClosedDatesResponse, ListCustomersData, ListCustomersError, ListCustomersResponse, ListPhotosData, ListPhotosError, ListPhotosResponse, ListPriceRulesData, ListPriceRulesError, ListPriceRulesResponse, ListResourcesData, ListResourcesError, ListResourcesResponse, ListStaffData, ListStaffError, ListStaffResponse, ListVenuesData, ListVenuesError, ListVenuesResponse, ListWhatsappNumbersData, ListWhatsappNumbersError, ListWhatsappNumbersResponse, UpdateBlockedTimeData, UpdateBlockedTimeError, UpdateBlockedTimeResponse, UpdateBookingData, UpdateBookingError, UpdateBookingResponse, UpdateClosedDateData, UpdateClosedDateError, UpdateClosedDateResponse, UpdateCustomerData, UpdateCustomerError, UpdateCustomerResponse, UpdatePhotoData, UpdatePhotoError, UpdatePhotoResponse, UpdatePriceRuleData, UpdatePriceRuleError, UpdatePriceRuleResponse, UpdateResourceData, UpdateResourceError, UpdateResourceResponse, UpdateStaffData, UpdateStaffError, UpdateStaffResponse, UpdateVenueData, UpdateVenueError, UpdateVenueResponse } from '../types.gen';
+import { createBlockedTime, createBooking, createClosedDate, createCustomer, createPayment, createPhoto, createPriceRule, createResource, createStaff, createUploadedFile, createVenue, deleteBlockedTime, deleteClosedDate, deletePhoto, deletePriceRule, deleteResource, deleteStaff, deleteVenue, getBlockedTime, getBooking, getClosedDate, getCustomer, getMe, getPayment, getPhoto, getPriceRule, getResource, getStaff, getVenue, listAvailability, listBlockedTimes, listBookings, listClosedDates, listCustomers, listPayments, listPhotos, listPriceRules, listResources, listStaff, listVenues, listWhatsappNumbers, type Options, updateBlockedTime, updateBooking, updateClosedDate, updateCustomer, updatePhoto, updatePriceRule, updateResource, updateStaff, updateVenue } from '../sdk.gen';
+import type { CreateBlockedTimeData, CreateBlockedTimeError, CreateBlockedTimeResponse, CreateBookingData, CreateBookingError, CreateBookingResponse, CreateClosedDateData, CreateClosedDateError, CreateClosedDateResponse, CreateCustomerData, CreateCustomerError, CreateCustomerResponse, CreatePaymentData, CreatePaymentError, CreatePaymentResponse, CreatePhotoData, CreatePhotoError, CreatePhotoResponse, CreatePriceRuleData, CreatePriceRuleError, CreatePriceRuleResponse, CreateResourceData, CreateResourceError, CreateResourceResponse, CreateStaffData, CreateStaffError, CreateStaffResponse, CreateUploadedFileData, CreateUploadedFileError, CreateUploadedFileResponse, CreateVenueData, CreateVenueError, CreateVenueResponse, DeleteBlockedTimeData, DeleteBlockedTimeError, DeleteBlockedTimeResponse, DeleteClosedDateData, DeleteClosedDateError, DeleteClosedDateResponse, DeletePhotoData, DeletePhotoError, DeletePhotoResponse, DeletePriceRuleData, DeletePriceRuleError, DeletePriceRuleResponse, DeleteResourceData, DeleteResourceError, DeleteResourceResponse, DeleteStaffData, DeleteStaffError, DeleteStaffResponse, DeleteVenueData, DeleteVenueError, DeleteVenueResponse, GetBlockedTimeData, GetBlockedTimeError, GetBlockedTimeResponse, GetBookingData, GetBookingError, GetBookingResponse, GetClosedDateData, GetClosedDateError, GetClosedDateResponse, GetCustomerData, GetCustomerError, GetCustomerResponse, GetMeData, GetMeError, GetMeResponse, GetPaymentData, GetPaymentError, GetPaymentResponse, GetPhotoData, GetPhotoError, GetPhotoResponse, GetPriceRuleData, GetPriceRuleError, GetPriceRuleResponse, GetResourceData, GetResourceError, GetResourceResponse, GetStaffData, GetStaffError, GetStaffResponse, GetVenueData, GetVenueError, GetVenueResponse, ListAvailabilityData, ListAvailabilityError, ListAvailabilityResponse, ListBlockedTimesData, ListBlockedTimesError, ListBlockedTimesResponse, ListBookingsData, ListBookingsError, ListBookingsResponse, ListClosedDatesData, ListClosedDatesError, ListClosedDatesResponse, ListCustomersData, ListCustomersError, ListCustomersResponse, ListPaymentsData, ListPaymentsError, ListPaymentsResponse, ListPhotosData, ListPhotosError, ListPhotosResponse, ListPriceRulesData, ListPriceRulesError, ListPriceRulesResponse, ListResourcesData, ListResourcesError, ListResourcesResponse, ListStaffData, ListStaffError, ListStaffResponse, ListVenuesData, ListVenuesError, ListVenuesResponse, ListWhatsappNumbersData, ListWhatsappNumbersError, ListWhatsappNumbersResponse, UpdateBlockedTimeData, UpdateBlockedTimeError, UpdateBlockedTimeResponse, UpdateBookingData, UpdateBookingError, UpdateBookingResponse, UpdateClosedDateData, UpdateClosedDateError, UpdateClosedDateResponse, UpdateCustomerData, UpdateCustomerError, UpdateCustomerResponse, UpdatePhotoData, UpdatePhotoError, UpdatePhotoResponse, UpdatePriceRuleData, UpdatePriceRuleError, UpdatePriceRuleResponse, UpdateResourceData, UpdateResourceError, UpdateResourceResponse, UpdateStaffData, UpdateStaffError, UpdateStaffResponse, UpdateVenueData, UpdateVenueError, UpdateVenueResponse } from '../types.gen';
 
 export type QueryKey<TOptions extends Options> = [
     Pick<TOptions, 'baseUrl' | 'body' | 'headers' | 'path' | 'query'> & {
@@ -1043,3 +1043,74 @@ export const updateBookingMutation = (options?: Partial<Options<UpdateBookingDat
     };
     return mutationOptions;
 };
+
+export const listPaymentsQueryKey = (options?: Options<ListPaymentsData>) => createQueryKey('listPayments', options);
+
+export const listPaymentsOptions = (options?: Options<ListPaymentsData>) => queryOptions<ListPaymentsResponse, ListPaymentsError, ListPaymentsResponse, ReturnType<typeof listPaymentsQueryKey>>({
+    queryFn: async ({ queryKey, signal }) => {
+        const { data } = await listPayments({
+            ...options,
+            ...queryKey[0],
+            signal,
+            throwOnError: true
+        });
+        return data;
+    },
+    queryKey: listPaymentsQueryKey(options)
+});
+
+export const listPaymentsInfiniteQueryKey = (options?: Options<ListPaymentsData>): QueryKey<Options<ListPaymentsData>> => createQueryKey('listPayments', options, true);
+
+export const listPaymentsInfiniteOptions = (options?: Options<ListPaymentsData>) => {
+    const opts = infiniteQueryOptions<ListPaymentsResponse, ListPaymentsError, InfiniteData<ListPaymentsResponse>, QueryKey<Options<ListPaymentsData>>, number | Pick<QueryKey<Options<ListPaymentsData>>[0], 'body' | 'headers' | 'path' | 'query'>>(
+    // @ts-ignore
+    {
+        queryFn: async ({ pageParam, queryKey, signal }) => {
+            // @ts-ignore
+            const page: Pick<QueryKey<Options<ListPaymentsData>>[0], 'body' | 'headers' | 'path' | 'query'> = typeof pageParam === 'object' ? pageParam : {
+                query: {
+                    page: pageParam
+                }
+            };
+            const params = createInfiniteParams(queryKey, page);
+            const { data } = await listPayments({
+                ...options,
+                ...params,
+                signal,
+                throwOnError: true
+            });
+            return data;
+        },
+        queryKey: listPaymentsInfiniteQueryKey(options)
+    });
+    return opts as Omit<typeof opts, 'initialData'>;
+};
+
+export const createPaymentMutation = (options?: Partial<Options<CreatePaymentData>>): UseMutationOptions<CreatePaymentResponse, CreatePaymentError, Options<CreatePaymentData>> => {
+    const mutationOptions: UseMutationOptions<CreatePaymentResponse, CreatePaymentError, Options<CreatePaymentData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await createPayment({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+export const getPaymentQueryKey = (options: Options<GetPaymentData>) => createQueryKey('getPayment', options);
+
+export const getPaymentOptions = (options: Options<GetPaymentData>) => queryOptions<GetPaymentResponse, GetPaymentError, GetPaymentResponse, ReturnType<typeof getPaymentQueryKey>>({
+    queryFn: async ({ queryKey, signal }) => {
+        const { data } = await getPayment({
+            ...options,
+            ...queryKey[0],
+            signal,
+            throwOnError: true
+        });
+        return data;
+    },
+    queryKey: getPaymentQueryKey(options)
+});

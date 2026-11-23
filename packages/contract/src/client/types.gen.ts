@@ -136,6 +136,8 @@ export type Booking = {
     source: 'ONLINE' | 'WALK_IN';
     price: Money;
     amountDue: Money;
+    paid: Money;
+    balance: Money;
     expiresAt: string | null;
     cancellationCutOffHours: number;
     cancelReason: string | null;
@@ -257,7 +259,11 @@ export const Permission = {
     BOOKINGS_READ: 'bookings:read',
     BOOKINGS_CREATE: 'bookings:create',
     BOOKINGS_UPDATE: 'bookings:update',
-    BOOKINGS_DELETE: 'bookings:delete'
+    BOOKINGS_DELETE: 'bookings:delete',
+    PAYMENTS_READ: 'payments:read',
+    PAYMENTS_CREATE: 'payments:create',
+    PAYMENTS_UPDATE: 'payments:update',
+    PAYMENTS_DELETE: 'payments:delete'
 } as const;
 
 export type Permission = typeof Permission[keyof typeof Permission];
@@ -308,6 +314,29 @@ export type Me = {
     name: string | null;
     isPlatformAdmin: boolean;
     tenants: Array<MyTenant>;
+};
+
+export type Payment = {
+    id: number;
+    bookingId: number | null;
+    venueId: number;
+    kind: 'TRANSFER' | 'CASH' | 'REFUND';
+    status: 'PENDING_CHECK' | 'ACCEPTED' | 'REJECTED';
+    amount: Money;
+    note: string | null;
+    createdBy: number | null;
+    createdAt: string;
+    updatedAt: string;
+};
+
+export type CreatePayment = {
+    bookingId: number;
+    kind: 'CASH' | 'REFUND';
+    amount: {
+        amount: number;
+        currency: 'LKR';
+    };
+    note?: string | null;
 };
 
 export type Photo = {
@@ -1949,3 +1978,105 @@ export type UpdateBookingResponses = {
 };
 
 export type UpdateBookingResponse = UpdateBookingResponses[keyof UpdateBookingResponses];
+
+export type ListPaymentsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        page?: number;
+        size?: number;
+        sort?: 'createdAt,asc' | 'createdAt,desc';
+        bookingId?: number;
+        kind?: 'TRANSFER' | 'CASH' | 'REFUND';
+        status?: 'PENDING_CHECK' | 'ACCEPTED' | 'REJECTED';
+    };
+    url: '/v1/payments';
+};
+
+export type ListPaymentsErrors = {
+    /**
+     * Error
+     */
+    default: ErrorReply;
+};
+
+export type ListPaymentsError = ListPaymentsErrors[keyof ListPaymentsErrors];
+
+export type ListPaymentsResponses = {
+    /**
+     * One page
+     */
+    200: {
+        status: number;
+        message: string;
+        data: {
+            content: Array<Payment>;
+            page: number;
+            size: number;
+            totalElements: number;
+            totalPages: number;
+        };
+    };
+};
+
+export type ListPaymentsResponse = ListPaymentsResponses[keyof ListPaymentsResponses];
+
+export type CreatePaymentData = {
+    body: CreatePayment;
+    path?: never;
+    query?: never;
+    url: '/v1/payments';
+};
+
+export type CreatePaymentErrors = {
+    /**
+     * Error
+     */
+    default: ErrorReply;
+};
+
+export type CreatePaymentError = CreatePaymentErrors[keyof CreatePaymentErrors];
+
+export type CreatePaymentResponses = {
+    /**
+     * Created
+     */
+    201: {
+        status: number;
+        message: string;
+        data: Payment;
+    };
+};
+
+export type CreatePaymentResponse = CreatePaymentResponses[keyof CreatePaymentResponses];
+
+export type GetPaymentData = {
+    body?: never;
+    path: {
+        id: number;
+    };
+    query?: never;
+    url: '/v1/payments/{id}';
+};
+
+export type GetPaymentErrors = {
+    /**
+     * Error
+     */
+    default: ErrorReply;
+};
+
+export type GetPaymentError = GetPaymentErrors[keyof GetPaymentErrors];
+
+export type GetPaymentResponses = {
+    /**
+     * Found
+     */
+    200: {
+        status: number;
+        message: string;
+        data: Payment;
+    };
+};
+
+export type GetPaymentResponse = GetPaymentResponses[keyof GetPaymentResponses];
