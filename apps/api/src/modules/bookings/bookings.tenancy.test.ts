@@ -77,6 +77,34 @@ describe("bookings tenant isolation", () => {
     expect(reply).toMatchObject({ status: 404, body: { code: "tt_ven_003" } });
   });
 
+  it("walkIn_cannotBookAnotherTenantsResource", async () => {
+    const reply = await call("POST", "/v1/bookings", asStaff(tenantA), {
+      resourceId: resourceOfB,
+      startsAt: instantAt(date, TEN_O_CLOCK, "Asia/Colombo").toISOString(),
+      walkIn: { customerName: "Kasun", customerPhone: uniquePhone(), payment: "CASH" },
+    });
+    expect(reply).toMatchObject({ status: 404, body: { code: "tt_ven_003" } });
+  });
+
+  it("walkIn_phoneKnownToBothTenants_usesOnlyThisTenantsCustomer", async () => {
+    const venue = (
+      await call("POST", "/v1/venues", asStaff(tenantA), venueInput({ openingHours: openAllWeek }))
+    ).body.data;
+    const resourceOfA = (
+      await call("POST", "/v1/resources", asStaff(tenantA), resourceInput(venue.id))
+    ).body.data.id;
+    const reply = await call("POST", "/v1/bookings", asStaff(tenantA), {
+      resourceId: resourceOfA,
+      startsAt: instantAt(date, TEN_O_CLOCK, "Asia/Colombo").toISOString(),
+      walkIn: { customerName: "Someone Else", customerPhone: phone, payment: "PAY_LATER" },
+    });
+    const customerOfA = (
+      await call("GET", `/v1/customers?phone=${encodeURIComponent(phone)}`, asStaff(tenantA))
+    ).body.data.content[0];
+    expect(reply.body.data).toMatchObject({ customerId: customerOfA.id, customerName: "Nimal" });
+    expect(customerOfA.id).not.toBe(bookingOfB.customerId);
+  });
+
   it("availability_repliesNotFoundForAnotherTenantsResource", async () => {
     const path = `/v1/availability?resourceId=${resourceOfB}&date=${date}`;
     for (const as of [asStaff(tenantA), { tenantSlug: tenantA.slug }]) {

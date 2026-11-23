@@ -16,9 +16,11 @@ export const Customer = z
   })
   .meta({ id: "Customer" });
 
+export const CustomerName = z.string().trim().min(1).max(MAX_NAME_LENGTH);
+
 const customerFields = {
   phone: PhoneInput,
-  name: z.string().trim().min(1).max(MAX_NAME_LENGTH),
+  name: CustomerName,
 };
 
 export const CreateCustomer = z.object(customerFields).meta({ id: "CreateCustomer" });

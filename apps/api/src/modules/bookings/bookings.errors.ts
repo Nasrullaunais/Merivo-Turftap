@@ -21,6 +21,10 @@ export const bookingErrors = {
     new BadRequest("tt_bkg_007", "Please give a reason for cancelling", [
       { field: "cancelReason", message: "Required when staff cancel a booking" },
     ]),
+  walkInMissing: () =>
+    new BadRequest("tt_bkg_008", "Please give the customer's name, phone and how they pay", [
+      { field: "walkIn", message: "Required when staff book" },
+    ]),
 };
 
 constraintErrors({
