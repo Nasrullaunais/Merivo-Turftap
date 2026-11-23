@@ -3,8 +3,8 @@
 import { type InfiniteData, infiniteQueryOptions, queryOptions, type UseMutationOptions } from '@tanstack/react-query';
 
 import { client } from '../client.gen';
-import { createBlockedTime, createClosedDate, createCustomer, createPhoto, createPriceRule, createResource, createStaff, createUploadedFile, createVenue, deleteBlockedTime, deleteClosedDate, deletePhoto, deletePriceRule, deleteResource, deleteStaff, deleteVenue, getBlockedTime, getClosedDate, getCustomer, getMe, getPhoto, getPriceRule, getResource, getStaff, getVenue, listBlockedTimes, listClosedDates, listCustomers, listPhotos, listPriceRules, listResources, listStaff, listVenues, type Options, updateBlockedTime, updateClosedDate, updateCustomer, updatePhoto, updatePriceRule, updateResource, updateStaff, updateVenue } from '../sdk.gen';
-import type { CreateBlockedTimeData, CreateBlockedTimeError, CreateBlockedTimeResponse, CreateClosedDateData, CreateClosedDateError, CreateClosedDateResponse, CreateCustomerData, CreateCustomerError, CreateCustomerResponse, CreatePhotoData, CreatePhotoError, CreatePhotoResponse, CreatePriceRuleData, CreatePriceRuleError, CreatePriceRuleResponse, CreateResourceData, CreateResourceError, CreateResourceResponse, CreateStaffData, CreateStaffError, CreateStaffResponse, CreateUploadedFileData, CreateUploadedFileError, CreateUploadedFileResponse, CreateVenueData, CreateVenueError, CreateVenueResponse, DeleteBlockedTimeData, DeleteBlockedTimeError, DeleteBlockedTimeResponse, DeleteClosedDateData, DeleteClosedDateError, DeleteClosedDateResponse, DeletePhotoData, DeletePhotoError, DeletePhotoResponse, DeletePriceRuleData, DeletePriceRuleError, DeletePriceRuleResponse, DeleteResourceData, DeleteResourceError, DeleteResourceResponse, DeleteStaffData, DeleteStaffError, DeleteStaffResponse, DeleteVenueData, DeleteVenueError, DeleteVenueResponse, GetBlockedTimeData, GetBlockedTimeError, GetBlockedTimeResponse, GetClosedDateData, GetClosedDateError, GetClosedDateResponse, GetCustomerData, GetCustomerError, GetCustomerResponse, GetMeData, GetMeError, GetMeResponse, GetPhotoData, GetPhotoError, GetPhotoResponse, GetPriceRuleData, GetPriceRuleError, GetPriceRuleResponse, GetResourceData, GetResourceError, GetResourceResponse, GetStaffData, GetStaffError, GetStaffResponse, GetVenueData, GetVenueError, GetVenueResponse, ListBlockedTimesData, ListBlockedTimesError, ListBlockedTimesResponse, ListClosedDatesData, ListClosedDatesError, ListClosedDatesResponse, ListCustomersData, ListCustomersError, ListCustomersResponse, ListPhotosData, ListPhotosError, ListPhotosResponse, ListPriceRulesData, ListPriceRulesError, ListPriceRulesResponse, ListResourcesData, ListResourcesError, ListResourcesResponse, ListStaffData, ListStaffError, ListStaffResponse, ListVenuesData, ListVenuesError, ListVenuesResponse, UpdateBlockedTimeData, UpdateBlockedTimeError, UpdateBlockedTimeResponse, UpdateClosedDateData, UpdateClosedDateError, UpdateClosedDateResponse, UpdateCustomerData, UpdateCustomerError, UpdateCustomerResponse, UpdatePhotoData, UpdatePhotoError, UpdatePhotoResponse, UpdatePriceRuleData, UpdatePriceRuleError, UpdatePriceRuleResponse, UpdateResourceData, UpdateResourceError, UpdateResourceResponse, UpdateStaffData, UpdateStaffError, UpdateStaffResponse, UpdateVenueData, UpdateVenueError, UpdateVenueResponse } from '../types.gen';
+import { createBlockedTime, createClosedDate, createCustomer, createPhoto, createPriceRule, createResource, createStaff, createUploadedFile, createVenue, deleteBlockedTime, deleteClosedDate, deletePhoto, deletePriceRule, deleteResource, deleteStaff, deleteVenue, getBlockedTime, getClosedDate, getCustomer, getMe, getPhoto, getPriceRule, getResource, getStaff, getVenue, listBlockedTimes, listClosedDates, listCustomers, listPhotos, listPriceRules, listResources, listStaff, listVenues, listWhatsappNumbers, type Options, updateBlockedTime, updateClosedDate, updateCustomer, updatePhoto, updatePriceRule, updateResource, updateStaff, updateVenue } from '../sdk.gen';
+import type { CreateBlockedTimeData, CreateBlockedTimeError, CreateBlockedTimeResponse, CreateClosedDateData, CreateClosedDateError, CreateClosedDateResponse, CreateCustomerData, CreateCustomerError, CreateCustomerResponse, CreatePhotoData, CreatePhotoError, CreatePhotoResponse, CreatePriceRuleData, CreatePriceRuleError, CreatePriceRuleResponse, CreateResourceData, CreateResourceError, CreateResourceResponse, CreateStaffData, CreateStaffError, CreateStaffResponse, CreateUploadedFileData, CreateUploadedFileError, CreateUploadedFileResponse, CreateVenueData, CreateVenueError, CreateVenueResponse, DeleteBlockedTimeData, DeleteBlockedTimeError, DeleteBlockedTimeResponse, DeleteClosedDateData, DeleteClosedDateError, DeleteClosedDateResponse, DeletePhotoData, DeletePhotoError, DeletePhotoResponse, DeletePriceRuleData, DeletePriceRuleError, DeletePriceRuleResponse, DeleteResourceData, DeleteResourceError, DeleteResourceResponse, DeleteStaffData, DeleteStaffError, DeleteStaffResponse, DeleteVenueData, DeleteVenueError, DeleteVenueResponse, GetBlockedTimeData, GetBlockedTimeError, GetBlockedTimeResponse, GetClosedDateData, GetClosedDateError, GetClosedDateResponse, GetCustomerData, GetCustomerError, GetCustomerResponse, GetMeData, GetMeError, GetMeResponse, GetPhotoData, GetPhotoError, GetPhotoResponse, GetPriceRuleData, GetPriceRuleError, GetPriceRuleResponse, GetResourceData, GetResourceError, GetResourceResponse, GetStaffData, GetStaffError, GetStaffResponse, GetVenueData, GetVenueError, GetVenueResponse, ListBlockedTimesData, ListBlockedTimesError, ListBlockedTimesResponse, ListClosedDatesData, ListClosedDatesError, ListClosedDatesResponse, ListCustomersData, ListCustomersError, ListCustomersResponse, ListPhotosData, ListPhotosError, ListPhotosResponse, ListPriceRulesData, ListPriceRulesError, ListPriceRulesResponse, ListResourcesData, ListResourcesError, ListResourcesResponse, ListStaffData, ListStaffError, ListStaffResponse, ListVenuesData, ListVenuesError, ListVenuesResponse, ListWhatsappNumbersData, ListWhatsappNumbersError, ListWhatsappNumbersResponse, UpdateBlockedTimeData, UpdateBlockedTimeError, UpdateBlockedTimeResponse, UpdateClosedDateData, UpdateClosedDateError, UpdateClosedDateResponse, UpdateCustomerData, UpdateCustomerError, UpdateCustomerResponse, UpdatePhotoData, UpdatePhotoError, UpdatePhotoResponse, UpdatePriceRuleData, UpdatePriceRuleError, UpdatePriceRuleResponse, UpdateResourceData, UpdateResourceError, UpdateResourceResponse, UpdateStaffData, UpdateStaffError, UpdateStaffResponse, UpdateVenueData, UpdateVenueError, UpdateVenueResponse } from '../types.gen';
 
 export type QueryKey<TOptions extends Options> = [
     Pick<TOptions, 'baseUrl' | 'body' | 'headers' | 'path' | 'query'> & {
@@ -54,11 +54,11 @@ export const getMeOptions = (options?: Options<GetMeData>) => queryOptions<GetMe
     queryKey: getMeQueryKey(options)
 });
 
-export const listStaffQueryKey = (options?: Options<ListStaffData>) => createQueryKey('listStaff', options);
+export const listWhatsappNumbersQueryKey = (options: Options<ListWhatsappNumbersData>) => createQueryKey('listWhatsappNumbers', options);
 
-export const listStaffOptions = (options?: Options<ListStaffData>) => queryOptions<ListStaffResponse, ListStaffError, ListStaffResponse, ReturnType<typeof listStaffQueryKey>>({
+export const listWhatsappNumbersOptions = (options: Options<ListWhatsappNumbersData>) => queryOptions<ListWhatsappNumbersResponse, ListWhatsappNumbersError, ListWhatsappNumbersResponse, ReturnType<typeof listWhatsappNumbersQueryKey>>({
     queryFn: async ({ queryKey, signal }) => {
-        const { data } = await listStaff({
+        const { data } = await listWhatsappNumbers({
             ...options,
             ...queryKey[0],
             signal,
@@ -66,7 +66,7 @@ export const listStaffOptions = (options?: Options<ListStaffData>) => queryOptio
         });
         return data;
     },
-    queryKey: listStaffQueryKey(options)
+    queryKey: listWhatsappNumbersQueryKey(options)
 });
 
 const createInfiniteParams = <K extends Pick<QueryKey<Options>[0], 'body' | 'headers' | 'path' | 'query'>>(queryKey: QueryKey<Options>, page: K) => {
@@ -97,6 +97,48 @@ const createInfiniteParams = <K extends Pick<QueryKey<Options>[0], 'body' | 'hea
     }
     return params as unknown as typeof page;
 };
+
+export const listWhatsappNumbersInfiniteQueryKey = (options: Options<ListWhatsappNumbersData>): QueryKey<Options<ListWhatsappNumbersData>> => createQueryKey('listWhatsappNumbers', options, true);
+
+export const listWhatsappNumbersInfiniteOptions = (options: Options<ListWhatsappNumbersData>) => {
+    const opts = infiniteQueryOptions<ListWhatsappNumbersResponse, ListWhatsappNumbersError, InfiniteData<ListWhatsappNumbersResponse>, QueryKey<Options<ListWhatsappNumbersData>>, number | Pick<QueryKey<Options<ListWhatsappNumbersData>>[0], 'body' | 'headers' | 'path' | 'query'>>(
+    // @ts-ignore
+    {
+        queryFn: async ({ pageParam, queryKey, signal }) => {
+            // @ts-ignore
+            const page: Pick<QueryKey<Options<ListWhatsappNumbersData>>[0], 'body' | 'headers' | 'path' | 'query'> = typeof pageParam === 'object' ? pageParam : {
+                query: {
+                    page: pageParam
+                }
+            };
+            const params = createInfiniteParams(queryKey, page);
+            const { data } = await listWhatsappNumbers({
+                ...options,
+                ...params,
+                signal,
+                throwOnError: true
+            });
+            return data;
+        },
+        queryKey: listWhatsappNumbersInfiniteQueryKey(options)
+    });
+    return opts as Omit<typeof opts, 'initialData'>;
+};
+
+export const listStaffQueryKey = (options?: Options<ListStaffData>) => createQueryKey('listStaff', options);
+
+export const listStaffOptions = (options?: Options<ListStaffData>) => queryOptions<ListStaffResponse, ListStaffError, ListStaffResponse, ReturnType<typeof listStaffQueryKey>>({
+    queryFn: async ({ queryKey, signal }) => {
+        const { data } = await listStaff({
+            ...options,
+            ...queryKey[0],
+            signal,
+            throwOnError: true
+        });
+        return data;
+    },
+    queryKey: listStaffQueryKey(options)
+});
 
 export const listStaffInfiniteQueryKey = (options?: Options<ListStaffData>): QueryKey<Options<ListStaffData>> => createQueryKey('listStaff', options, true);
 

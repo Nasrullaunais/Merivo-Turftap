@@ -38,3 +38,14 @@ export const tenantIdColumn = () =>
   bigint("tenant_id", { mode: "number" })
     .notNull()
     .references(() => tenants.id);
+
+/** PLA-02: one number per tenant, and a number belongs to one tenant only. */
+export const whatsappNumbers = pgTable("whatsapp_numbers", {
+  id: idColumn(),
+  tenantId: tenantIdColumn().unique("whatsapp_numbers_tenant_unique"),
+  phoneNumberId: text("phone_number_id")
+    .notNull()
+    .unique("whatsapp_numbers_phone_number_id_unique"),
+  phone: text("phone").notNull().unique("whatsapp_numbers_phone_unique"),
+  ...timestampColumns(),
+});

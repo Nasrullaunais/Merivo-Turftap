@@ -8,6 +8,7 @@ import type { AuthContext, StaffRole } from "../lib/auth/context";
 import { config } from "../lib/config";
 import { db } from "../lib/db";
 import { tenants, users } from "../modules/platform/platform.tables";
+import * as whatsappNumbersService from "../modules/platform/whatsapp-numbers.service";
 import { staff } from "../modules/staff/staff.tables";
 
 const PHONE_DIGITS = 7;
@@ -170,4 +171,19 @@ export const asAssistant = (tenant: TestTenant, customerPhone: string): As => ({
 
 export async function turnOff(tenant: TestTenant) {
   await db().update(tenants).set({ active: false }).where(eq(tenants.id, tenant.id));
+}
+
+const META_ID_DIGITS = 15;
+
+/** A made-up Meta phone number id, digits only like the real ones. */
+export const uniquePhoneNumberId = () =>
+  String(crypto.getRandomValues(new BigUint64Array(1))[0]).slice(0, META_ID_DIGITS);
+
+/** PLA-02: links a new WhatsApp number to the tenant, the way `bun run whatsapp:link` does. */
+export function linkWhatsAppNumber(tenant: TestTenant) {
+  return whatsappNumbersService.link({
+    tenantSlug: tenant.slug,
+    phoneNumberId: uniquePhoneNumberId(),
+    phone: uniquePhone(),
+  });
 }

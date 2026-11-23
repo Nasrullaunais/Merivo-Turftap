@@ -55,6 +55,7 @@ These are still resources, with only the operations that make sense:
 | `availability` | list | Free slots, computed on each request (`?resourceId=&date=`) |
 | `me` | get (`/v1/me`) | The signed-in user, their tenants and roles. Declared with `defineSingleton()`: one GET about the caller, with no id and no tenant header. |
 | `files` | create | Uploads one file as a multipart form (`file`, `purpose`) and returns its id, which another resource then points at (`POST /v1/photos { fileId }`). The resource declares `upload: { maxBytes }`; a body much larger is cut off with 413 before it is read. The API checks the file's first bytes, not the name or type the browser sends. Download links come with the resource that uses the file, such as a photo's `url`. Get arrives with receipts, when it is clear who may open one. |
+| `whatsapp-numbers` | list | The Assistant finds which tenant a chat belongs to (`?phoneNumberId=`), before it knows the tenant. Declared with `forAssistantWithoutTenant: ["list"]`: nobody else may call it, no tenant header is needed, and the service receives a `Caller` without a tenant. Platform Admins link numbers with scripts, not the API. |
 | `events` | list | A Server-Sent Events stream (the server keeps the connection open and pushes events), so the console updates without refreshing. Events carry only a type and an id; the screen refetches. |
 
 ## The one exception: vendor callbacks
@@ -63,10 +64,11 @@ Outside services that must call a fixed address use `/hooks/<vendor>/<event>`, e
 
 ## v1 resources
 
+Platform Admins manage tenants and WhatsApp numbers with scripts on the server in v1, so there is no `tenants` resource yet ([tickets D-25](../../tickets/README.md#open-decisions)).
+
 | Resource | Module | Operations | Open without sign-in |
 |---|---|---|---|
-| `tenants` | platform | all | |
-| `whatsapp-numbers` | platform | all | |
+| `whatsapp-numbers` | platform | list, for the Assistant only | |
 | `me` | platform | get | |
 | `staff` | staff | all | |
 | `venues` | venues | all | list, get |

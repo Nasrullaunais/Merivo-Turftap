@@ -23,14 +23,16 @@ const ACTION_OF: Record<Operation, Action> = {
   delete: "delete",
 };
 
-function authorize(
-  name: string,
-  op: Operation,
-  isPublic: boolean,
-  forCustomers: boolean,
-  caller: Caller,
-): AuthContext {
+type Access = { isPublic: boolean; forCustomers: boolean; forAssistantWithoutTenant: boolean };
+
+function authorize(name: string, op: Operation, access: Access, caller: Caller): AuthContext {
+  const { isPublic, forCustomers, forAssistantWithoutTenant } = access;
   if (!isPublic && caller.actor === "public") throw httpErrors.notSignedIn();
+  if (forAssistantWithoutTenant) {
+    if (caller.actor !== "assistant") throw httpErrors.notAllowed();
+    // Not an AuthContext: the declaration promises this service function takes a bare Caller.
+    return caller as AuthContext;
+  }
   if (caller.tenantId === undefined) throw httpErrors.tenantMissing();
   if (isPublic) return { ...caller, tenantId: caller.tenantId };
 
@@ -94,8 +96,11 @@ export function defineResource<
     authorize(
       def.name,
       op,
-      !!def.public?.includes(op),
-      !!def.forCustomers?.includes(op),
+      {
+        isPublic: !!def.public?.includes(op),
+        forCustomers: !!def.forCustomers?.includes(op),
+        forAssistantWithoutTenant: !!def.forAssistantWithoutTenant?.includes(op),
+      },
       c.get("caller"),
     );
   const encode = (value: unknown) => z.encode(item, value);

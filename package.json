@@ -17,7 +17,9 @@
     "gen": "bun run --filter '@turftap/api' openapi && bun run --filter '@turftap/contract' client",
     "db:generate": "bun run --filter '@turftap/api' db:generate",
     "db:migrate": "bun run --filter '@turftap/api' db:migrate",
-    "db:seed": "bun run --filter '@turftap/api' db:seed"
+    "db:seed": "bun run --filter '@turftap/api' db:seed",
+    "whatsapp:link": "bun run --filter '@turftap/api' whatsapp:link",
+    "whatsapp:unlink": "bun run --filter '@turftap/api' whatsapp:unlink"
   },
   "devDependencies": {
     "oxlint": "^1.94.0",

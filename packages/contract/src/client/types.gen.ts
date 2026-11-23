@@ -342,6 +342,16 @@ export type UpdateResource = {
     price?: PriceInput;
 };
 
+export type WhatsAppNumber = {
+    id: number;
+    tenantId: number;
+    phoneNumberId: string;
+    phone: string;
+    tenantActive: boolean;
+    createdAt: string;
+    updatedAt: string;
+};
+
 export type GetMeData = {
     body?: never;
     path?: never;
@@ -370,6 +380,46 @@ export type GetMeResponses = {
 };
 
 export type GetMeResponse = GetMeResponses[keyof GetMeResponses];
+
+export type ListWhatsappNumbersData = {
+    body?: never;
+    path?: never;
+    query: {
+        page?: number;
+        size?: number;
+        sort?: 'createdAt,asc' | 'createdAt,desc';
+        phoneNumberId: string;
+    };
+    url: '/v1/whatsapp-numbers';
+};
+
+export type ListWhatsappNumbersErrors = {
+    /**
+     * Error
+     */
+    default: ErrorReply;
+};
+
+export type ListWhatsappNumbersError = ListWhatsappNumbersErrors[keyof ListWhatsappNumbersErrors];
+
+export type ListWhatsappNumbersResponses = {
+    /**
+     * One page
+     */
+    200: {
+        status: number;
+        message: string;
+        data: {
+            content: Array<WhatsAppNumber>;
+            page: number;
+            size: number;
+            totalElements: number;
+            totalPages: number;
+        };
+    };
+};
+
+export type ListWhatsappNumbersResponse = ListWhatsappNumbersResponses[keyof ListWhatsappNumbersResponses];
 
 export type ListStaffData = {
     body?: never;
