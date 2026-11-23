@@ -113,6 +113,13 @@
       "when": 1795459056288,
       "tag": "0015_bookings_no_overlap",
       "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1795460635958,
+      "tag": "0016_venue_payment_settings_2",
+      "breakpoints": true
     }
   ]
 }

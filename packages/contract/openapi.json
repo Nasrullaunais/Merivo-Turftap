@@ -917,6 +917,14 @@
             "minimum": -9007199254740991,
             "maximum": 9007199254740991
           },
+          "payAtVenue": {
+            "type": "boolean"
+          },
+          "seriesPaymentDaysBefore": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
           "active": {
             "type": "boolean"
           },
@@ -943,6 +951,8 @@
           "advancePercent",
           "paymentTimeLimitMinutes",
           "cancellationCutOffHours",
+          "payAtVenue",
+          "seriesPaymentDaysBefore",
           "active",
           "createdAt",
           "updatedAt"
@@ -1001,7 +1011,7 @@
             "maximum": 100
           },
           "paymentTimeLimitMinutes": {
-            "default": 30,
+            "default": 20,
             "type": "integer",
             "minimum": 10,
             "maximum": 1440
@@ -1011,6 +1021,16 @@
             "type": "integer",
             "minimum": 0,
             "maximum": 168
+          },
+          "payAtVenue": {
+            "default": false,
+            "type": "boolean"
+          },
+          "seriesPaymentDaysBefore": {
+            "default": 2,
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 7
           }
         },
         "required": [
@@ -1078,6 +1098,14 @@
             "type": "integer",
             "minimum": 0,
             "maximum": 168
+          },
+          "payAtVenue": {
+            "type": "boolean"
+          },
+          "seriesPaymentDaysBefore": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 7
           }
         }
       },

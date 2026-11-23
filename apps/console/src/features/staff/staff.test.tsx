@@ -237,6 +237,8 @@ describe("SIG-06 choose which venues staff work at", () => {
     advancePercent: 100,
     paymentTimeLimitMinutes: 30,
     cancellationCutOffHours: 6,
+    payAtVenue: false,
+    seriesPaymentDaysBefore: 2,
     openingHours: [],
     active: true,
     createdAt: "2026-11-22T04:00:00.000Z",

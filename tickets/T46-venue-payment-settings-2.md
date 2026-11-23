@@ -1,6 +1,6 @@
 # T46 Venue payment settings: Pay at Venue, 20-minute default, series payment days
 
-Status: todo · Stories: `VEN-03` (changed) · Depends on: none · Decisions: **D-09**, **D-18**, **D-19**
+Status: done · Stories: `VEN-03` (changed) · Depends on: none · Decisions: **D-09**, **D-18**, **D-19**
 
 ## Goal
 Three additions to the venue payment settings built in `VEN-03`, needed before online booking (T06).
