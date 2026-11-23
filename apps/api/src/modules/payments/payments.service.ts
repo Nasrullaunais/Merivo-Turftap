@@ -14,6 +14,7 @@ import type { ListQuery } from "../../lib/resource";
 import * as bookingsService from "../bookings/bookings.service";
 import * as filesService from "../files/files.service";
 import { paymentErrors } from "./payments.errors";
+import { readReceiptJob } from "./payments.jobs";
 import * as paymentsRepository from "./payments.repository";
 
 type PaymentSort = "createdAt";
@@ -25,13 +26,20 @@ const MAY_REFUND: readonly StaffRole[] = ["OWNER", "MANAGER"];
 const isCustomerSide = (auth: AuthContext) =>
   auth.actor === "customer" || auth.actor === "assistant";
 
-/** Callers who may see a payment may open its receipt, through a fresh short-lived link. */
-async function withReceiptUrls(auth: AuthContext, payments: StoredPayment[]) {
+/** Whoever may see a payment sees its Receipt Reading and opens its receipt through a fresh link. */
+async function withReceipts(auth: AuthContext, payments: StoredPayment[]) {
   const fileIds = payments.flatMap(({ fileId }) => (fileId === null ? [] : [fileId]));
-  const urls = await filesService.receiptUrls(auth, fileIds);
+  const [urls, readings] = await Promise.all([
+    filesService.receiptUrls(auth, fileIds),
+    paymentsRepository.readingsOf(
+      auth.tenantId,
+      payments.map(({ id }) => id),
+    ),
+  ]);
   return payments.map(({ fileId, ...payment }) => ({
     ...payment,
     receiptUrl: fileId === null ? null : (urls.get(fileId) ?? null),
+    receiptReading: readings.get(payment.id) ?? null,
   }));
 }
 
@@ -40,13 +48,13 @@ export async function list(
   { filters, page }: ListQuery<PaymentFilters, PaymentSort>,
 ) {
   const found = await paymentsRepository.list(auth.tenantId, auth.venueIds, filters, page);
-  return { ...found, content: await withReceiptUrls(auth, found.content) };
+  return { ...found, content: await withReceipts(auth, found.content) };
 }
 
 export async function get(auth: AuthContext, id: number) {
   const payment = await paymentsRepository.findById(auth.tenantId, id, auth.venueIds);
   if (!payment) throw paymentErrors.notFound(id);
-  const [withUrl] = await withReceiptUrls(auth, [payment]);
+  const [withUrl] = await withReceipts(auth, [payment]);
   return withUrl!;
 }
 
@@ -78,8 +86,8 @@ function checkWaitsForPayment(booking: Booking, now: Date) {
 }
 
 /**
- * PAY-02: the receipt pays the amount due and waits for a Receipt Check. The booking stays locked
- * until its status changes, so the expiry job then finds nothing left to expire.
+ * PAY-02: the receipt pays the amount due and waits for a Receipt Check, and the AI reads it soon
+ * after. The booking stays locked until its status changes, so the expiry job finds nothing to do.
  */
 function sendTransferReceipt(auth: AuthContext, { bookingId, fileId }: SendTransferReceipt) {
   return transaction(async () => {
@@ -98,7 +106,8 @@ function sendTransferReceipt(auth: AuthContext, { bookingId, fileId }: SendTrans
       createdBy: auth.userId ?? null,
     });
     await bookingsService.receiptSent(auth, booking.id);
-    const [withUrl] = await withReceiptUrls(auth, [payment]);
+    await readReceiptJob.queue({ tenantId: auth.tenantId, paymentId: payment.id });
+    const [withUrl] = await withReceipts(auth, [payment]);
     return withUrl!;
   });
 }
@@ -126,7 +135,7 @@ async function record(auth: AuthContext, input: RecordPayment) {
       note: input.note,
       createdBy: auth.userId ?? null,
     });
-    const [withUrl] = await withReceiptUrls(auth, [payment]);
+    const [withUrl] = await withReceipts(auth, [payment]);
     return withUrl!;
   });
 }

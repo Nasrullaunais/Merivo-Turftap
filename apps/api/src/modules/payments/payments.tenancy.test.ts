@@ -1,4 +1,4 @@
-import { beforeAll, describe, expect, it } from "bun:test";
+import { afterEach, beforeAll, describe, expect, it } from "bun:test";
 
 import { addDays, instantAt, todayIn } from "../../lib/time";
 import {
@@ -13,6 +13,8 @@ import {
   uploadForm,
   venueInput,
 } from "../../test/fixtures";
+import { testPorts } from "../../test/ports";
+import * as receiptReadingService from "./receipt-reading.service";
 
 const TEN_O_CLOCK = 10 * 60;
 const openAllWeek = [1, 2, 3, 4, 5, 6, 7].map((weekday) => ({
@@ -21,12 +23,17 @@ const openAllWeek = [1, 2, 3, 4, 5, 6, 7].map((weekday) => ({
   closes: "23:00",
 }));
 const cash = { amount: 50_000, currency: "LKR" };
+const defaultAnswer = testPorts.receiptReader.reading;
 
 describe("payments tenant isolation", () => {
   let tenantA: TestTenant;
   let tenantB: TestTenant;
   let bookingOfB: number;
   let paymentOfB: number;
+
+  afterEach(() => {
+    testPorts.receiptReader.reading = defaultAnswer;
+  });
 
   beforeAll(async () => {
     tenantA = await createTenant();
@@ -120,5 +127,46 @@ describe("payments tenant isolation", () => {
     expect(reply).toMatchObject({ status: 404, body: { code: "tt_fil_001" } });
     const booking = await call("GET", `/v1/bookings/${bookingOfA}`, asStaff(tenantA));
     expect(booking.body.data.status).toBe("AWAITING_PAYMENT");
+  });
+
+  /** A new venue and customer in `tenant`, an online booking, and a receipt with `bytes`. */
+  async function sendReceiptIn(tenant: TestTenant, bytes: Uint8Array) {
+    const venueId = (
+      await call("POST", "/v1/venues", asStaff(tenant), venueInput({ openingHours: openAllWeek }))
+    ).body.data.id;
+    const resourceId = (
+      await call("POST", "/v1/resources", asStaff(tenant), resourceInput(venueId))
+    ).body.data.id;
+    const phone = uniquePhone();
+    const as = asCustomer(tenant, phone);
+    await call("POST", "/v1/customers", as, { name: "Nimal", phone });
+    const bookingId = (
+      await call("POST", "/v1/bookings", as, {
+        resourceId,
+        startsAt: instantAt(addDays(todayIn("Asia/Colombo"), 2), TEN_O_CLOCK, "Asia/Colombo"),
+      })
+    ).body.data.id;
+    const fileId = (await call("POST", "/v1/files", as, uploadForm(bytes, "RECEIPT"))).body.data.id;
+    const payment = await call("POST", "/v1/payments", as, { kind: "TRANSFER", bookingId, fileId });
+    return payment.body.data.id as number;
+  }
+
+  it("receiptReading_aReceiptUsedInAnotherTenant_isNotADuplicate", async () => {
+    const bytes = imageBytes();
+    bytes.set(new TextEncoder().encode("tenancy"), bytes.length - "tenancy".length);
+    const reference = `TEN${crypto.randomUUID().slice(0, 8).toUpperCase()}`;
+    testPorts.receiptReader.reading = { amount: null, paidOn: null, bank: null, reference };
+    const paymentOfB = await sendReceiptIn(tenantB, bytes);
+    await receiptReadingService.read(tenantB.id, paymentOfB);
+    const paymentOfA = await sendReceiptIn(tenantA, bytes);
+
+    await receiptReadingService.read(tenantA.id, paymentOfA);
+
+    const reply = await call("GET", `/v1/payments/${paymentOfA}`, asStaff(tenantA));
+    expect(reply.body.data.receiptReading).toMatchObject({
+      reference,
+      referenceNew: true,
+      duplicateOf: null,
+    });
   });
 });

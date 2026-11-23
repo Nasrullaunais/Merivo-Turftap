@@ -323,6 +323,21 @@ export type Me = {
     tenants: Array<MyTenant>;
 };
 
+export type ReceiptReading = {
+    unreadable: boolean;
+    amount: Money | null;
+    paidOn: string | null;
+    bank: string | null;
+    reference: string | null;
+    amountMatches: boolean | null;
+    dateRecent: boolean | null;
+    referenceNew: boolean | null;
+    duplicateOf: {
+        paymentId: number;
+        bookingId: number | null;
+    } | null;
+};
+
 export type Payment = {
     id: number;
     bookingId: number | null;
@@ -332,6 +347,7 @@ export type Payment = {
     amount: Money;
     note: string | null;
     receiptUrl: string | null;
+    receiptReading: ReceiptReading | null;
     createdBy: number | null;
     createdAt: string;
     updatedAt: string;

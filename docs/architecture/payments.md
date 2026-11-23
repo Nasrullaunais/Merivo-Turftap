@@ -54,6 +54,15 @@ Each booking shows **paid** (its `ACCEPTED` payments added up, refunds included)
 - The file row keeps the SHA-256 of the receipt's bytes for the reused-receipt check (`PAY-06`, D-13).
 - Whoever may see the payment gets `receiptUrl`, a link that works for 15 minutes.
 
+**Reading a Transfer Receipt** (`PAY-03`, `PAY-06`): sending the receipt also queues the `read-receipt` job in the same transaction. The job asks `ports().receiptReader` once and saves the Receipt Reading in its own table, `receipt_readings`, one row per payment. Payments show it as `receiptReading`, which is `null` until then.
+
+- `amountMatches`: the amount read is exactly the payment's amount (the amount due). Paying the full price when only the Advance was due shows "doesn't match", so staff take a look.
+- `dateRecent` (D-12): paid on or after the day the booking was made, and not after today, both in the venue's time zone.
+- `referenceNew`: no earlier payment in the tenant was read with the same reference. References are saved in upper case without spaces or dashes, so `ft 0042` and `FT-0042` match.
+- `duplicateOf`: the earliest earlier payment in the tenant, at any venue, with the same receipt image (`files.sha256`, D-13) or the same reference. It's a warning only.
+- A reader that fails is the adapter's problem: the port never rejects, so it reads as `unreadable` and staff check by hand.
+- All of it is worked out once, when the job runs, and then saved. Two different images of one transfer read at the very same moment can miss each other's reference; the same image is always caught, because its hash is saved at upload.
+
 A **Receipt Check** is staff PATCHing a `TRANSFER` payment to `ACCEPTED` or `REJECTED` (`rejectReason` required). In the same transaction, the service moves the booking forward or back.
 
 ## Flow
@@ -79,7 +88,7 @@ sequenceDiagram
 - **Amount due now** = the full price, or the venue's advance percentage rounded up to whole rupees. It's fixed when the booking is created. At a Pay at Venue venue nothing is due online.
 - **One unpaid booking:** a customer has at most one `AWAITING_PAYMENT` booking per tenant, enforced by a partial unique index.
 - **Venue settings are copied onto the booking** when it's made: the amount due, the expiry time (now + the venue's Payment Time Limit) and the Cancellation Cut-off. Changing a venue's settings later affects new bookings only (`VEN-03`).
-- **Duplicates:** each receipt stores its image hash and the reference number the AI read. A match on either one, inside the same tenant, shows a warning (`PAY-06`). It's a warning, not a block: staff decide.
+- **Duplicates:** each receipt file stores its image hash, and its Receipt Reading the reference number the AI read. A match on either one, inside the same tenant, shows a warning (`PAY-06`). It's a warning, not a block: staff decide.
 - **AI reading** never changes a status. It only fills `receiptReading` (amount, date, bank, reference, plus "matches" flags) for staff to see.
 - **Jobs are queued inside the same transaction** as the data, so a job can never run for a booking that didn't save.
 - The expiry job uses a conditional UPDATE (`WHERE status = 'AWAITING_PAYMENT'`), so a receipt arriving at the last second wins cleanly.

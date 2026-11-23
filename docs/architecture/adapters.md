@@ -23,7 +23,7 @@ apps/api/src/
 | `ObjectStorage` | Saves, reads and deletes files; makes short-lived download links | `s3`: Cloudflare R2 in production, SeaweedFS locally ([ADR 0012](../adr/0012-files-in-cloudflare-r2.md)) | Yes |
 | `MessagingChannel` | Sends a WhatsApp message (text, template or login code) from a given number | `whatsapp-cloud` (Meta) | Yes, records sent messages |
 | `SmsChannel` | Sends an SMS (login codes when WhatsApp didn't work) | not chosen yet | Yes, records sent messages |
-| `ReceiptReader` | Reads amount, date, bank and reference from a receipt image | `gemini` | Yes, returns set answers |
+| `ReceiptReader` | Reads amount, date, bank and reference from a receipt image. Never rejects: a failure reads as "unreadable" | `gemini` | Yes, returns set answers |
 | `PaymentProvider` | Online payments | none in v1 (interface only) | n/a |
 
 The frontends have the same rule: only `lib/auth` imports `oidc-client-ts`.

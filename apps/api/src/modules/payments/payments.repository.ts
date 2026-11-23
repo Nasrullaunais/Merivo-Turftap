@@ -1,8 +1,14 @@
-import type { PaymentFilters } from "@turftap/contract";
-import { and, eq, inArray, type SQL, sql } from "drizzle-orm";
+import type { PaymentFilters, ReceiptReading } from "@turftap/contract";
+import { aliasedTable, and, asc, eq, inArray, lt, type SQL, sql } from "drizzle-orm";
 
 import { db, pageOf, type PageRequest, sortBy } from "../../lib/db";
-import { type NewPayment, type PaymentRow, payments } from "./payments.tables";
+import {
+  type NewPayment,
+  type NewReceiptReading,
+  type PaymentRow,
+  payments,
+  receiptReadings,
+} from "./payments.tables";
 
 const SORTABLE = { createdAt: payments.createdAt };
 
@@ -73,4 +79,97 @@ export async function paidByBooking(tenantId: number, bookingIds: number[]) {
     )
     .groupBy(payments.bookingId);
   return new Map(rows.map((row) => [row.bookingId!, Number(row.paid)]));
+}
+
+/** Saves a payment's Receipt Reading once; a second save for the same payment changes nothing. */
+export async function insertReading(tenantId: number, values: NewReceiptReading) {
+  await db()
+    .insert(receiptReadings)
+    .values({ ...values, tenantId })
+    .onConflictDoNothing();
+}
+
+export async function hasReading(tenantId: number, paymentId: number) {
+  const where = and(
+    eq(receiptReadings.tenantId, tenantId),
+    eq(receiptReadings.paymentId, paymentId),
+  );
+  return (await db().$count(receiptReadings, where)) > 0;
+}
+
+/** The earliest payment made before `beforeId` that one of these receipt files paid. */
+export async function earliestPaidWithFile(tenantId: number, fileIds: number[], beforeId: number) {
+  if (fileIds.length === 0) return undefined;
+  const [payment] = await db()
+    .select({ id: payments.id, bookingId: payments.bookingId })
+    .from(payments)
+    .where(
+      and(
+        eq(payments.tenantId, tenantId),
+        inArray(payments.fileId, fileIds),
+        lt(payments.id, beforeId),
+      ),
+    )
+    .orderBy(asc(payments.id))
+    .limit(1);
+  return payment;
+}
+
+/** The earliest payment made before `beforeId` whose receipt was read with this reference. */
+export async function earliestReadWithReference(
+  tenantId: number,
+  reference: string,
+  beforeId: number,
+) {
+  const [payment] = await db()
+    .select({ id: payments.id, bookingId: payments.bookingId })
+    .from(receiptReadings)
+    .innerJoin(payments, eq(payments.id, receiptReadings.paymentId))
+    .where(
+      and(
+        eq(receiptReadings.tenantId, tenantId),
+        eq(receiptReadings.reference, reference),
+        lt(receiptReadings.paymentId, beforeId),
+      ),
+    )
+    .orderBy(asc(receiptReadings.paymentId))
+    .limit(1);
+  return payment;
+}
+
+const duplicates = aliasedTable(payments, "duplicates");
+
+/** Each payment's Receipt Reading, by payment id. Payments not read yet are left out. */
+export async function readingsOf(
+  tenantId: number,
+  paymentIds: number[],
+): Promise<Map<number, ReceiptReading>> {
+  if (paymentIds.length === 0) return new Map();
+  const rows = await db()
+    .select({ reading: receiptReadings, duplicateBookingId: duplicates.bookingId })
+    .from(receiptReadings)
+    .leftJoin(
+      duplicates,
+      and(eq(duplicates.tenantId, tenantId), eq(duplicates.id, receiptReadings.duplicateOf)),
+    )
+    .where(
+      and(eq(receiptReadings.tenantId, tenantId), inArray(receiptReadings.paymentId, paymentIds)),
+    );
+  return new Map(
+    rows.map(({ reading: { amount, currency, duplicateOf, ...reading }, duplicateBookingId }) => [
+      reading.paymentId,
+      {
+        unreadable: reading.unreadable,
+        amount: amount === null || currency === null ? null : { amount, currency },
+        paidOn: reading.paidOn,
+        bank: reading.bank,
+        reference: reading.reference,
+        amountMatches: reading.amountMatches,
+        dateRecent: reading.dateRecent,
+        referenceNew: reading.referenceNew,
+        duplicateOf:
+          duplicateOf === null ? null : { paymentId: duplicateOf, bookingId: duplicateBookingId },
+      },
+    ]),
+  );
 }

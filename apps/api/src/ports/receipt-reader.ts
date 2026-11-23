@@ -9,6 +9,9 @@ export type ReceiptReading = {
 };
 
 export interface ReceiptReader {
-  /** Resolves to `undefined` when the image can't be read at all. */
+  /**
+   * Resolves to `undefined` when the image can't be read, also when the reader itself fails after
+   * its retries. Never rejects: staff then check the receipt by hand.
+   */
   read(file: StoredFile): Promise<ReceiptReading | undefined>;
 }

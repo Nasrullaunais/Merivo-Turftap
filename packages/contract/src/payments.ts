@@ -1,11 +1,33 @@
 import { z } from "zod";
 
-import { Id, Money, Timestamp } from "./common";
+import { Id, LocalDate, Money, Timestamp } from "./common";
 
 export const PAYMENT_KINDS = ["TRANSFER", "CASH", "REFUND"] as const;
 export const PAYMENT_STATUSES = ["PENDING_CHECK", "ACCEPTED", "REJECTED"] as const;
 
 const MAX_NOTE_LENGTH = 200;
+
+/**
+ * PAY-03, PAY-06: what the AI read from a Transfer Receipt, for staff to check against. A field it
+ * couldn't read is `null`, and so is a flag that needs it.
+ */
+export const ReceiptReading = z
+  .object({
+    unreadable: z.boolean(),
+    amount: Money.nullable(),
+    paidOn: LocalDate.nullable(),
+    bank: z.string().nullable(),
+    reference: z.string().nullable(),
+    /** The amount read is exactly the payment's amount. */
+    amountMatches: z.boolean().nullable(),
+    /** Paid on or after the day the booking was made, and not in the future (D-12). */
+    dateRecent: z.boolean().nullable(),
+    /** No earlier payment in the tenant has a receipt with this reference. */
+    referenceNew: z.boolean().nullable(),
+    /** The earliest payment in the tenant with the same receipt image or reference. */
+    duplicateOf: z.object({ paymentId: Id, bookingId: Id.nullable() }).nullable(),
+  })
+  .meta({ id: "ReceiptReading" });
 
 export const Payment = z
   .object({
@@ -19,6 +41,8 @@ export const Payment = z
     note: z.string().nullable(),
     /** A short-lived link to a transfer's receipt file. */
     receiptUrl: z.string().nullable(),
+    /** A transfer's Receipt Reading; `null` until the AI has read it. */
+    receiptReading: ReceiptReading.nullable(),
     createdBy: Id.nullable(),
     createdAt: Timestamp,
     updatedAt: Timestamp,
@@ -54,6 +78,7 @@ export const PAYMENT_SORT_FIELDS = ["createdAt"] as const;
 
 export type PaymentKind = (typeof PAYMENT_KINDS)[number];
 export type PaymentStatus = (typeof PAYMENT_STATUSES)[number];
+export type ReceiptReading = z.output<typeof ReceiptReading>;
 export type Payment = z.output<typeof Payment>;
 export type RecordPayment = z.output<typeof RecordPayment>;
 export type SendTransferReceipt = z.output<typeof SendTransferReceipt>;
