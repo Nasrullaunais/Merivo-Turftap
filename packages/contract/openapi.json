@@ -310,6 +310,70 @@
           }
         }
       },
+      "Customer": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991
+          },
+          "phone": {
+            "type": "string",
+            "pattern": "^\\+[1-9]\\d{6,14}$"
+          },
+          "name": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+          }
+        },
+        "required": [
+          "id",
+          "phone",
+          "name",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "CreateCustomer": {
+        "type": "object",
+        "properties": {
+          "phone": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80
+          }
+        },
+        "required": [
+          "phone",
+          "name"
+        ]
+      },
+      "UpdateCustomer": {
+        "type": "object",
+        "properties": {
+          "phone": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80
+          }
+        }
+      },
       "FilePurpose": {
         "type": "string",
         "enum": [
@@ -401,7 +465,11 @@
           "files:read",
           "files:create",
           "files:update",
-          "files:delete"
+          "files:delete",
+          "customers:read",
+          "customers:create",
+          "customers:update",
+          "customers:delete"
         ]
       },
       "StaffRole": {
@@ -3949,6 +4017,324 @@
                     },
                     "data": {
                       "$ref": "#/components/schemas/UploadedFile"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorReply"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/customers": {
+      "get": {
+        "tags": [
+          "customers"
+        ],
+        "operationId": "listCustomers",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0
+            }
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "name,asc",
+                "name,desc",
+                "createdAt,asc",
+                "createdAt,desc"
+              ],
+              "default": "name,asc"
+            }
+          },
+          {
+            "name": "phone",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 80
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "One page",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "status",
+                    "message",
+                    "data"
+                  ],
+                  "properties": {
+                    "status": {
+                      "type": "integer"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "type": "object",
+                      "required": [
+                        "content",
+                        "page",
+                        "size",
+                        "totalElements",
+                        "totalPages"
+                      ],
+                      "properties": {
+                        "content": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/components/schemas/Customer"
+                          }
+                        },
+                        "page": {
+                          "type": "integer"
+                        },
+                        "size": {
+                          "type": "integer"
+                        },
+                        "totalElements": {
+                          "type": "integer"
+                        },
+                        "totalPages": {
+                          "type": "integer"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorReply"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "customers"
+        ],
+        "operationId": "createCustomer",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCustomer"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "status",
+                    "message",
+                    "data"
+                  ],
+                  "properties": {
+                    "status": {
+                      "type": "integer"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Customer"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorReply"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/customers/{id}": {
+      "get": {
+        "tags": [
+          "customers"
+        ],
+        "operationId": "getCustomer",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "status",
+                    "message",
+                    "data"
+                  ],
+                  "properties": {
+                    "status": {
+                      "type": "integer"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Customer"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorReply"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "customers"
+        ],
+        "operationId": "updateCustomer",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateCustomer"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Changed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "status",
+                    "message",
+                    "data"
+                  ],
+                  "properties": {
+                    "status": {
+                      "type": "integer"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Customer"
                     }
                   }
                 }

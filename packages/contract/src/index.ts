@@ -1,6 +1,7 @@
 export * from "./blocked-times";
 export * from "./closed-dates";
 export * from "./common";
+export * from "./customers";
 export * from "./files";
 export * from "./me";
 export * from "./permissions";

@@ -13,6 +13,7 @@ export const STAFF_RESOURCES = [
   "blocked-times",
   "photos",
   "files",
+  "customers",
 ] as const;
 export type StaffResource = (typeof STAFF_RESOURCES)[number];
 

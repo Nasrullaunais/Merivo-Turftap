@@ -2,7 +2,7 @@
 
 import { type Client, type ClientMeta, formDataBodySerializer, type Options as Options2, type RequestResult, type TDataShape } from './client';
 import { client } from './client.gen';
-import type { CreateBlockedTimeData, CreateBlockedTimeErrors, CreateBlockedTimeResponses, CreateClosedDateData, CreateClosedDateErrors, CreateClosedDateResponses, CreatePhotoData, CreatePhotoErrors, CreatePhotoResponses, CreatePriceRuleData, CreatePriceRuleErrors, CreatePriceRuleResponses, CreateResourceData, CreateResourceErrors, CreateResourceResponses, CreateStaffData, CreateStaffErrors, CreateStaffResponses, CreateUploadedFileData, CreateUploadedFileErrors, CreateUploadedFileResponses, CreateVenueData, CreateVenueErrors, CreateVenueResponses, DeleteBlockedTimeData, DeleteBlockedTimeErrors, DeleteBlockedTimeResponses, DeleteClosedDateData, DeleteClosedDateErrors, DeleteClosedDateResponses, DeletePhotoData, DeletePhotoErrors, DeletePhotoResponses, DeletePriceRuleData, DeletePriceRuleErrors, DeletePriceRuleResponses, DeleteResourceData, DeleteResourceErrors, DeleteResourceResponses, DeleteStaffData, DeleteStaffErrors, DeleteStaffResponses, DeleteVenueData, DeleteVenueErrors, DeleteVenueResponses, GetBlockedTimeData, GetBlockedTimeErrors, GetBlockedTimeResponses, GetClosedDateData, GetClosedDateErrors, GetClosedDateResponses, GetMeData, GetMeErrors, GetMeResponses, GetPhotoData, GetPhotoErrors, GetPhotoResponses, GetPriceRuleData, GetPriceRuleErrors, GetPriceRuleResponses, GetResourceData, GetResourceErrors, GetResourceResponses, GetStaffData, GetStaffErrors, GetStaffResponses, GetVenueData, GetVenueErrors, GetVenueResponses, ListBlockedTimesData, ListBlockedTimesErrors, ListBlockedTimesResponses, ListClosedDatesData, ListClosedDatesErrors, ListClosedDatesResponses, ListPhotosData, ListPhotosErrors, ListPhotosResponses, ListPriceRulesData, ListPriceRulesErrors, ListPriceRulesResponses, ListResourcesData, ListResourcesErrors, ListResourcesResponses, ListStaffData, ListStaffErrors, ListStaffResponses, ListVenuesData, ListVenuesErrors, ListVenuesResponses, UpdateBlockedTimeData, UpdateBlockedTimeErrors, UpdateBlockedTimeResponses, UpdateClosedDateData, UpdateClosedDateErrors, UpdateClosedDateResponses, UpdatePhotoData, UpdatePhotoErrors, UpdatePhotoResponses, UpdatePriceRuleData, UpdatePriceRuleErrors, UpdatePriceRuleResponses, UpdateResourceData, UpdateResourceErrors, UpdateResourceResponses, UpdateStaffData, UpdateStaffErrors, UpdateStaffResponses, UpdateVenueData, UpdateVenueErrors, UpdateVenueResponses } from './types.gen';
+import type { CreateBlockedTimeData, CreateBlockedTimeErrors, CreateBlockedTimeResponses, CreateClosedDateData, CreateClosedDateErrors, CreateClosedDateResponses, CreateCustomerData, CreateCustomerErrors, CreateCustomerResponses, CreatePhotoData, CreatePhotoErrors, CreatePhotoResponses, CreatePriceRuleData, CreatePriceRuleErrors, CreatePriceRuleResponses, CreateResourceData, CreateResourceErrors, CreateResourceResponses, CreateStaffData, CreateStaffErrors, CreateStaffResponses, CreateUploadedFileData, CreateUploadedFileErrors, CreateUploadedFileResponses, CreateVenueData, CreateVenueErrors, CreateVenueResponses, DeleteBlockedTimeData, DeleteBlockedTimeErrors, DeleteBlockedTimeResponses, DeleteClosedDateData, DeleteClosedDateErrors, DeleteClosedDateResponses, DeletePhotoData, DeletePhotoErrors, DeletePhotoResponses, DeletePriceRuleData, DeletePriceRuleErrors, DeletePriceRuleResponses, DeleteResourceData, DeleteResourceErrors, DeleteResourceResponses, DeleteStaffData, DeleteStaffErrors, DeleteStaffResponses, DeleteVenueData, DeleteVenueErrors, DeleteVenueResponses, GetBlockedTimeData, GetBlockedTimeErrors, GetBlockedTimeResponses, GetClosedDateData, GetClosedDateErrors, GetClosedDateResponses, GetCustomerData, GetCustomerErrors, GetCustomerResponses, GetMeData, GetMeErrors, GetMeResponses, GetPhotoData, GetPhotoErrors, GetPhotoResponses, GetPriceRuleData, GetPriceRuleErrors, GetPriceRuleResponses, GetResourceData, GetResourceErrors, GetResourceResponses, GetStaffData, GetStaffErrors, GetStaffResponses, GetVenueData, GetVenueErrors, GetVenueResponses, ListBlockedTimesData, ListBlockedTimesErrors, ListBlockedTimesResponses, ListClosedDatesData, ListClosedDatesErrors, ListClosedDatesResponses, ListCustomersData, ListCustomersErrors, ListCustomersResponses, ListPhotosData, ListPhotosErrors, ListPhotosResponses, ListPriceRulesData, ListPriceRulesErrors, ListPriceRulesResponses, ListResourcesData, ListResourcesErrors, ListResourcesResponses, ListStaffData, ListStaffErrors, ListStaffResponses, ListVenuesData, ListVenuesErrors, ListVenuesResponses, UpdateBlockedTimeData, UpdateBlockedTimeErrors, UpdateBlockedTimeResponses, UpdateClosedDateData, UpdateClosedDateErrors, UpdateClosedDateResponses, UpdateCustomerData, UpdateCustomerErrors, UpdateCustomerResponses, UpdatePhotoData, UpdatePhotoErrors, UpdatePhotoResponses, UpdatePriceRuleData, UpdatePriceRuleErrors, UpdatePriceRuleResponses, UpdateResourceData, UpdateResourceErrors, UpdateResourceResponses, UpdateStaffData, UpdateStaffErrors, UpdateStaffResponses, UpdateVenueData, UpdateVenueErrors, UpdateVenueResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -297,6 +297,38 @@ export const createUploadedFile = <ThrowOnError extends boolean = true>(options:
     ...options,
     headers: {
         'Content-Type': null,
+        ...options.headers
+    }
+});
+
+export const listCustomers = <ThrowOnError extends boolean = true>(options?: Options<ListCustomersData, ThrowOnError>): RequestResult<ListCustomersResponses, ListCustomersErrors, ThrowOnError> => (options?.client ?? client).get<ListCustomersResponses, ListCustomersErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/v1/customers',
+    ...options
+});
+
+export const createCustomer = <ThrowOnError extends boolean = true>(options: Options<CreateCustomerData, ThrowOnError>): RequestResult<CreateCustomerResponses, CreateCustomerErrors, ThrowOnError> => (options.client ?? client).post<CreateCustomerResponses, CreateCustomerErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/v1/customers',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+export const getCustomer = <ThrowOnError extends boolean = true>(options: Options<GetCustomerData, ThrowOnError>): RequestResult<GetCustomerResponses, GetCustomerErrors, ThrowOnError> => (options.client ?? client).get<GetCustomerResponses, GetCustomerErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/v1/customers/{id}',
+    ...options
+});
+
+export const updateCustomer = <ThrowOnError extends boolean = true>(options: Options<UpdateCustomerData, ThrowOnError>): RequestResult<UpdateCustomerResponses, UpdateCustomerErrors, ThrowOnError> => (options.client ?? client).patch<UpdateCustomerResponses, UpdateCustomerErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/v1/customers/{id}',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
         ...options.headers
     }
 });

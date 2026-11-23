@@ -3,8 +3,8 @@
 import { type InfiniteData, infiniteQueryOptions, queryOptions, type UseMutationOptions } from '@tanstack/react-query';
 
 import { client } from '../client.gen';
-import { createBlockedTime, createClosedDate, createPhoto, createPriceRule, createResource, createStaff, createUploadedFile, createVenue, deleteBlockedTime, deleteClosedDate, deletePhoto, deletePriceRule, deleteResource, deleteStaff, deleteVenue, getBlockedTime, getClosedDate, getMe, getPhoto, getPriceRule, getResource, getStaff, getVenue, listBlockedTimes, listClosedDates, listPhotos, listPriceRules, listResources, listStaff, listVenues, type Options, updateBlockedTime, updateClosedDate, updatePhoto, updatePriceRule, updateResource, updateStaff, updateVenue } from '../sdk.gen';
-import type { CreateBlockedTimeData, CreateBlockedTimeError, CreateBlockedTimeResponse, CreateClosedDateData, CreateClosedDateError, CreateClosedDateResponse, CreatePhotoData, CreatePhotoError, CreatePhotoResponse, CreatePriceRuleData, CreatePriceRuleError, CreatePriceRuleResponse, CreateResourceData, CreateResourceError, CreateResourceResponse, CreateStaffData, CreateStaffError, CreateStaffResponse, CreateUploadedFileData, CreateUploadedFileError, CreateUploadedFileResponse, CreateVenueData, CreateVenueError, CreateVenueResponse, DeleteBlockedTimeData, DeleteBlockedTimeError, DeleteBlockedTimeResponse, DeleteClosedDateData, DeleteClosedDateError, DeleteClosedDateResponse, DeletePhotoData, DeletePhotoError, DeletePhotoResponse, DeletePriceRuleData, DeletePriceRuleError, DeletePriceRuleResponse, DeleteResourceData, DeleteResourceError, DeleteResourceResponse, DeleteStaffData, DeleteStaffError, DeleteStaffResponse, DeleteVenueData, DeleteVenueError, DeleteVenueResponse, GetBlockedTimeData, GetBlockedTimeError, GetBlockedTimeResponse, GetClosedDateData, GetClosedDateError, GetClosedDateResponse, GetMeData, GetMeError, GetMeResponse, GetPhotoData, GetPhotoError, GetPhotoResponse, GetPriceRuleData, GetPriceRuleError, GetPriceRuleResponse, GetResourceData, GetResourceError, GetResourceResponse, GetStaffData, GetStaffError, GetStaffResponse, GetVenueData, GetVenueError, GetVenueResponse, ListBlockedTimesData, ListBlockedTimesError, ListBlockedTimesResponse, ListClosedDatesData, ListClosedDatesError, ListClosedDatesResponse, ListPhotosData, ListPhotosError, ListPhotosResponse, ListPriceRulesData, ListPriceRulesError, ListPriceRulesResponse, ListResourcesData, ListResourcesError, ListResourcesResponse, ListStaffData, ListStaffError, ListStaffResponse, ListVenuesData, ListVenuesError, ListVenuesResponse, UpdateBlockedTimeData, UpdateBlockedTimeError, UpdateBlockedTimeResponse, UpdateClosedDateData, UpdateClosedDateError, UpdateClosedDateResponse, UpdatePhotoData, UpdatePhotoError, UpdatePhotoResponse, UpdatePriceRuleData, UpdatePriceRuleError, UpdatePriceRuleResponse, UpdateResourceData, UpdateResourceError, UpdateResourceResponse, UpdateStaffData, UpdateStaffError, UpdateStaffResponse, UpdateVenueData, UpdateVenueError, UpdateVenueResponse } from '../types.gen';
+import { createBlockedTime, createClosedDate, createCustomer, createPhoto, createPriceRule, createResource, createStaff, createUploadedFile, createVenue, deleteBlockedTime, deleteClosedDate, deletePhoto, deletePriceRule, deleteResource, deleteStaff, deleteVenue, getBlockedTime, getClosedDate, getCustomer, getMe, getPhoto, getPriceRule, getResource, getStaff, getVenue, listBlockedTimes, listClosedDates, listCustomers, listPhotos, listPriceRules, listResources, listStaff, listVenues, type Options, updateBlockedTime, updateClosedDate, updateCustomer, updatePhoto, updatePriceRule, updateResource, updateStaff, updateVenue } from '../sdk.gen';
+import type { CreateBlockedTimeData, CreateBlockedTimeError, CreateBlockedTimeResponse, CreateClosedDateData, CreateClosedDateError, CreateClosedDateResponse, CreateCustomerData, CreateCustomerError, CreateCustomerResponse, CreatePhotoData, CreatePhotoError, CreatePhotoResponse, CreatePriceRuleData, CreatePriceRuleError, CreatePriceRuleResponse, CreateResourceData, CreateResourceError, CreateResourceResponse, CreateStaffData, CreateStaffError, CreateStaffResponse, CreateUploadedFileData, CreateUploadedFileError, CreateUploadedFileResponse, CreateVenueData, CreateVenueError, CreateVenueResponse, DeleteBlockedTimeData, DeleteBlockedTimeError, DeleteBlockedTimeResponse, DeleteClosedDateData, DeleteClosedDateError, DeleteClosedDateResponse, DeletePhotoData, DeletePhotoError, DeletePhotoResponse, DeletePriceRuleData, DeletePriceRuleError, DeletePriceRuleResponse, DeleteResourceData, DeleteResourceError, DeleteResourceResponse, DeleteStaffData, DeleteStaffError, DeleteStaffResponse, DeleteVenueData, DeleteVenueError, DeleteVenueResponse, GetBlockedTimeData, GetBlockedTimeError, GetBlockedTimeResponse, GetClosedDateData, GetClosedDateError, GetClosedDateResponse, GetCustomerData, GetCustomerError, GetCustomerResponse, GetMeData, GetMeError, GetMeResponse, GetPhotoData, GetPhotoError, GetPhotoResponse, GetPriceRuleData, GetPriceRuleError, GetPriceRuleResponse, GetResourceData, GetResourceError, GetResourceResponse, GetStaffData, GetStaffError, GetStaffResponse, GetVenueData, GetVenueError, GetVenueResponse, ListBlockedTimesData, ListBlockedTimesError, ListBlockedTimesResponse, ListClosedDatesData, ListClosedDatesError, ListClosedDatesResponse, ListCustomersData, ListCustomersError, ListCustomersResponse, ListPhotosData, ListPhotosError, ListPhotosResponse, ListPriceRulesData, ListPriceRulesError, ListPriceRulesResponse, ListResourcesData, ListResourcesError, ListResourcesResponse, ListStaffData, ListStaffError, ListStaffResponse, ListVenuesData, ListVenuesError, ListVenuesResponse, UpdateBlockedTimeData, UpdateBlockedTimeError, UpdateBlockedTimeResponse, UpdateClosedDateData, UpdateClosedDateError, UpdateClosedDateResponse, UpdateCustomerData, UpdateCustomerError, UpdateCustomerResponse, UpdatePhotoData, UpdatePhotoError, UpdatePhotoResponse, UpdatePriceRuleData, UpdatePriceRuleError, UpdatePriceRuleResponse, UpdateResourceData, UpdateResourceError, UpdateResourceResponse, UpdateStaffData, UpdateStaffError, UpdateStaffResponse, UpdateVenueData, UpdateVenueError, UpdateVenueResponse } from '../types.gen';
 
 export type QueryKey<TOptions extends Options> = [
     Pick<TOptions, 'baseUrl' | 'body' | 'headers' | 'path' | 'query'> & {
@@ -780,6 +780,91 @@ export const createUploadedFileMutation = (options?: Partial<Options<CreateUploa
     const mutationOptions: UseMutationOptions<CreateUploadedFileResponse, CreateUploadedFileError, Options<CreateUploadedFileData>> = {
         mutationFn: async (fnOptions) => {
             const { data } = await createUploadedFile({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+export const listCustomersQueryKey = (options?: Options<ListCustomersData>) => createQueryKey('listCustomers', options);
+
+export const listCustomersOptions = (options?: Options<ListCustomersData>) => queryOptions<ListCustomersResponse, ListCustomersError, ListCustomersResponse, ReturnType<typeof listCustomersQueryKey>>({
+    queryFn: async ({ queryKey, signal }) => {
+        const { data } = await listCustomers({
+            ...options,
+            ...queryKey[0],
+            signal,
+            throwOnError: true
+        });
+        return data;
+    },
+    queryKey: listCustomersQueryKey(options)
+});
+
+export const listCustomersInfiniteQueryKey = (options?: Options<ListCustomersData>): QueryKey<Options<ListCustomersData>> => createQueryKey('listCustomers', options, true);
+
+export const listCustomersInfiniteOptions = (options?: Options<ListCustomersData>) => {
+    const opts = infiniteQueryOptions<ListCustomersResponse, ListCustomersError, InfiniteData<ListCustomersResponse>, QueryKey<Options<ListCustomersData>>, number | Pick<QueryKey<Options<ListCustomersData>>[0], 'body' | 'headers' | 'path' | 'query'>>(
+    // @ts-ignore
+    {
+        queryFn: async ({ pageParam, queryKey, signal }) => {
+            // @ts-ignore
+            const page: Pick<QueryKey<Options<ListCustomersData>>[0], 'body' | 'headers' | 'path' | 'query'> = typeof pageParam === 'object' ? pageParam : {
+                query: {
+                    page: pageParam
+                }
+            };
+            const params = createInfiniteParams(queryKey, page);
+            const { data } = await listCustomers({
+                ...options,
+                ...params,
+                signal,
+                throwOnError: true
+            });
+            return data;
+        },
+        queryKey: listCustomersInfiniteQueryKey(options)
+    });
+    return opts as Omit<typeof opts, 'initialData'>;
+};
+
+export const createCustomerMutation = (options?: Partial<Options<CreateCustomerData>>): UseMutationOptions<CreateCustomerResponse, CreateCustomerError, Options<CreateCustomerData>> => {
+    const mutationOptions: UseMutationOptions<CreateCustomerResponse, CreateCustomerError, Options<CreateCustomerData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await createCustomer({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+export const getCustomerQueryKey = (options: Options<GetCustomerData>) => createQueryKey('getCustomer', options);
+
+export const getCustomerOptions = (options: Options<GetCustomerData>) => queryOptions<GetCustomerResponse, GetCustomerError, GetCustomerResponse, ReturnType<typeof getCustomerQueryKey>>({
+    queryFn: async ({ queryKey, signal }) => {
+        const { data } = await getCustomer({
+            ...options,
+            ...queryKey[0],
+            signal,
+            throwOnError: true
+        });
+        return data;
+    },
+    queryKey: getCustomerQueryKey(options)
+});
+
+export const updateCustomerMutation = (options?: Partial<Options<UpdateCustomerData>>): UseMutationOptions<UpdateCustomerResponse, UpdateCustomerError, Options<UpdateCustomerData>> => {
+    const mutationOptions: UseMutationOptions<UpdateCustomerResponse, UpdateCustomerError, Options<UpdateCustomerData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await updateCustomer({
                 ...options,
                 ...fnOptions,
                 throwOnError: true

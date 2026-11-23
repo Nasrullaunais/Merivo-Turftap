@@ -21,7 +21,7 @@ Status: `todo`, `doing`, `done`, `blocked` (waiting on a decision or an outside 
 | # | Ticket | Stories | Depends on | Status |
 |---|---|---|---|---|
 | **A. Customers** |||||
-| [T01](T01-customers-api.md) | Customers API | supports BKG-04, MEM-05, POR-03 | | todo |
+| [T01](T01-customers-api.md) | Customers API | supports BKG-04, MEM-05, POR-03 | | done |
 | [T02](T02-customer-and-assistant-callers.md) | Customer and Assistant callers on the API | POR-03, AST-05 | T01 | todo |
 | **B. Messages** |||||
 | [T03](T03-whatsapp-numbers-api.md) | WhatsApp numbers API | PLA-02 | | todo |
@@ -105,6 +105,9 @@ Settled in a grilling session with the user. Each answer is written here, then i
 | D-19 | "On-site payment only" setting: what it does and where it lives | Venue setting; online bookings confirmed straight away | Yes. Named **Pay at Venue** in the glossary |
 | D-20 | Slot lengths and start times | Multiples of 30 only | Each resource has a slot length (15, 30 or 60 minutes) and a **Start Interval** (bookings start every 15, 30 or 60 minutes), e.g. a 1-hour court starting every 30 minutes. Replaces the fixed 30-minute start times of D-05 |
 | D-21 | Price Rule times | Only on :00 or :30 | Start and end on the resource's Start Interval |
+| D-22 | Can staff change a customer's phone number, or only the name? | Both | Both. A phone another customer of the tenant already has is refused |
+| D-23 | How does customer `search` match phone numbers? | Ignore spaces and dashes; a leading 0 counts as +94 | Yes: "077 123" finds +94771234567 |
+| D-24 | Is a customer's name required? | Yes | Yes |
 
 ## Open questions for venue owners
 

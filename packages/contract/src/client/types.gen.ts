@@ -73,6 +73,24 @@ export type UpdateClosedDate = {
     reason?: string | null;
 };
 
+export type Customer = {
+    id: number;
+    phone: string;
+    name: string;
+    createdAt: string;
+    updatedAt: string;
+};
+
+export type CreateCustomer = {
+    phone: string;
+    name: string;
+};
+
+export type UpdateCustomer = {
+    phone?: string;
+    name?: string;
+};
+
 export const FilePurpose = { PHOTO: 'PHOTO' } as const;
 
 export type FilePurpose = typeof FilePurpose[keyof typeof FilePurpose];
@@ -122,7 +140,11 @@ export const Permission = {
     FILES_READ: 'files:read',
     FILES_CREATE: 'files:create',
     FILES_UPDATE: 'files:update',
-    FILES_DELETE: 'files:delete'
+    FILES_DELETE: 'files:delete',
+    CUSTOMERS_READ: 'customers:read',
+    CUSTOMERS_CREATE: 'customers:create',
+    CUSTOMERS_UPDATE: 'customers:update',
+    CUSTOMERS_DELETE: 'customers:delete'
 } as const;
 
 export type Permission = typeof Permission[keyof typeof Permission];
@@ -1516,3 +1538,135 @@ export type CreateUploadedFileResponses = {
 };
 
 export type CreateUploadedFileResponse = CreateUploadedFileResponses[keyof CreateUploadedFileResponses];
+
+export type ListCustomersData = {
+    body?: never;
+    path?: never;
+    query?: {
+        page?: number;
+        size?: number;
+        sort?: 'name,asc' | 'name,desc' | 'createdAt,asc' | 'createdAt,desc';
+        phone?: string;
+        search?: string;
+    };
+    url: '/v1/customers';
+};
+
+export type ListCustomersErrors = {
+    /**
+     * Error
+     */
+    default: ErrorReply;
+};
+
+export type ListCustomersError = ListCustomersErrors[keyof ListCustomersErrors];
+
+export type ListCustomersResponses = {
+    /**
+     * One page
+     */
+    200: {
+        status: number;
+        message: string;
+        data: {
+            content: Array<Customer>;
+            page: number;
+            size: number;
+            totalElements: number;
+            totalPages: number;
+        };
+    };
+};
+
+export type ListCustomersResponse = ListCustomersResponses[keyof ListCustomersResponses];
+
+export type CreateCustomerData = {
+    body: CreateCustomer;
+    path?: never;
+    query?: never;
+    url: '/v1/customers';
+};
+
+export type CreateCustomerErrors = {
+    /**
+     * Error
+     */
+    default: ErrorReply;
+};
+
+export type CreateCustomerError = CreateCustomerErrors[keyof CreateCustomerErrors];
+
+export type CreateCustomerResponses = {
+    /**
+     * Created
+     */
+    201: {
+        status: number;
+        message: string;
+        data: Customer;
+    };
+};
+
+export type CreateCustomerResponse = CreateCustomerResponses[keyof CreateCustomerResponses];
+
+export type GetCustomerData = {
+    body?: never;
+    path: {
+        id: number;
+    };
+    query?: never;
+    url: '/v1/customers/{id}';
+};
+
+export type GetCustomerErrors = {
+    /**
+     * Error
+     */
+    default: ErrorReply;
+};
+
+export type GetCustomerError = GetCustomerErrors[keyof GetCustomerErrors];
+
+export type GetCustomerResponses = {
+    /**
+     * Found
+     */
+    200: {
+        status: number;
+        message: string;
+        data: Customer;
+    };
+};
+
+export type GetCustomerResponse = GetCustomerResponses[keyof GetCustomerResponses];
+
+export type UpdateCustomerData = {
+    body: UpdateCustomer;
+    path: {
+        id: number;
+    };
+    query?: never;
+    url: '/v1/customers/{id}';
+};
+
+export type UpdateCustomerErrors = {
+    /**
+     * Error
+     */
+    default: ErrorReply;
+};
+
+export type UpdateCustomerError = UpdateCustomerErrors[keyof UpdateCustomerErrors];
+
+export type UpdateCustomerResponses = {
+    /**
+     * Changed
+     */
+    200: {
+        status: number;
+        message: string;
+        data: Customer;
+    };
+};
+
+export type UpdateCustomerResponse = UpdateCustomerResponses[keyof UpdateCustomerResponses];

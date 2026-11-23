@@ -1,6 +1,6 @@
 # T01 Customers API
 
-Status: todo · Stories: supports `BKG-04`, `MEM-05`, `POR-03` · Depends on: none
+Status: done · Stories: supports `BKG-04`, `MEM-05`, `POR-03` · Depends on: none · Decisions: **D-22**, **D-23**, **D-24**
 
 ## Goal
 Each tenant keeps its own record of each customer, linked by phone number. Staff can find a customer by phone or name. Later tickets (walk-ins, check-ins, portal, Assistant) all build on this.
