@@ -7,7 +7,7 @@ How money and slot holds work in v1 ([ADR 0007](../adr/0007-bank-transfer-with-a
 ```mermaid
 stateDiagram-v2
   [*] --> AWAITING_PAYMENT: online booking
-  [*] --> CONFIRMED: walk-in booking
+  [*] --> CONFIRMED: walk-in, repeat series, or online at a Pay at Venue venue
   AWAITING_PAYMENT --> AWAITING_CHECK: transfer receipt sent
   AWAITING_PAYMENT --> EXPIRED: time limit passed
   AWAITING_CHECK --> CONFIRMED: receipt accepted
@@ -17,7 +17,7 @@ stateDiagram-v2
   CONFIRMED --> CANCELLED
 ```
 
-Memberships use the same states, with `ACTIVE` in place of `CONFIRMED`. Memberships also have `EXPIRED` once their end date passes.
+Memberships use the same states, with `ACTIVE` in place of `CONFIRMED`. As with bookings, `EXPIRED` means not paid in time. Memberships also have `ENDED` once their end date passes.
 
 **Holding slots:** `AWAITING_PAYMENT`, `AWAITING_CHECK` and `CONFIRMED` hold their slots. Postgres itself refuses two holding bookings that overlap on one resource:
 
@@ -61,7 +61,8 @@ sequenceDiagram
   API->>J: queue "notify customer" (same transaction)
 ```
 
-- **Amount due now** = the full price, or the venue's advance percentage rounded up to whole rupees. It's fixed when the booking is created.
+- **Amount due now** = the full price, or the venue's advance percentage rounded up to whole rupees. It's fixed when the booking is created. At a Pay at Venue venue nothing is due online.
+- **One unpaid booking:** a customer has at most one `AWAITING_PAYMENT` booking per tenant, enforced by a partial unique index.
 - **Venue settings are copied onto the booking** when it's made: the amount due, the expiry time (now + the venue's Payment Time Limit) and the Cancellation Cut-off. Changing a venue's settings later affects new bookings only (`VEN-03`).
 - **Duplicates:** each receipt stores its image hash and the reference number the AI read. A match on either one, inside the same tenant, shows a warning (`PAY-06`). It's a warning, not a block: staff decide.
 - **AI reading** never changes a status. It only fills `receiptReading` (amount, date, bank, reference, plus "matches" flags) for staff to see.
@@ -74,7 +75,8 @@ sequenceDiagram
 |---|---|---|
 | Expire booking | At the time limit | `AWAITING_PAYMENT` → `EXPIRED`, notify |
 | Booking reminder | 3 hours before start | WhatsApp reminder |
-| Expire memberships | Daily, 00:05 Colombo time | `ACTIVE` past end date → `EXPIRED` |
+| End memberships | Daily, 00:05 Colombo time | `ACTIVE` past end date → `ENDED` |
+| Ask for series payment | The venue's series payment days before each repeat series booking | WhatsApp with bank details and the Advance |
 | Membership reminder | Daily | WhatsApp 3 days before end |
 
 Each job checks the row's current state when it runs and does nothing if things have moved on.

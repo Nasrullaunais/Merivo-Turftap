@@ -15,20 +15,21 @@ As a **Manager**, I want to mark a date as closed (a holiday), so that nobody ca
 
 ## VEN-03 Venue payment settings
 As an **Owner**, I want to set how customers pay at each venue, so that online bookings match how we take money.
-- Settings: bank account details shown to customers; "full amount" or "advance of X%"; time limit to send a receipt (default 30 minutes); cancellation cut-off (default 6 hours).
+- Settings: bank account details shown to customers; "full amount" or "advance of X%"; time limit to send a receipt (default 20 minutes); cancellation cut-off (default 6 hours); **Pay at Venue** on or off; how many days before each repeat series booking its Advance is asked for (default 2, 1 to 7).
 - The bank account has a bank name, an optional branch, an account name and an account number (digits, spaces and dashes).
 - The **Advance** is 1% to 100%, where 100% is the full amount. The **Payment Time Limit** is 10 minutes to 24 hours. The **Cancellation Cut-off** is 0 to 168 hours (a week).
+- Given Pay at Venue is on, then bank details and the Advance aren't needed.
 - Managers and Front Desk can see the settings, so they can tell customers, but only Owners change them.
 - Changes affect new bookings only.
 
 ## VEN-04 Add resources
 As a **Manager**, I want to add resources to a venue, such as "Court 1" or "Pool Table 3", so that they can be booked.
-- Each resource has a name, a type (futsal court, table tennis table, pool table) and a slot length (e.g. 60 or 30 minutes).
+- Each resource has a name, a type (futsal court, table tennis table, pool table), a slot length (15, 30 or 60 minutes) and a **Start Interval** (bookings start every 15, 30 or 60 minutes, no longer than the slot length).
 - Given a resource is turned off, when customers look for free slots, then it doesn't appear. Its past bookings stay.
 
 ## VEN-05 Set prices
 As a **Manager**, I want to set a default price per slot and add Price Rules for busy times, so that evenings and weekends can cost more.
-- A Price Rule has weekdays, a start and end time, and a price per slot.
+- A Price Rule has weekdays, a start and end time, and a price per slot. Its times sit on the resource's Start Interval (a 60-minute interval: whole hours only).
 - Given two Price Rules overlap for the same resource, when I save, then I'm told which rule clashes.
 - Prices are in LKR and shown with no decimals.
 

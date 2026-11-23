@@ -57,11 +57,15 @@ _Avoid_: Image, picture, gallery
 ## Bookings
 
 **Slot**:
-The smallest block of time a resource can be booked for, such as 60 minutes for a futsal court or 30 minutes for a pool table.
+The smallest block of time a resource can be booked for: 15, 30 or 60 minutes, set per resource. For example, 60 minutes for a futsal court or 30 minutes for a pool table. A booking is one or more slots.
 _Avoid_: Period, session
 
+**Start Interval**:
+How often bookings for a resource may start, on the clock: every 15, 30 or 60 minutes, whatever the opening time. A 60-minute court with a 30-minute Start Interval can be booked from 17:00 or 17:30.
+_Avoid_: Grid, step, time increment
+
 **Price Rule**:
-A price per slot for one resource on chosen weekdays between a start and end time, such as evenings and weekends. Any slot no Price Rule covers costs the resource's default price.
+A price per slot for one resource on chosen weekdays between a start and end time, such as evenings and weekends. Any slot no Price Rule covers costs the resource's default price. Its start and end times sit on the resource's Start Interval. A booking that runs into a Price Rule pays each part at the price in force then.
 _Avoid_: Rate, tariff, peak pricing
 
 **Closed Date**:
@@ -77,7 +81,7 @@ A customer's reservation of one resource for one or more back-to-back slots.
 _Avoid_: Reservation, appointment
 
 **Repeat Series**:
-A set of bookings for the same resource and time each week, created together by staff.
+A set of bookings for the same resource and time each week, created together by staff. Its bookings are confirmed when created; the Advance for each one is asked for a few days before it (each venue sets how many; the default is 2).
 _Avoid_: Recurring booking, subscription
 
 **Cancellation Cut-off**:
@@ -130,6 +134,10 @@ _Avoid_: Verification, approval
 The part of a booking's price a venue asks for before the booking is confirmed; the rest is paid at the venue. Each venue sets it as a percentage; 100% means the full amount.
 _Avoid_: Deposit, down payment
 
+**Pay at Venue**:
+A venue setting where customers pay everything at the venue. Online bookings there are confirmed straight away, with nothing to pay online.
+_Avoid_: Cash only, offline payment, on-site payment
+
 **Payment Time Limit**:
-How long a customer has, after booking online, to send a Transfer Receipt before the booking expires and its slots are free again. Each venue sets its own; the default is 30 minutes.
+How long a customer has, after booking online, to send a Transfer Receipt before the booking expires and its slots are free again. Each venue sets its own; the default is 20 minutes.
 _Avoid_: Hold time, expiry window, grace period

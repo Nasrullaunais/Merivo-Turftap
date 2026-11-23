@@ -3,7 +3,8 @@
 ## BKG-01 See free slots
 As a **Customer** or **Staff**, I want to see which slots are free for a resource on a date, so that I can choose a time.
 - Free means: inside opening hours, not on a closed date, not blocked, not already booked, and not in the past.
-- Each free slot shows its price.
+- Bookings start on the resource's **Start Interval** (every 15, 30 or 60 minutes on the clock), whatever the opening time.
+- Each free slot shows its price. A booking that runs into a Price Rule pays each part at the price in force then.
 - Times are shown in the venue's time zone (`Asia/Colombo`).
 
 ## BKG-02 Book online
@@ -11,6 +12,9 @@ As a **Customer**, I want to book one or more back-to-back slots, so that I can 
 - Given I pick slots and confirm, when the booking is made, then it waits for payment and holds the slots for the venue's time limit.
 - The server works out the price. The amount to pay now is the full price or the venue's advance.
 - Given someone else books the same slot a moment earlier, when I confirm, then I'm told the slot was just taken.
+- Given I already have a booking waiting for payment at this tenant, when I book again, then I'm told to pay for or cancel that one first.
+- I can book up to 30 days ahead.
+- Given the venue is **Pay at Venue**, when the booking is made, then it's confirmed straight away and I pay at the venue.
 
 ## BKG-03 Booking expires without payment
 As an **Owner**, I want unpaid bookings to free their slots, so that slots aren't held forever.
@@ -30,6 +34,7 @@ As **Staff**, I want a day and week calendar per venue, so that I can see what's
 As a **Customer**, I want to cancel my booking before the cut-off, so that someone else can use the slot.
 - Given the start is further away than the venue's cut-off, when I cancel, then the booking is cancelled and the slots are free again.
 - Given the cut-off has passed, when I try, then I'm told to contact the venue, with its phone number.
+- Given my booking is still waiting for payment, then I can cancel it at any time, even after the cut-off.
 
 ## BKG-07 Staff cancels
 As **Staff**, I want to cancel any booking with a reason, so that I can handle special cases.
@@ -41,7 +46,8 @@ As a **Manager**, I want to record a refund on a cancelled booking, so that our 
 
 ## BKG-09 Repeat series
 As **Staff**, I want to book the same resource and time every week for a number of weeks, so that regular teams don't have to rebook.
-- Every booking in the series is created up front.
+- Every booking in the series is created up front and confirmed.
+- The Advance for each booking is asked for by WhatsApp a set number of days before it (a venue setting, default 2), except at Pay at Venue venues. _What happens if it isn't paid in time is still open: OQ-01 in `tickets/README.md`._
 - Given any week clashes, when I save, then I see which dates clash and can skip them or cancel.
 - I can cancel one booking or the rest of the series.
 
