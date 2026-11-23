@@ -12,12 +12,16 @@ declare module "bun:test" {
 
 // archunit adds toPassAsync to the global expect when it loads.
 Object.assign(globalThis, { expect });
-const { projectFiles } = await import("archunit");
+const { extractGraph, projectFiles } = await import("archunit");
 
 const SRC = import.meta.dir;
+const TSCONFIG = "tsconfig.json";
 const TEST_FILES = ["*.test.ts", "*.contract-test.ts"];
 const prod = { except: { withName: TEST_FILES, inFolder: ["src/test/**"] } };
-const files = () => projectFiles("tsconfig.json");
+const files = () => projectFiles(TSCONFIG);
+
+// Parsing the project is slow and cached; doing it here keeps it out of the first test's time limit.
+await extractGraph(TSCONFIG);
 
 const MODULES = readdirSync(join(SRC, "modules"));
 
