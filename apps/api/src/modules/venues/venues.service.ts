@@ -8,9 +8,9 @@ import * as venuesRepository from "./venues.repository";
 
 type VenueSort = "name" | "createdAt";
 
-/** Staff see venues that were turned off; everyone else only sees open ones. */
+/** Staff and background jobs see venues that were turned off; everyone else only sees open ones. */
 const seesInactive = (auth: AuthContext) =>
-  auth.actor === "staff" || auth.actor === "platform_admin";
+  auth.actor === "staff" || auth.actor === "platform_admin" || auth.actor === "system";
 
 export function list(auth: AuthContext, { filters, page }: ListQuery<VenueFilters, VenueSort>) {
   const active = seesInactive(auth) ? filters.active : true;

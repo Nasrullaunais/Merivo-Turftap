@@ -1,6 +1,6 @@
 # T06 Book online, and expiry
 
-Status: todo · Stories: `BKG-02`, `BKG-03`, `PAY-01` · Depends on: T02, T04, T05, T46 · Decisions: **D-07**, **D-19** · Open question: **OQ-02**
+Status: done · Stories: `BKG-02`, `BKG-03`, `PAY-01` · Depends on: T02, T04, T05, T46 · Decisions: **D-07**, **D-19** · Open question: **OQ-02**
 
 ## Goal
 A customer (portal) or the Assistant books one or more back-to-back slots. The booking waits for payment, holds its slots for the venue's Payment Time Limit, and expires if no receipt arrives.

@@ -1,10 +1,20 @@
 import { BOOKING_SOURCES, BOOKING_STATUSES } from "@turftap/contract";
-import { bigint, index, integer, pgEnum, pgTable, text, timestamp } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
+import {
+  bigint,
+  index,
+  integer,
+  pgEnum,
+  pgTable,
+  text,
+  timestamp,
+  uniqueIndex,
+} from "drizzle-orm/pg-core";
 
 import { idColumn, priceColumns, timestampColumns } from "../../lib/db/columns";
 import { customers } from "../customers/customers.tables";
 import { tenantIdColumn, users } from "../platform/platform.tables";
-import { resources } from "../venues/venues.tables";
+import { resources, venues } from "../venues/venues.tables";
 
 export const bookingStatus = pgEnum("booking_status", BOOKING_STATUSES);
 export const bookingSource = pgEnum("booking_source", BOOKING_SOURCES);
@@ -15,6 +25,10 @@ export const bookings = pgTable(
   {
     id: idColumn(),
     tenantId: tenantIdColumn(),
+    /** The resource's venue, kept here so staff limited to some venues can be filtered directly. */
+    venueId: bigint("venue_id", { mode: "number" })
+      .notNull()
+      .references(() => venues.id),
     resourceId: bigint("resource_id", { mode: "number" })
       .notNull()
       .references(() => resources.id),
@@ -36,7 +50,12 @@ export const bookings = pgTable(
   },
   (table) => [
     index("bookings_tenant_idx").on(table.tenantId),
+    index("bookings_venue_starts_at_idx").on(table.venueId, table.startsAt),
     index("bookings_resource_starts_at_idx").on(table.resourceId, table.startsAt),
+    // D-07: one booking waiting for payment per customer per tenant.
+    uniqueIndex("bookings_one_awaiting_payment")
+      .on(table.tenantId, table.customerId)
+      .where(sql`${table.status} = 'AWAITING_PAYMENT'`),
   ],
 );
 

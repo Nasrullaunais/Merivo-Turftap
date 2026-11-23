@@ -120,6 +120,13 @@
       "when": 1795460635958,
       "tag": "0016_venue_payment_settings_2",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1795461382841,
+      "tag": "0017_online_bookings",
+      "breakpoints": true
     }
   ]
 }

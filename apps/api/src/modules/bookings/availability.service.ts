@@ -1,6 +1,7 @@
 import {
   type AvailabilityFilters,
   BOOKING_HORIZON_DAYS,
+  CENTS_PER_RUPEE,
   minuteOfDay,
   type Money,
   type Page,
@@ -21,7 +22,6 @@ type AvailabilitySort = "startsAt";
 type Window = { startsAt: Date; endsAt: Date };
 
 const MINUTES_PER_DAY = 24 * 60;
-const CENTS_PER_RUPEE = 100;
 
 /** Everything that decides which times one resource can be booked on one of the venue's dates. */
 export type Day = {
@@ -36,8 +36,9 @@ export type Day = {
   defaultPrice: Money;
   rules: { startMinute: number; endMinute: number; price: Money }[];
   closed: boolean;
-  /** Blocked Times and holding bookings. */
-  taken: Window[];
+  blocked: Window[];
+  /** Bookings that hold their slots. */
+  booked: Window[];
 };
 
 export async function loadDay(auth: AuthContext, resourceId: number, date: string): Promise<Day> {
@@ -71,7 +72,8 @@ export async function loadDay(auth: AuthContext, resourceId: number, date: strin
         price: rule.price,
       })),
     closed,
-    taken: [...blocks, ...bookings],
+    blocked: blocks,
+    booked: bookings,
   };
 }
 
@@ -116,7 +118,9 @@ export function quote(day: Day, start: number, end: number, now = new Date()): S
     !day.closed &&
     startsAt > now &&
     day.date <= lastBookableDate &&
-    !day.taken.some((taken) => taken.startsAt < endsAt && taken.endsAt > startsAt);
+    ![...day.blocked, ...day.booked].some(
+      (taken) => taken.startsAt < endsAt && taken.endsAt > startsAt,
+    );
   return { startsAt, endsAt, price: priceOf(day, start, end), free };
 }
 

@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { Id, LocalDate, Money, Timestamp } from "./common";
+import { BankAccount } from "./venues";
 
 export const BOOKING_STATUSES = [
   "AWAITING_PAYMENT",
@@ -15,6 +16,53 @@ export const BOOKING_SOURCES = ["ONLINE", "WALK_IN"] as const;
 
 /** D-06: customers can book up to this many days ahead of the venue's today. */
 export const BOOKING_HORIZON_DAYS = 30;
+/** A whole day of the shortest slots; opening hours limit a booking long before this. */
+const MAX_SLOTS_PER_BOOKING = 96;
+
+export const Booking = z
+  .object({
+    id: Id,
+    venueId: Id,
+    resourceId: Id,
+    customerId: Id,
+    startsAt: Timestamp,
+    endsAt: Timestamp,
+    status: z.enum(BOOKING_STATUSES),
+    source: z.enum(BOOKING_SOURCES),
+    price: Money,
+    /** What to pay online now: the full price or the Advance. Zero at a Pay at Venue venue. */
+    amountDue: Money,
+    /** When the booking expires if no Transfer Receipt arrives. Missing when nothing is due online. */
+    expiresAt: Timestamp.nullable(),
+    cancellationCutOffHours: z.number().int(),
+    /** PAY-01: where to send the money, while the booking waits for payment. */
+    bankAccount: BankAccount.nullable(),
+    createdAt: Timestamp,
+    updatedAt: Timestamp,
+  })
+  .meta({ id: "Booking" });
+
+/** BKG-02: one or more back-to-back slots from `startsAt`. The server works out the rest. */
+export const CreateBooking = z
+  .object({
+    resourceId: Id,
+    startsAt: Timestamp,
+    slots: z.number().int().min(1).max(MAX_SLOTS_PER_BOOKING).default(1),
+  })
+  .meta({ id: "CreateBooking" });
+
+export const BookingFilters = z.object({
+  venueId: z.coerce.number().pipe(Id).optional(),
+  resourceId: z.coerce.number().pipe(Id).optional(),
+  customerId: z.coerce.number().pipe(Id).optional(),
+  status: z.enum(BOOKING_STATUSES).optional(),
+  /** Only bookings that end after this instant. */
+  from: Timestamp.optional(),
+  /** Only bookings that start before this instant. */
+  to: Timestamp.optional(),
+});
+
+export const BOOKING_SORT_FIELDS = ["startsAt", "createdAt"] as const;
 
 /** One start time of a resource, with the price of one slot from there. */
 export const Slot = z
@@ -36,5 +84,8 @@ export const AVAILABILITY_SORT_FIELDS = ["startsAt"] as const;
 
 export type BookingStatus = (typeof BOOKING_STATUSES)[number];
 export type BookingSource = (typeof BOOKING_SOURCES)[number];
+export type Booking = z.output<typeof Booking>;
+export type CreateBooking = z.output<typeof CreateBooking>;
+export type BookingFilters = z.output<typeof BookingFilters>;
 export type Slot = z.output<typeof Slot>;
 export type AvailabilityFilters = z.output<typeof AvailabilityFilters>;

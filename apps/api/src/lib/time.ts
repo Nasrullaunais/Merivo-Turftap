@@ -49,3 +49,22 @@ export function instantAt(date: string, minute: number, timeZone: string): Date 
   const guess = wallClock - offsetMs(wallClock, timeZone);
   return new Date(wallClock - offsetMs(guess, timeZone));
 }
+
+/** "Fri 25 Dec, 10:00", in the venue's own time zone. */
+export const describeInstant = (instant: Date, timeZone: string) =>
+  new Intl.DateTimeFormat("en-GB", {
+    timeZone,
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  }).format(instant);
+
+/** The venue's date and minutes into that day at this instant, the inverse of `instantAt`. */
+export function wallClockAt(instant: Date, timeZone: string): { date: string; minute: number } {
+  const shifted = instant.getTime() + offsetMs(instant.getTime(), timeZone);
+  const date = new Date(shifted).toISOString().slice(0, 10);
+  return { date, minute: Math.floor((shifted - midnightUtc(date)) / MS_PER_MINUTE) };
+}

@@ -1,20 +1,10 @@
 import type { PriceRule } from "@turftap/contract";
 
 import { constraintErrors, Conflict, NotFound } from "../../lib/errors";
+import { describeInstant } from "../../lib/time";
 
 const WEEKDAY_NAMES = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 type TimeWindow = { startsAt: Date; endsAt: Date };
-/** "Fri 25 Dec, 10:00", in the venue's own time zone. */
-const describeInstant = (instant: Date, timeZone: string) =>
-  new Intl.DateTimeFormat("en-GB", {
-    timeZone,
-    weekday: "short",
-    day: "numeric",
-    month: "short",
-    hour: "2-digit",
-    minute: "2-digit",
-    hourCycle: "h23",
-  }).format(instant);
 
 const describeRule = (rule: PriceRule) =>
   `${rule.weekdays.map((day) => WEEKDAY_NAMES[day - 1]).join(", ")} ${rule.startTime}–${rule.endTime}`;

@@ -3,8 +3,8 @@
 import { type InfiniteData, infiniteQueryOptions, queryOptions, type UseMutationOptions } from '@tanstack/react-query';
 
 import { client } from '../client.gen';
-import { createBlockedTime, createClosedDate, createCustomer, createPhoto, createPriceRule, createResource, createStaff, createUploadedFile, createVenue, deleteBlockedTime, deleteClosedDate, deletePhoto, deletePriceRule, deleteResource, deleteStaff, deleteVenue, getBlockedTime, getClosedDate, getCustomer, getMe, getPhoto, getPriceRule, getResource, getStaff, getVenue, listAvailability, listBlockedTimes, listClosedDates, listCustomers, listPhotos, listPriceRules, listResources, listStaff, listVenues, listWhatsappNumbers, type Options, updateBlockedTime, updateClosedDate, updateCustomer, updatePhoto, updatePriceRule, updateResource, updateStaff, updateVenue } from '../sdk.gen';
-import type { CreateBlockedTimeData, CreateBlockedTimeError, CreateBlockedTimeResponse, CreateClosedDateData, CreateClosedDateError, CreateClosedDateResponse, CreateCustomerData, CreateCustomerError, CreateCustomerResponse, CreatePhotoData, CreatePhotoError, CreatePhotoResponse, CreatePriceRuleData, CreatePriceRuleError, CreatePriceRuleResponse, CreateResourceData, CreateResourceError, CreateResourceResponse, CreateStaffData, CreateStaffError, CreateStaffResponse, CreateUploadedFileData, CreateUploadedFileError, CreateUploadedFileResponse, CreateVenueData, CreateVenueError, CreateVenueResponse, DeleteBlockedTimeData, DeleteBlockedTimeError, DeleteBlockedTimeResponse, DeleteClosedDateData, DeleteClosedDateError, DeleteClosedDateResponse, DeletePhotoData, DeletePhotoError, DeletePhotoResponse, DeletePriceRuleData, DeletePriceRuleError, DeletePriceRuleResponse, DeleteResourceData, DeleteResourceError, DeleteResourceResponse, DeleteStaffData, DeleteStaffError, DeleteStaffResponse, DeleteVenueData, DeleteVenueError, DeleteVenueResponse, GetBlockedTimeData, GetBlockedTimeError, GetBlockedTimeResponse, GetClosedDateData, GetClosedDateError, GetClosedDateResponse, GetCustomerData, GetCustomerError, GetCustomerResponse, GetMeData, GetMeError, GetMeResponse, GetPhotoData, GetPhotoError, GetPhotoResponse, GetPriceRuleData, GetPriceRuleError, GetPriceRuleResponse, GetResourceData, GetResourceError, GetResourceResponse, GetStaffData, GetStaffError, GetStaffResponse, GetVenueData, GetVenueError, GetVenueResponse, ListAvailabilityData, ListAvailabilityError, ListAvailabilityResponse, ListBlockedTimesData, ListBlockedTimesError, ListBlockedTimesResponse, ListClosedDatesData, ListClosedDatesError, ListClosedDatesResponse, ListCustomersData, ListCustomersError, ListCustomersResponse, ListPhotosData, ListPhotosError, ListPhotosResponse, ListPriceRulesData, ListPriceRulesError, ListPriceRulesResponse, ListResourcesData, ListResourcesError, ListResourcesResponse, ListStaffData, ListStaffError, ListStaffResponse, ListVenuesData, ListVenuesError, ListVenuesResponse, ListWhatsappNumbersData, ListWhatsappNumbersError, ListWhatsappNumbersResponse, UpdateBlockedTimeData, UpdateBlockedTimeError, UpdateBlockedTimeResponse, UpdateClosedDateData, UpdateClosedDateError, UpdateClosedDateResponse, UpdateCustomerData, UpdateCustomerError, UpdateCustomerResponse, UpdatePhotoData, UpdatePhotoError, UpdatePhotoResponse, UpdatePriceRuleData, UpdatePriceRuleError, UpdatePriceRuleResponse, UpdateResourceData, UpdateResourceError, UpdateResourceResponse, UpdateStaffData, UpdateStaffError, UpdateStaffResponse, UpdateVenueData, UpdateVenueError, UpdateVenueResponse } from '../types.gen';
+import { createBlockedTime, createBooking, createClosedDate, createCustomer, createPhoto, createPriceRule, createResource, createStaff, createUploadedFile, createVenue, deleteBlockedTime, deleteClosedDate, deletePhoto, deletePriceRule, deleteResource, deleteStaff, deleteVenue, getBlockedTime, getBooking, getClosedDate, getCustomer, getMe, getPhoto, getPriceRule, getResource, getStaff, getVenue, listAvailability, listBlockedTimes, listBookings, listClosedDates, listCustomers, listPhotos, listPriceRules, listResources, listStaff, listVenues, listWhatsappNumbers, type Options, updateBlockedTime, updateClosedDate, updateCustomer, updatePhoto, updatePriceRule, updateResource, updateStaff, updateVenue } from '../sdk.gen';
+import type { CreateBlockedTimeData, CreateBlockedTimeError, CreateBlockedTimeResponse, CreateBookingData, CreateBookingError, CreateBookingResponse, CreateClosedDateData, CreateClosedDateError, CreateClosedDateResponse, CreateCustomerData, CreateCustomerError, CreateCustomerResponse, CreatePhotoData, CreatePhotoError, CreatePhotoResponse, CreatePriceRuleData, CreatePriceRuleError, CreatePriceRuleResponse, CreateResourceData, CreateResourceError, CreateResourceResponse, CreateStaffData, CreateStaffError, CreateStaffResponse, CreateUploadedFileData, CreateUploadedFileError, CreateUploadedFileResponse, CreateVenueData, CreateVenueError, CreateVenueResponse, DeleteBlockedTimeData, DeleteBlockedTimeError, DeleteBlockedTimeResponse, DeleteClosedDateData, DeleteClosedDateError, DeleteClosedDateResponse, DeletePhotoData, DeletePhotoError, DeletePhotoResponse, DeletePriceRuleData, DeletePriceRuleError, DeletePriceRuleResponse, DeleteResourceData, DeleteResourceError, DeleteResourceResponse, DeleteStaffData, DeleteStaffError, DeleteStaffResponse, DeleteVenueData, DeleteVenueError, DeleteVenueResponse, GetBlockedTimeData, GetBlockedTimeError, GetBlockedTimeResponse, GetBookingData, GetBookingError, GetBookingResponse, GetClosedDateData, GetClosedDateError, GetClosedDateResponse, GetCustomerData, GetCustomerError, GetCustomerResponse, GetMeData, GetMeError, GetMeResponse, GetPhotoData, GetPhotoError, GetPhotoResponse, GetPriceRuleData, GetPriceRuleError, GetPriceRuleResponse, GetResourceData, GetResourceError, GetResourceResponse, GetStaffData, GetStaffError, GetStaffResponse, GetVenueData, GetVenueError, GetVenueResponse, ListAvailabilityData, ListAvailabilityError, ListAvailabilityResponse, ListBlockedTimesData, ListBlockedTimesError, ListBlockedTimesResponse, ListBookingsData, ListBookingsError, ListBookingsResponse, ListClosedDatesData, ListClosedDatesError, ListClosedDatesResponse, ListCustomersData, ListCustomersError, ListCustomersResponse, ListPhotosData, ListPhotosError, ListPhotosResponse, ListPriceRulesData, ListPriceRulesError, ListPriceRulesResponse, ListResourcesData, ListResourcesError, ListResourcesResponse, ListStaffData, ListStaffError, ListStaffResponse, ListVenuesData, ListVenuesError, ListVenuesResponse, ListWhatsappNumbersData, ListWhatsappNumbersError, ListWhatsappNumbersResponse, UpdateBlockedTimeData, UpdateBlockedTimeError, UpdateBlockedTimeResponse, UpdateClosedDateData, UpdateClosedDateError, UpdateClosedDateResponse, UpdateCustomerData, UpdateCustomerError, UpdateCustomerResponse, UpdatePhotoData, UpdatePhotoError, UpdatePhotoResponse, UpdatePriceRuleData, UpdatePriceRuleError, UpdatePriceRuleResponse, UpdateResourceData, UpdateResourceError, UpdateResourceResponse, UpdateStaffData, UpdateStaffError, UpdateStaffResponse, UpdateVenueData, UpdateVenueError, UpdateVenueResponse } from '../types.gen';
 
 export type QueryKey<TOptions extends Options> = [
     Pick<TOptions, 'baseUrl' | 'body' | 'headers' | 'path' | 'query'> & {
@@ -958,3 +958,74 @@ export const listAvailabilityInfiniteOptions = (options: Options<ListAvailabilit
     });
     return opts as Omit<typeof opts, 'initialData'>;
 };
+
+export const listBookingsQueryKey = (options?: Options<ListBookingsData>) => createQueryKey('listBookings', options);
+
+export const listBookingsOptions = (options?: Options<ListBookingsData>) => queryOptions<ListBookingsResponse, ListBookingsError, ListBookingsResponse, ReturnType<typeof listBookingsQueryKey>>({
+    queryFn: async ({ queryKey, signal }) => {
+        const { data } = await listBookings({
+            ...options,
+            ...queryKey[0],
+            signal,
+            throwOnError: true
+        });
+        return data;
+    },
+    queryKey: listBookingsQueryKey(options)
+});
+
+export const listBookingsInfiniteQueryKey = (options?: Options<ListBookingsData>): QueryKey<Options<ListBookingsData>> => createQueryKey('listBookings', options, true);
+
+export const listBookingsInfiniteOptions = (options?: Options<ListBookingsData>) => {
+    const opts = infiniteQueryOptions<ListBookingsResponse, ListBookingsError, InfiniteData<ListBookingsResponse>, QueryKey<Options<ListBookingsData>>, number | Pick<QueryKey<Options<ListBookingsData>>[0], 'body' | 'headers' | 'path' | 'query'>>(
+    // @ts-ignore
+    {
+        queryFn: async ({ pageParam, queryKey, signal }) => {
+            // @ts-ignore
+            const page: Pick<QueryKey<Options<ListBookingsData>>[0], 'body' | 'headers' | 'path' | 'query'> = typeof pageParam === 'object' ? pageParam : {
+                query: {
+                    page: pageParam
+                }
+            };
+            const params = createInfiniteParams(queryKey, page);
+            const { data } = await listBookings({
+                ...options,
+                ...params,
+                signal,
+                throwOnError: true
+            });
+            return data;
+        },
+        queryKey: listBookingsInfiniteQueryKey(options)
+    });
+    return opts as Omit<typeof opts, 'initialData'>;
+};
+
+export const createBookingMutation = (options?: Partial<Options<CreateBookingData>>): UseMutationOptions<CreateBookingResponse, CreateBookingError, Options<CreateBookingData>> => {
+    const mutationOptions: UseMutationOptions<CreateBookingResponse, CreateBookingError, Options<CreateBookingData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await createBooking({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+export const getBookingQueryKey = (options: Options<GetBookingData>) => createQueryKey('getBooking', options);
+
+export const getBookingOptions = (options: Options<GetBookingData>) => queryOptions<GetBookingResponse, GetBookingError, GetBookingResponse, ReturnType<typeof getBookingQueryKey>>({
+    queryFn: async ({ queryKey, signal }) => {
+        const { data } = await getBooking({
+            ...options,
+            ...queryKey[0],
+            signal,
+            throwOnError: true
+        });
+        return data;
+    },
+    queryKey: getBookingQueryKey(options)
+});
