@@ -7,7 +7,7 @@ export const MAX_UPLOAD_MB = 5;
 export const MAX_UPLOAD_BYTES = MAX_UPLOAD_MB * BYTES_PER_MB;
 
 /** What an upload is for. Each purpose is kept in its own folder in storage. */
-export const FILE_PURPOSES = ["PHOTO"] as const;
+export const FILE_PURPOSES = ["PHOTO", "RECEIPT"] as const;
 export const FilePurpose = z.enum(FILE_PURPOSES).meta({ id: "FilePurpose" });
 
 export const UploadedFile = z

@@ -3,6 +3,7 @@ import { bigint, index, pgEnum, pgTable, text } from "drizzle-orm/pg-core";
 
 import { idColumn, timestampColumns } from "../../lib/db/columns";
 import { bookings } from "../bookings/bookings.tables";
+import { files } from "../files/files.tables";
 import { tenantIdColumn, users } from "../platform/platform.tables";
 import { venues } from "../venues/venues.tables";
 
@@ -25,6 +26,10 @@ export const payments = pgTable(
     amount: bigint("amount", { mode: "number" }).notNull(),
     currency: text("currency").$type<Currency>().notNull(),
     note: text("note"),
+    /** A transfer's receipt. One receipt file pays once. */
+    fileId: bigint("file_id", { mode: "number" })
+      .references(() => files.id)
+      .unique("payments_file_unique"),
     createdBy: bigint("created_by", { mode: "number" }).references(() => users.id),
     ...timestampColumns(),
   },

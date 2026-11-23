@@ -10,9 +10,9 @@ Each receipt is read by the AI in the background. Staff see a summary (amount ma
 - `apps/api/src/ports/receipt-reader.ts` and its fake adapter.
 
 ## Build
-- `read-receipt` job: `ports().receiptReader.read(file)`, save the reading on the payment as `receiptReading` (`amount`, `paidOn`, `bank`, `reference`, or `unreadable: true`).
+- `read-receipt` job, queued in `payments.service` `sendTransferReceipt` in the same transaction (T11 left it out): `ports().receiptReader.read(file)`, save the reading on the payment as `receiptReading` (`amount`, `paidOn`, `bank`, `reference`, or `unreadable: true`).
 - Summary flags on the payment item: `amountMatches`, `dateRecent` (**D-12**), `referenceNew`.
-- Duplicates (**D-13**): a payment in the same tenant with the same hash or the same reference → `duplicateOf: { paymentId, bookingId }`. A warning only; it never blocks.
+- Duplicates (**D-13**): a payment in the same tenant whose receipt file has the same hash (`files.sha256`, saved by T11) or the same reference → `duplicateOf: { paymentId, bookingId }`. A warning only; it never blocks.
 - The job handler is an edge, so it may catch a reader failure and save "unreadable".
 - Add a port contract test (`ports/receipt-reader.contract-test.ts`) the fake passes and T39's Gemini adapter will pass.
 

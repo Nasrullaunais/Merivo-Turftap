@@ -68,6 +68,7 @@ const PERMISSIONS: Record<StaffRole, Permission[]> = {
     "price-rules:read",
     "blocked-times:read",
     "photos:read",
+    "files:create",
   ],
 };
 

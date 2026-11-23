@@ -46,6 +46,14 @@ Each booking shows **paid** (its `ACCEPTED` payments added up, refunds included)
 - A walk-in paid in cash (`BKG-04`) gets its `CASH` payment for the full price in the same transaction that saves the booking. Staff send `walkIn` in `POST /v1/bookings`; customers and the Assistant never do.
 - Refunds are for Owners and Managers only. Front Desk holds `payments:create` for cash, so the service refuses their refunds with 403 (`tt_pay_007`).
 
+**Sending a Transfer Receipt** (`PAY-02`) takes two calls: `POST /v1/files` with purpose `RECEIPT`, then `POST /v1/payments { kind: "TRANSFER", bookingId, fileId }` by the customer, the Assistant or staff.
+
+- The payment is `PENDING_CHECK` for the booking's amount due. In the same transaction the booking moves `AWAITING_PAYMENT` → `AWAITING_CHECK`, with the booking locked from the checks to that change.
+- A booking past its Payment Time Limit refuses the receipt (`tt_pay_009`), even if the expiry job hasn't run yet.
+- Only whoever uploaded a receipt file may attach it (the customer and the Assistant acting for them count as one), and one file pays once. So nobody can reach someone else's receipt by guessing its id.
+- The file row keeps the SHA-256 of the receipt's bytes for the reused-receipt check (`PAY-06`, D-13).
+- Whoever may see the payment gets `receiptUrl`, a link that works for 15 minutes.
+
 A **Receipt Check** is staff PATCHing a `TRANSFER` payment to `ACCEPTED` or `REJECTED` (`rejectReason` required). In the same transaction, the service moves the booking forward or back.
 
 ## Flow

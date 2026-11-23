@@ -2,15 +2,19 @@ import { beforeAll, describe, expect, it } from "bun:test";
 
 import { MAX_UPLOAD_BYTES } from "@turftap/contract";
 import { eq } from "drizzle-orm";
+import { createHash } from "node:crypto";
 
 import { db } from "../../lib/db";
 import { ports } from "../../ports";
 import {
+  asAssistant,
+  asCustomer,
   asStaff,
   call,
   createTenant,
   imageBytes,
   type TestTenant,
+  uniquePhone,
   uploadForm,
 } from "../../test/fixtures";
 import { files } from "./files.tables";
@@ -90,17 +94,11 @@ describe("SIG-05 file upload permissions", () => {
     tenant = await createTenant();
   });
 
-  it("ownerAndManager_canUpload", async () => {
-    for (const who of [tenant.owner, tenant.manager]) {
+  it("everyStaffRole_canUpload", async () => {
+    for (const who of [tenant.owner, tenant.manager, tenant.frontDesk]) {
       const reply = await call("POST", "/v1/files", asStaff(tenant, who), uploadForm(imageBytes()));
       expect(reply.status).toBe(201);
     }
-  });
-
-  it("frontDesk_cannotUpload", async () => {
-    const as = asStaff(tenant, tenant.frontDesk);
-    const reply = await call("POST", "/v1/files", as, uploadForm(imageBytes()));
-    expect(reply).toMatchObject({ status: 403, body: { code: "tt_htt_403" } });
   });
 
   it("someoneNotSignedIn_cannotUpload", async () => {
@@ -111,5 +109,73 @@ describe("SIG-05 file upload permissions", () => {
       uploadForm(imageBytes()),
     );
     expect(reply.status).toBe(401);
+  });
+});
+
+describe("PAY-02 upload a Transfer Receipt", () => {
+  let tenant: TestTenant;
+  let phone: string;
+  beforeAll(async () => {
+    tenant = await createTenant();
+    phone = uniquePhone();
+    await call("POST", "/v1/customers", asCustomer(tenant, phone), { name: "Nimal", phone });
+  });
+
+  const pdfBytes = () => new TextEncoder().encode("%PDF-1.7\n% a bank slip\n%%EOF\n");
+  const sendReceipt = (bytes: Uint8Array, as = asCustomer(tenant, phone), type = "image/jpeg") =>
+    call("POST", "/v1/files", as, uploadForm(bytes, "RECEIPT", type));
+
+  it("create_acceptsAPdfReceiptIntoTheTenantsReceiptFolder", async () => {
+    const bytes = pdfBytes();
+    const reply = await sendReceipt(bytes, asCustomer(tenant, phone), "application/pdf");
+    expect(reply.status).toBe(201);
+    expect(reply.body.data).toMatchObject({ purpose: "RECEIPT", contentType: "application/pdf" });
+    const { key } = await storedRow(reply.body.data.id);
+    expect(key).toMatch(new RegExp(`^${tenant.id}/receipts/[0-9a-f-]{36}\\.pdf$`));
+    expect(await ports().storage.read(key)).toEqual({
+      body: bytes,
+      contentType: "application/pdf",
+    });
+  });
+
+  it("create_acceptsJpgAndPngReceipts_fromTheCustomerAndTheAssistant", async () => {
+    const jpg = await sendReceipt(imageBytes("jpg"));
+    const png = await sendReceipt(imageBytes("png"), asAssistant(tenant, phone));
+    expect([jpg.body.data.contentType, png.body.data.contentType]).toEqual([
+      "image/jpeg",
+      "image/png",
+    ]);
+  });
+
+  it("create_refusesARenamedExe", async () => {
+    const exe = new Uint8Array(2048);
+    exe.set([0x4d, 0x5a, 0x90, 0x00]);
+    const reply = await sendReceipt(exe);
+    expect(reply).toMatchObject({ status: 400, body: { code: "tt_htt_400" } });
+    expect(reply.body.errors).toEqual([{ field: "file", message: "Must be a JPG, PNG or PDF" }]);
+  });
+
+  it("create_photoStillRefusesAPdf", async () => {
+    const reply = await call("POST", "/v1/files", asStaff(tenant), uploadForm(pdfBytes()));
+    expect(reply.body.errors).toEqual([{ field: "file", message: "Must be a JPG or PNG" }]);
+  });
+
+  it("create_storesTheSha256OfTheReceiptsBytes", async () => {
+    const bytes = imageBytes("jpg");
+    const reply = await sendReceipt(bytes);
+    const expected = createHash("sha256").update(bytes).digest("hex");
+    expect((await storedRow(reply.body.data.id)).sha256).toBe(expected);
+  });
+
+  it("create_customersAndTheAssistantCannotUploadPhotos", async () => {
+    for (const as of [asCustomer(tenant, phone), asAssistant(tenant, phone)]) {
+      const reply = await call("POST", "/v1/files", as, uploadForm(imageBytes()));
+      expect(reply).toMatchObject({ status: 403, body: { code: "tt_fil_002" } });
+    }
+  });
+
+  it("create_aCallerWithNoCustomerRecordCannotUploadAReceipt", async () => {
+    const reply = await sendReceipt(imageBytes(), asCustomer(tenant, uniquePhone()));
+    expect(reply).toMatchObject({ status: 403, body: { code: "tt_htt_403" } });
   });
 });

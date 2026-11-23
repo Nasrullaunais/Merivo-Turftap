@@ -6,9 +6,11 @@ import {
   asStaff,
   call,
   createTenant,
+  imageBytes,
   resourceInput,
   type TestTenant,
   uniquePhone,
+  uploadForm,
   venueInput,
 } from "../../test/fixtures";
 
@@ -75,5 +77,48 @@ describe("payments tenant isolation", () => {
     expect(reply).toMatchObject({ status: 404, body: { code: "tt_bkg_001" } });
     const own = await call("GET", `/v1/bookings/${bookingOfB}`, asStaff(tenantB));
     expect(own.body.data.paid).toEqual(cash);
+  });
+
+  const uploadReceipt = async (as: Parameters<typeof call>[2]) =>
+    (await call("POST", "/v1/files", as, uploadForm(imageBytes(), "RECEIPT"))).body.data
+      .id as number;
+
+  it("transfer_cannotBeSentForAnotherTenantsBooking", async () => {
+    const as = asStaff(tenantA);
+    const reply = await call("POST", "/v1/payments", as, {
+      kind: "TRANSFER",
+      bookingId: bookingOfB,
+      fileId: await uploadReceipt(as),
+    });
+    expect(reply).toMatchObject({ status: 404, body: { code: "tt_bkg_001" } });
+  });
+
+  it("transfer_cannotUseAReceiptFileFromAnotherTenant", async () => {
+    const phone = uniquePhone();
+    for (const tenant of [tenantA, tenantB])
+      await call("POST", "/v1/customers", asCustomer(tenant, phone), { name: "Nimal", phone });
+    const fileOfB = await uploadReceipt(asCustomer(tenantB, phone));
+    const venueOfA = (
+      await call("POST", "/v1/venues", asStaff(tenantA), venueInput({ openingHours: openAllWeek }))
+    ).body.data.id;
+    const resourceOfA = (
+      await call("POST", "/v1/resources", asStaff(tenantA), resourceInput(venueOfA))
+    ).body.data.id;
+    const bookingOfA = (
+      await call("POST", "/v1/bookings", asCustomer(tenantA, phone), {
+        resourceId: resourceOfA,
+        startsAt: instantAt(addDays(todayIn("Asia/Colombo"), 2), TEN_O_CLOCK, "Asia/Colombo"),
+      })
+    ).body.data.id;
+
+    const reply = await call("POST", "/v1/payments", asCustomer(tenantA, phone), {
+      kind: "TRANSFER",
+      bookingId: bookingOfA,
+      fileId: fileOfB,
+    });
+
+    expect(reply).toMatchObject({ status: 404, body: { code: "tt_fil_001" } });
+    const booking = await call("GET", `/v1/bookings/${bookingOfA}`, asStaff(tenantA));
+    expect(booking.body.data.status).toBe("AWAITING_PAYMENT");
   });
 });

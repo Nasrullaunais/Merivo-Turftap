@@ -209,7 +209,7 @@ export type UpdateClosedDate = {
     reason?: string | null;
 };
 
-export const FilePurpose = { PHOTO: 'PHOTO' } as const;
+export const FilePurpose = { PHOTO: 'PHOTO', RECEIPT: 'RECEIPT' } as const;
 
 export type FilePurpose = typeof FilePurpose[keyof typeof FilePurpose];
 
@@ -331,12 +331,13 @@ export type Payment = {
     status: 'PENDING_CHECK' | 'ACCEPTED' | 'REJECTED';
     amount: Money;
     note: string | null;
+    receiptUrl: string | null;
     createdBy: number | null;
     createdAt: string;
     updatedAt: string;
 };
 
-export type CreatePayment = {
+export type RecordPayment = {
     bookingId: number;
     kind: 'CASH' | 'REFUND';
     amount: {
@@ -345,6 +346,14 @@ export type CreatePayment = {
     };
     note?: string | null;
 };
+
+export type SendTransferReceipt = {
+    bookingId: number;
+    kind: 'TRANSFER';
+    fileId: number;
+};
+
+export type CreatePayment = RecordPayment | SendTransferReceipt;
 
 export type Photo = {
     id: number;

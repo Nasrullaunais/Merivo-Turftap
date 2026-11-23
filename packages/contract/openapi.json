@@ -952,7 +952,8 @@
       "FilePurpose": {
         "type": "string",
         "enum": [
-          "PHOTO"
+          "PHOTO",
+          "RECEIPT"
         ]
       },
       "UploadedFile": {
@@ -1284,6 +1285,12 @@
               "null"
             ]
           },
+          "receiptUrl": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
           "createdBy": {
             "anyOf": [
               {
@@ -1315,12 +1322,13 @@
           "status",
           "amount",
           "note",
+          "receiptUrl",
           "createdBy",
           "createdAt",
           "updatedAt"
         ]
       },
-      "CreatePayment": {
+      "RecordPayment": {
         "type": "object",
         "properties": {
           "bookingId": {
@@ -1373,6 +1381,40 @@
           "bookingId",
           "kind",
           "amount"
+        ]
+      },
+      "SendTransferReceipt": {
+        "type": "object",
+        "properties": {
+          "bookingId": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991
+          },
+          "kind": {
+            "type": "string",
+            "const": "TRANSFER"
+          },
+          "fileId": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": [
+          "bookingId",
+          "kind",
+          "fileId"
+        ]
+      },
+      "CreatePayment": {
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/RecordPayment"
+          },
+          {
+            "$ref": "#/components/schemas/SendTransferReceipt"
+          }
         ]
       },
       "Photo": {

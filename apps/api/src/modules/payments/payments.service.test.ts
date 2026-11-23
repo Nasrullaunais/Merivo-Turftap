@@ -1,6 +1,6 @@
 import { beforeAll, describe, expect, it } from "bun:test";
 
-import type { CreatePayment } from "@turftap/contract";
+import type { RecordPayment } from "@turftap/contract";
 
 import type { AuthContext } from "../../lib/auth/context";
 import { addDays, instantAt, todayIn } from "../../lib/time";
@@ -61,7 +61,7 @@ async function newBooking(venue: Parameters<typeof venueInput>[0] = { payAtVenue
 const record = (
   auth: AuthContext,
   bookingId: number,
-  kind: CreatePayment["kind"],
+  kind: RecordPayment["kind"],
   amountRupees: number,
   note: string | null = null,
 ) => paymentsService.create(auth, { bookingId, kind, amount: rupees(amountRupees), note });
