@@ -52,7 +52,7 @@ These are still resources, with only the operations that make sense:
 
 | Resource | Operations | Why |
 |---|---|---|
-| `availability` | list | Free slots, computed on each request (`?resourceId=&date=`) |
+| `availability` | list | Free slots, computed on each request (`?resourceId=&date=`). `&slots=3` prices and checks three back-to-back slots from each start |
 | `me` | get (`/v1/me`) | The signed-in user, their tenants and roles. Declared with `defineSingleton()`: one GET about the caller, with no id and no tenant header. |
 | `files` | create | Uploads one file as a multipart form (`file`, `purpose`) and returns its id, which another resource then points at (`POST /v1/photos { fileId }`, `POST /v1/payments { kind: "TRANSFER", fileId }`). The resource declares `upload: { maxBytes }`; a body much larger is cut off with 413 before it is read. The API checks the file's first bytes, not the name or type the browser sends: photos are JPG or PNG, receipts JPG, PNG or PDF. Customers and the Assistant may upload receipts only. There is no get: download links come with the resource that uses the file, such as a photo's `url` or a payment's `receiptUrl`. |
 | `whatsapp-numbers` | list | The Assistant finds which tenant a chat belongs to (`?phoneNumberId=`), before it knows the tenant. Declared with `forAssistantWithoutTenant: ["list"]`: nobody else may call it, no tenant header is needed, and the service receives a `Caller` without a tenant. Platform Admins link numbers with scripts, not the API. |

@@ -80,13 +80,13 @@ export async function loadDay(auth: AuthContext, resourceId: number, date: strin
   };
 }
 
-/** D-05, D-20: on the clock every Start Interval, from opening time, while one slot fits before closing. */
-export function startMinutes(day: Day): number[] {
+/** D-05, D-20: on the clock every Start Interval, from opening time, while `length` fits before closing. */
+export function startMinutes(day: Day, length = day.slotMinutes): number[] {
   if (!day.hours) return [];
   const { opens, closes } = day.hours;
   const starts: number[] = [];
   const first = Math.ceil(opens / day.intervalMinutes) * day.intervalMinutes;
-  for (let start = first; start + day.slotMinutes <= closes; start += day.intervalMinutes)
+  for (let start = first; start + length <= closes; start += day.intervalMinutes)
     starts.push(start);
   return starts;
 }
@@ -133,7 +133,8 @@ export async function list(
 ): Promise<Page<Slot>> {
   const day = await loadDay(auth, filters.resourceId, filters.date);
   const now = new Date();
-  const slots = startMinutes(day).map((start) => quote(day, start, start + day.slotMinutes, now));
+  const length = (filters.slots ?? 1) * day.slotMinutes;
+  const slots = startMinutes(day, length).map((start) => quote(day, start, start + length, now));
   if (page.sort.direction === "desc") slots.reverse();
   const first = page.page * page.size;
   return {

@@ -1,6 +1,6 @@
 import { Tooltip } from "@heroui/react";
 import { localTimeAt, minuteOfDay } from "@turftap/contract";
-import type { Booking } from "@turftap/contract/client";
+import type { Booking, Resource } from "@turftap/contract/client";
 import { formatMoney, instantInZone } from "@turftap/ui";
 import { Phone } from "lucide-react";
 import { type CSSProperties, useEffect, useRef, useState } from "react";
@@ -25,7 +25,7 @@ const ROWS_FOR_PHONE = 3;
 const STAGGER_MS = 25;
 const MAX_STAGGER = 12;
 
-export type SlotPress = (slot: { resourceId: number; startsAt: string }) => void;
+export type SlotPress = (slot: { resource: Resource; startsAt: string; timeZone: string }) => void;
 
 type Props = {
   view: CalendarView;
@@ -197,8 +197,9 @@ function FreeSlots({
         style={{ gridColumn: index + FIRST_CELL, gridRow: row + FIRST_CELL }}
         onClick={() =>
           onSlotPress?.({
-            resourceId: column.resource.id,
+            resource: column.resource,
             startsAt: instantInZone(column.date, time, timeZone).toISOString(),
+            timeZone,
           })
         }
       >

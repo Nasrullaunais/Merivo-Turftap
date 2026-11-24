@@ -1894,6 +1894,7 @@ export type ListAvailabilityData = {
         sort?: 'startsAt,asc' | 'startsAt,desc';
         resourceId: number;
         date: string;
+        slots?: number;
     };
     url: '/v1/availability';
 };

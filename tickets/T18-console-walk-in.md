@@ -1,6 +1,6 @@
 # T18 Walk-in booking screen
 
-Status: todo · Stories: `BKG-04` · Depends on: T10, T17
+Status: done · Stories: `BKG-04` · Depends on: T10, T17
 
 ## Goal
 From the calendar, Front Desk taps a free slot, types a name and phone, picks "paid in cash" or "pay later", and the booking appears confirmed.
