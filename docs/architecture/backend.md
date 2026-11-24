@@ -64,6 +64,8 @@ export function update(auth: AuthContext, id: number, input: UpdateVenue) {
 - A service function takes `auth` first. The tenant is always `auth.tenantId`, and the venues the caller may use are `auth.venueIds` ([tenancy.md](tenancy.md#staff-limited-to-some-venues)).
 - **Writes run inside `transaction()`.** Every repository call and queued job inside it shares one connection, and database rule violations (duplicate name, overlapping booking) come out as our own errors. Calling `transaction()` inside another one just joins it.
 - Reads can skip the transaction.
+- `Promise.all` over queries is fine anywhere. Outside a transaction the queries run side by side; inside one, `transaction()` makes them take turns, because one connection runs one query at a time.
+- Keep a transaction short: call outside services before it, and send messages through jobs or `afterCommit()`.
 - Other modules are reached through their service: `import * as staffService from "../staff/staff.service"`.
 - If two modules need each other, the part one of them needs moves to a second service file, so the imports don't go in a circle. Example: `platform/users.service.ts`, used by `staff`, while `platform.service.ts` uses `staff`.
 - Outside services are reached through `ports()`: `await ports().storage.save(key, file)`. Never import an adapter.

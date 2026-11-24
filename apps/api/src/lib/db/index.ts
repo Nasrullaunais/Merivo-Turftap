@@ -7,8 +7,8 @@ import { config } from "../config";
 import { translateDbError } from "./translate";
 
 export type Db = NodePgDatabase;
-type Tx = Db & { $client: pg.PoolClient };
-type OpenTx = { tx: Tx; afterCommit: (() => void)[] };
+type Connection = ReturnType<typeof oneQueryAtATime>;
+type OpenTx = { tx: Db; connection: Connection; afterCommit: (() => void)[] };
 
 export const pool = new pg.Pool({ connectionString: config.databaseUrl });
 const rootDb: Db = drizzle(pool);
@@ -21,7 +21,7 @@ const currentTx = new AsyncLocalStorage<OpenTx>();
 export const db = (): Db => currentTx.getStore()?.tx ?? rootDb;
 
 /** The open transaction's connection, for libraries that write their own SQL (pg-boss). */
-export const currentTxClient = (): pg.PoolClient | undefined => currentTx.getStore()?.tx.$client;
+export const currentTxClient = (): Connection | undefined => currentTx.getStore()?.connection;
 
 /** Runs `fn` once the open transaction commits, and never if it rolls back. With none open, now. */
 export function afterCommit(fn: () => void): void {
@@ -31,20 +31,38 @@ export function afterCommit(fn: () => void): void {
 }
 
 /**
+ * A connection runs one query at a time. This makes queries started together (`Promise.all`)
+ * wait their turn, which pg 8 did for us with a warning and pg 9 stops doing.
+ */
+function oneQueryAtATime(client: pg.PoolClient) {
+  let previous: Promise<unknown> = Promise.resolve();
+  return {
+    query: (text: string | pg.QueryConfig, values?: unknown[]): Promise<pg.QueryResult> => {
+      const next = previous.then(() => client.query(text, values));
+      previous = next.catch(() => undefined);
+      return next;
+    },
+  };
+}
+
+/**
  * Runs `fn` in one transaction. Every repository call and queued job inside it uses the same
  * connection, and database rule violations come out as our own errors.
  */
 export async function transaction<T>(fn: () => Promise<T>): Promise<T> {
   if (currentTx.getStore()) return fn();
   const client = await pool.connect();
-  const open: OpenTx = { tx: drizzle(client) as Tx, afterCommit: [] };
+  const connection = oneQueryAtATime(client);
+  // Drizzle only calls query(), but its types ask for a whole pg client.
+  const tx = drizzle({ client: connection as unknown as pg.PoolClient });
+  const open: OpenTx = { tx, connection, afterCommit: [] };
   let result: T;
   try {
-    await client.query("BEGIN");
+    await connection.query("BEGIN");
     result = await currentTx.run(open, fn);
-    await client.query("COMMIT");
+    await connection.query("COMMIT");
   } catch (error) {
-    await client.query("ROLLBACK");
+    await connection.query("ROLLBACK");
     throw translateDbError(error) ?? error;
   } finally {
     client.release();
