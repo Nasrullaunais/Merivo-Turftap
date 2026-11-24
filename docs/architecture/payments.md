@@ -63,7 +63,14 @@ Each booking shows **paid** (its `ACCEPTED` payments added up, refunds included)
 - A reader that fails is the adapter's problem: the port never rejects, so it reads as `unreadable` and staff check by hand.
 - All of it is worked out once, when the job runs, and then saved. Two different images of one transfer read at the very same moment can miss each other's reference; the same image is always caught, because its hash is saved at upload.
 
-A **Receipt Check** is staff PATCHing a `TRANSFER` payment to `ACCEPTED` or `REJECTED` (`rejectReason` required). In the same transaction, the service moves the booking forward or back.
+A **Receipt Check** (`PAY-04`, `PAY-05`) is staff PATCHing a `PENDING_CHECK` payment to `ACCEPTED` or `REJECTED` (`rejectReason` required). Any staff role may do it; customers and the Assistant can't. In the same transaction:
+
+- Accepted: the booking moves `AWAITING_CHECK` → `CONFIRMED`, and the customer gets `booking_confirmed`.
+- Rejected: the booking moves `AWAITING_CHECK` → `AWAITING_PAYMENT` with a fresh `expiresAt` (the venue's current Payment Time Limit) and a new expiry job. The customer gets `receipt_rejected` with the reason and the new time to pay by.
+- Rejected while the customer already has another booking waiting for payment (D-07 allows one): the booking is cancelled instead, with the reason as its `cancelReason`, and the customer gets `booking_cancelled`.
+- A booking cancelled before the check stays cancelled. Only the payment changes and no message is sent; an accepted transfer counts as paid, so it can be refunded.
+- The payment's status change is one conditional UPDATE, so of two staff checking at once, the second gets 409 (`tt_sts_002`).
+- The booking calls live in `bookingsService.receiptAccepted` and `receiptRejected`. Memberships (T23) will get their own pair, picked by what the payment points at.
 
 ## Flow
 
@@ -91,13 +98,13 @@ sequenceDiagram
 - **Duplicates:** each receipt file stores its image hash, and its Receipt Reading the reference number the AI read. A match on either one, inside the same tenant, shows a warning (`PAY-06`). It's a warning, not a block: staff decide.
 - **AI reading** never changes a status. It only fills `receiptReading` (amount, date, bank, reference, plus "matches" flags) for staff to see.
 - **Jobs are queued inside the same transaction** as the data, so a job can never run for a booking that didn't save.
-- The expiry job uses a conditional UPDATE (`WHERE status = 'AWAITING_PAYMENT'`), so a receipt arriving at the last second wins cleanly.
+- The expiry job uses a conditional UPDATE (`WHERE status = 'AWAITING_PAYMENT' AND expires_at <= now()`), so a receipt arriving at the last second wins cleanly, and the old job of a booking reopened by a rejected receipt does nothing.
 
 ## Scheduled jobs
 
 | Job | When | Does |
 |---|---|---|
-| Expire booking | At the time limit | `AWAITING_PAYMENT` → `EXPIRED`, notify |
+| Expire booking | At the time limit | `AWAITING_PAYMENT` past its `expiresAt` → `EXPIRED`, notify |
 | Booking reminder | 3 hours before start | WhatsApp reminder |
 | End memberships | Daily, 00:05 Colombo time | `ACTIVE` past end date → `ENDED` |
 | Ask for series payment | The venue's series payment days before each repeat series booking | WhatsApp with bank details and the Advance |

@@ -26,6 +26,7 @@ export const payments = pgTable(
     amount: bigint("amount", { mode: "number" }).notNull(),
     currency: text("currency").$type<Currency>().notNull(),
     note: text("note"),
+    rejectReason: text("reject_reason"),
     /** A transfer's receipt. One receipt file pays once. */
     fileId: bigint("file_id", { mode: "number" })
       .references(() => files.id)

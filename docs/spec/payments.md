@@ -21,10 +21,14 @@ As **Staff**, I want the AI to read each receipt and compare it with the booking
 ## PAY-04 Accept a receipt
 As **Staff**, I want to accept a receipt, so that the booking or membership is confirmed.
 - Given I accept, when it's saved, then the booking or membership is confirmed and the customer gets a WhatsApp message.
+- Given two staff check the same receipt at once, when both save, then only the first counts and the other is told it changed meanwhile.
 
 ## PAY-05 Reject a receipt
 As **Staff**, I want to reject a receipt with a reason, so that the customer can send a correct one.
 - Given I reject, when it's saved, then the booking goes back to waiting for payment with a fresh time limit, and the customer gets the reason on WhatsApp.
+- A rejection needs a reason.
+- Given the customer already has another booking waiting for payment (only one is allowed), when I reject, then this booking is cancelled instead, and the customer gets the reason on WhatsApp.
+- Given the booking was cancelled before I checked its receipt, when I accept or reject, then only the payment changes. The booking stays cancelled and no message is sent. An accepted receipt counts as paid, so a refund can be recorded.
 
 ## PAY-06 Catch reused receipts
 As **Staff**, I want to be warned when a receipt was already used, so that one transfer can't pay for two bookings.

@@ -1389,6 +1389,12 @@
               "null"
             ]
           },
+          "rejectReason": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
           "receiptUrl": {
             "type": [
               "string",
@@ -1436,6 +1442,7 @@
           "status",
           "amount",
           "note",
+          "rejectReason",
           "receiptUrl",
           "receiptReading",
           "createdBy",
@@ -1530,6 +1537,27 @@
           {
             "$ref": "#/components/schemas/SendTransferReceipt"
           }
+        ]
+      },
+      "UpdatePayment": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "PENDING_CHECK",
+              "ACCEPTED",
+              "REJECTED"
+            ]
+          },
+          "rejectReason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          }
+        },
+        "required": [
+          "status"
         ]
       },
       "Photo": {
@@ -5829,6 +5857,75 @@
         "responses": {
           "200": {
             "description": "Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "status",
+                    "message",
+                    "data"
+                  ],
+                  "properties": {
+                    "status": {
+                      "type": "integer"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Payment"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorReply"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "payments"
+        ],
+        "operationId": "updatePayment",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdatePayment"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Changed",
             "content": {
               "application/json": {
                 "schema": {

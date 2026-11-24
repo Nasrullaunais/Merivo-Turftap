@@ -7,6 +7,7 @@ import { createApp } from "../app";
 import type { AuthContext, StaffRole } from "../lib/auth/context";
 import { config } from "../lib/config";
 import { db } from "../lib/db";
+import { bookings } from "../modules/bookings/bookings.tables";
 import { type MessageData, sendMessage } from "../modules/notifications/notifications.jobs";
 import { tenants, users } from "../modules/platform/platform.tables";
 import * as whatsappNumbersService from "../modules/platform/whatsapp-numbers.service";
@@ -206,3 +207,11 @@ export async function sendQueuedMessages(customerId: number) {
 
 export const messagesTo = (phone: string) =>
   testPorts.messaging.sent.filter((message) => message.to === phone);
+
+/** Moves the booking's Payment Time Limit into the past, so its expiry job finds it due. */
+export async function passTimeLimit(bookingId: number) {
+  await db()
+    .update(bookings)
+    .set({ expiresAt: sql`now() - interval '1 second'` })
+    .where(eq(bookings.id, bookingId));
+}

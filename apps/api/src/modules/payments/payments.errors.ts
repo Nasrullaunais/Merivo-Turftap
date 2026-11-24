@@ -21,6 +21,10 @@ export const paymentErrors = {
     new Conflict("tt_pay_009", "The time to pay for this booking has passed. Please book again."),
   notWaitingForPayment: () => new Conflict("tt_pay_010", "This booking is not waiting for payment"),
   receiptAlreadySent: () => new Conflict("tt_pay_011", "This receipt was already sent"),
+  rejectReasonMissing: () =>
+    new BadRequest("tt_pay_012", "Please give a reason for rejecting the receipt", [
+      { field: "rejectReason", message: "Required when rejecting a receipt" },
+    ]),
 };
 
 constraintErrors({ payments_file_unique: paymentErrors.receiptAlreadySent });

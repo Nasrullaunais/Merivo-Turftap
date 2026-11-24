@@ -1,5 +1,5 @@
 import { type BookingFilters, type BookingStatus, HOLDING_STATUSES } from "@turftap/contract";
-import { and, eq, gt, inArray, lt, type SQL, sql } from "drizzle-orm";
+import { and, eq, gt, inArray, lt, lte, ne, type SQL, sql } from "drizzle-orm";
 
 import { db, pageOf, type PageRequest, sortBy } from "../../lib/db";
 import { priceOf } from "../../lib/db/columns";
@@ -83,7 +83,7 @@ export async function setStatus(
   id: number,
   from: BookingStatus,
   to: BookingStatus,
-  changes: Pick<NewBooking, "cancelReason"> = {},
+  changes: Pick<NewBooking, "cancelReason" | "expiresAt"> = {},
 ) {
   const [booking] = await db()
     .update(bookings)
@@ -91,6 +91,38 @@ export async function setStatus(
     .where(and(eq(bookings.tenantId, tenantId), eq(bookings.id, id), eq(bookings.status, from)))
     .returning();
   return booking && toBooking(booking);
+}
+
+/** BKG-03: only a booking still waiting for payment and past its Payment Time Limit expires. */
+export async function expireIfDue(tenantId: number, id: number) {
+  const [booking] = await db()
+    .update(bookings)
+    .set({ status: "EXPIRED" })
+    .where(
+      and(
+        eq(bookings.tenantId, tenantId),
+        eq(bookings.id, id),
+        eq(bookings.status, "AWAITING_PAYMENT"),
+        lte(bookings.expiresAt, sql`now()`),
+      ),
+    )
+    .returning();
+  return booking && toBooking(booking);
+}
+
+/** D-07: whether the customer has a booking waiting for payment, other than `exceptId`. */
+export async function hasOtherAwaitingPayment(
+  tenantId: number,
+  customerId: number,
+  exceptId: number,
+) {
+  const where = and(
+    eq(bookings.tenantId, tenantId),
+    eq(bookings.customerId, customerId),
+    eq(bookings.status, "AWAITING_PAYMENT"),
+    ne(bookings.id, exceptId),
+  );
+  return (await db().$count(bookings, where)) > 0;
 }
 
 /** Bookings that hold time on the resource inside the window. */

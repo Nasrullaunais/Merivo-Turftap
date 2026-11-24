@@ -1,8 +1,5 @@
 import { beforeAll, describe, expect, it } from "bun:test";
 
-import { eq, sql } from "drizzle-orm";
-
-import { db } from "../../lib/db";
 import { WHATSAPP_TEMPLATES } from "../../ports/messaging-channel";
 import { addDays, instantAt, todayIn } from "../../lib/time";
 import {
@@ -14,6 +11,7 @@ import {
   imageBytes,
   linkWhatsAppNumber,
   messagesTo,
+  passTimeLimit,
   resourceInput,
   sendQueuedMessages,
   type TestTenant,
@@ -22,7 +20,6 @@ import {
   venueInput,
 } from "../../test/fixtures";
 import * as bookingExpiryService from "../bookings/booking-expiry.service";
-import { bookings } from "../bookings/bookings.tables";
 
 const TIME_ZONE = "Asia/Colombo";
 const MINUTES_PER_HOUR = 60;
@@ -333,6 +330,7 @@ describe("PAY-02 send a Transfer Receipt", () => {
   it("transfer_afterTheBookingExpired_isRefused", async () => {
     const { phone } = await newCustomer();
     const booking = await newBooking(phone);
+    await passTimeLimit(booking.id);
     await bookingExpiryService.expire(tenant.id, booking.id);
     const as = asCustomer(tenant, phone);
 
@@ -345,10 +343,7 @@ describe("PAY-02 send a Transfer Receipt", () => {
   it("transfer_pastTheTimeLimitBeforeTheJobRan_isRefused", async () => {
     const { phone } = await newCustomer();
     const booking = await newBooking(phone);
-    await db()
-      .update(bookings)
-      .set({ expiresAt: sql`now() - interval '1 second'` })
-      .where(eq(bookings.id, booking.id));
+    await passTimeLimit(booking.id);
     const as = asCustomer(tenant, phone);
 
     const reply = await send(as, booking.id, await uploadReceipt(as));

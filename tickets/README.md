@@ -37,7 +37,7 @@ Status: `todo`, `doing`, `done`, `blocked` (waiting on a decision or an outside 
 | [T10](T10-walk-in-booking-api.md) | Walk-in booking API | BKG-04 | T09 | done |
 | [T11](T11-transfer-receipts.md) | Send a Transfer Receipt | PAY-02 | T09 | done |
 | [T12](T12-ai-receipt-reading.md) | AI reads receipts, reused-receipt warning | PAY-03, PAY-06 | T11 | done |
-| [T13](T13-accept-reject-receipts.md) | Accept or reject a receipt | PAY-04, PAY-05 | T12 | todo |
+| [T13](T13-accept-reject-receipts.md) | Accept or reject a receipt | PAY-04, PAY-05 | T12 | done |
 | [T14](T14-live-updates-events.md) | Live updates (`events`) | BKG-05, PAY-07 (part) | T06 | todo |
 | [T15](T15-repeat-series-api.md) | Repeat series API | BKG-09 | T10 | todo |
 | [T16](T16-booking-reminders.md) | Booking reminders | BKG-10 | T10, T13 | todo |

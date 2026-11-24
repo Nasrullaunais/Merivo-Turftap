@@ -1,6 +1,6 @@
 # T13 Accept or reject a receipt
 
-Status: todo · Stories: `PAY-04`, `PAY-05` · Depends on: T12
+Status: done · Stories: `PAY-04`, `PAY-05` · Depends on: T12
 
 ## Goal
 Staff accept a receipt (booking confirmed) or reject it with a reason (booking goes back to waiting for payment with a fresh time limit). The customer hears either way on WhatsApp.
@@ -18,3 +18,7 @@ Staff accept a receipt (booking confirmed) or reject it with a reason (booking g
 ## Done when
 - Tests: accept confirms, reject reopens with a new time limit and the old expiry job does nothing, two staff deciding at once (one gets `tt_sts_002`), customer can't PATCH a payment status.
 - `bun run check` passes.
+
+## Decided with the user (2026-11-24)
+- Rejecting a receipt when the customer already has another booking waiting for payment cancels this booking, with the reject reason, instead of reopening it.
+- A receipt on a booking cancelled before the check can still be accepted or rejected. Only the payment changes; no message is sent.

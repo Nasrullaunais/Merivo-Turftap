@@ -96,4 +96,12 @@ describe("SIG-06 payments for staff limited to some venues", () => {
     });
     expect(reply).toMatchObject({ status: 404, body: { code: "tt_bkg_001" } });
   });
+
+  it("payments_cannotBeCheckedAtAnotherVenue", async () => {
+    const reply = await call("PATCH", `/v1/payments/${paymentB}`, asFrontDesk(), {
+      status: "REJECTED",
+      rejectReason: "Wrong amount",
+    });
+    expect(reply).toMatchObject({ status: 404, body: { code: "tt_pay_001" } });
+  });
 });

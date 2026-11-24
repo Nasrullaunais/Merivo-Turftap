@@ -8,18 +8,13 @@ import * as venuesService from "../venues/venues.service";
 import * as bookingsRepository from "./bookings.repository";
 
 /**
- * BKG-03: an unpaid booking frees its slots and the customer is told. Does nothing if a
- * receipt arrived or the booking was cancelled first. Kept apart from bookings.service, which queues it.
+ * BKG-03: an unpaid booking past its time limit frees its slots and the customer is told.
+ * Kept apart from bookings.service, which queues it.
  */
 export function expire(tenantId: number, bookingId: number) {
   const auth: AuthContext = { actor: "system", tenantId };
   return transaction(async () => {
-    const booking = await bookingsRepository.setStatus(
-      tenantId,
-      bookingId,
-      "AWAITING_PAYMENT",
-      "EXPIRED",
-    );
+    const booking = await bookingsRepository.expireIfDue(tenantId, bookingId);
     if (!booking) return;
     const [venue, resource] = await Promise.all([
       venuesService.get(auth, booking.venueId),

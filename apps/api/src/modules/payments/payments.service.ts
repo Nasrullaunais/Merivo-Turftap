@@ -5,17 +5,19 @@ import type {
   RecordPayment,
   SendTransferReceipt,
   StaffRole,
+  UpdatePayment,
 } from "@turftap/contract";
 
 import type { AuthContext } from "../../lib/auth/context";
 import { transaction } from "../../lib/db";
 import { httpErrors } from "../../lib/errors";
-import type { ListQuery } from "../../lib/resource";
+import { type ListQuery, statusChangedMeanwhile } from "../../lib/resource";
 import * as bookingsService from "../bookings/bookings.service";
 import * as filesService from "../files/files.service";
 import { paymentErrors } from "./payments.errors";
 import { readReceiptJob } from "./payments.jobs";
 import * as paymentsRepository from "./payments.repository";
+import { paymentTransitions } from "./payments.transitions";
 
 type PaymentSort = "createdAt";
 type StoredPayment = Awaited<ReturnType<typeof paymentsRepository.insert>>;
@@ -136,6 +138,33 @@ async function record(auth: AuthContext, input: RecordPayment) {
       createdBy: auth.userId ?? null,
     });
     const [withUrl] = await withReceipts(auth, [payment]);
+    return withUrl!;
+  });
+}
+
+/** PAY-04, PAY-05: the Receipt Check. The booking moves forward or back in the same transaction. */
+export async function update(auth: AuthContext, id: number, input: UpdatePayment) {
+  const payment = await paymentsRepository.findById(auth.tenantId, id, auth.venueIds);
+  if (!payment) throw paymentErrors.notFound(id);
+  paymentTransitions.check(auth.actor, payment.status, input.status);
+  const rejectReason = input.status === "REJECTED" ? input.rejectReason : undefined;
+  if (input.status === "REJECTED" && rejectReason === undefined)
+    throw paymentErrors.rejectReasonMissing();
+  return transaction(async () => {
+    const checked = await paymentsRepository.setStatus(
+      auth.tenantId,
+      id,
+      payment.status,
+      input.status,
+      { rejectReason: rejectReason ?? null },
+    );
+    if (!checked) throw statusChangedMeanwhile();
+    if (checked.bookingId !== null) {
+      if (rejectReason === undefined)
+        await bookingsService.receiptAccepted(auth, checked.bookingId);
+      else await bookingsService.receiptRejected(auth, checked.bookingId, rejectReason);
+    }
+    const [withUrl] = await withReceipts(auth, [checked]);
     return withUrl!;
   });
 }

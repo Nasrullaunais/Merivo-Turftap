@@ -15,7 +15,7 @@ import { transaction } from "../../lib/db";
 import { httpErrors } from "../../lib/errors";
 import { type ListQuery, statusChangedMeanwhile } from "../../lib/resource";
 import { describeInstant, wallClockAt } from "../../lib/time";
-import { WHATSAPP_TEMPLATES } from "../../ports/messaging-channel";
+import { WHATSAPP_TEMPLATES, type WhatsAppTemplate } from "../../ports/messaging-channel";
 import * as customersService from "../customers/customers.service";
 import * as notificationsService from "../notifications/notifications.service";
 import * as bookingPaymentsService from "../payments/booking-payments.service";
@@ -221,11 +221,69 @@ export async function receiptSent(auth: AuthContext, id: number) {
   if (!booking) throw statusChangedMeanwhile();
 }
 
+/**
+ * PAY-04: an accepted receipt confirms the booking; one cancelled meanwhile stays cancelled.
+ * Called by payments inside the transaction that saves the Receipt Check.
+ */
+export async function receiptAccepted(auth: AuthContext, id: number) {
+  const confirmed = await bookingsRepository.setStatus(
+    auth.tenantId,
+    id,
+    "AWAITING_CHECK",
+    "CONFIRMED",
+  );
+  if (confirmed) await tellCustomer(auth, confirmed, WHATSAPP_TEMPLATES.bookingConfirmed);
+}
+
+/**
+ * PAY-05: a rejected receipt reopens the booking with a fresh Payment Time Limit, or cancels it if
+ * the customer already has another booking waiting for payment (D-07). Called like receiptAccepted.
+ */
+export async function receiptRejected(auth: AuthContext, id: number, reason: string) {
+  const booking = await bookingsRepository.findById(auth.tenantId, id, scopeOf(auth));
+  if (booking?.status !== "AWAITING_CHECK") return;
+  if (await bookingsRepository.hasOtherAwaitingPayment(auth.tenantId, booking.customerId, id)) {
+    const cancelled = await bookingsRepository.setStatus(
+      auth.tenantId,
+      id,
+      "AWAITING_CHECK",
+      "CANCELLED",
+      { cancelReason: reason },
+    );
+    if (!cancelled) throw statusChangedMeanwhile();
+    await tellCustomer(auth, cancelled, WHATSAPP_TEMPLATES.bookingCancelled, [reason]);
+    return;
+  }
+  const venue = await venueOf(auth, booking.venueId);
+  const expiresAt = new Date(Date.now() + venue.paymentTimeLimitMinutes * MS_PER_MINUTE);
+  const reopened = await bookingsRepository.setStatus(
+    auth.tenantId,
+    id,
+    "AWAITING_CHECK",
+    "AWAITING_PAYMENT",
+    { expiresAt },
+  );
+  if (!reopened) throw statusChangedMeanwhile();
+  await expireBookingJob.queue(
+    { tenantId: auth.tenantId, bookingId: id },
+    { startAfter: expiresAt },
+  );
+  await tellCustomer(auth, reopened, WHATSAPP_TEMPLATES.receiptRejected, [
+    reason,
+    describeInstant(expiresAt, venue.timeZone),
+  ]);
+}
+
 const isPastCancellationCutOff = (booking: StoredBooking, now: Date) =>
   booking.startsAt.getTime() - now.getTime() <= booking.cancellationCutOffHours * MS_PER_HOUR;
 
-/** BKG-07: the customer hears why staff cancelled. */
-async function tellCustomerOfCancel(auth: AuthContext, booking: StoredBooking, reason: string) {
+/** A WhatsApp message about the booking: its venue, resource and start time, then `more`. */
+async function tellCustomer(
+  auth: AuthContext,
+  booking: StoredBooking,
+  template: WhatsAppTemplate,
+  more: string[] = [],
+) {
   const system: AuthContext = { actor: "system", tenantId: auth.tenantId };
   const [venue, resource] = await Promise.all([
     venuesService.get(system, booking.venueId),
@@ -233,8 +291,8 @@ async function tellCustomerOfCancel(auth: AuthContext, booking: StoredBooking, r
   ]);
   await notificationsService.notifyCustomer(auth, {
     customerId: booking.customerId,
-    template: WHATSAPP_TEMPLATES.bookingCancelled,
-    values: [venue.name, resource.name, describeInstant(booking.startsAt, venue.timeZone), reason],
+    template,
+    values: [venue.name, resource.name, describeInstant(booking.startsAt, venue.timeZone), ...more],
   });
 }
 
@@ -266,7 +324,7 @@ export async function update(auth: AuthContext, id: number, input: UpdateBooking
     );
     if (!cancelled) throw statusChangedMeanwhile();
     if (auth.actor === "staff" && cancelReason)
-      await tellCustomerOfCancel(auth, cancelled, cancelReason);
+      await tellCustomer(auth, cancelled, WHATSAPP_TEMPLATES.bookingCancelled, [cancelReason]);
     return replyOf(cancelled, await detailsOfOne(auth, cancelled));
   });
 }

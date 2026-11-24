@@ -1,4 +1,4 @@
-import type { PaymentFilters, ReceiptReading } from "@turftap/contract";
+import type { PaymentFilters, PaymentStatus, ReceiptReading } from "@turftap/contract";
 import { aliasedTable, and, asc, eq, inArray, lt, type SQL, sql } from "drizzle-orm";
 
 import { db, pageOf, type PageRequest, sortBy } from "../../lib/db";
@@ -59,6 +59,22 @@ export function list(
       .then((rows) => rows.map(toPayment)),
     db().$count(payments, where),
   );
+}
+
+/** Changes the status only if it is still `from`; returns nothing if someone got there first. */
+export async function setStatus(
+  tenantId: number,
+  id: number,
+  from: PaymentStatus,
+  to: PaymentStatus,
+  changes: Pick<NewPayment, "rejectReason"> = {},
+) {
+  const [payment] = await db()
+    .update(payments)
+    .set({ ...changes, status: to })
+    .where(and(eq(payments.tenantId, tenantId), eq(payments.id, id), eq(payments.status, from)))
+    .returning();
+  return payment && toPayment(payment);
 }
 
 /** Each booking's accepted payments added up, in cents. Bookings with none are left out. */
