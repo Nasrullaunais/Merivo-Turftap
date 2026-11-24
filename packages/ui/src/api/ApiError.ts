@@ -6,6 +6,8 @@ export class ApiError extends Error {
   readonly code?: string;
   readonly traceId?: string;
   readonly fieldErrors: FieldError[];
+  /** D-10: the venue's dates a Repeat Series can't be booked on. */
+  readonly clashingDates: string[];
 
   constructor(status: number, message: string, reply?: Partial<ErrorReply>) {
     super(message);
@@ -14,6 +16,7 @@ export class ApiError extends Error {
     this.code = reply?.code;
     this.traceId = reply?.traceId;
     this.fieldErrors = reply?.errors ?? [];
+    this.clashingDates = reply?.clashingDates ?? [];
   }
 }
 

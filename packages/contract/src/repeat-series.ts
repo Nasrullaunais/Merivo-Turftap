@@ -6,7 +6,7 @@ import { CustomerName } from "./customers";
 
 export const REPEAT_SERIES_STATUSES = ["ACTIVE", "CANCELLED"] as const;
 
-const MIN_SERIES_WEEKS = 2;
+export const MIN_SERIES_WEEKS = 2;
 /** A year of weekly bookings, all created up front. */
 export const MAX_SERIES_WEEKS = 52;
 

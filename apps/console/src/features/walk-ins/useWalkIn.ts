@@ -3,6 +3,7 @@ import { MAX_PAGE_SIZE, PhoneInput } from "@turftap/contract";
 import type { Resource } from "@turftap/contract/client";
 import {
   createBookingMutation,
+  createRepeatSeriesMutation,
   listAvailabilityQueryKey,
   listAvailabilityOptions,
   listBookingsQueryKey,
@@ -62,6 +63,23 @@ export function useBookWalkIn(resourceId: number, date: string, onBooked: () => 
       onBooked();
       void queryClient.invalidateQueries({
         queryKey: listAvailabilityQueryKey({ query: { resourceId, date } }),
+        refetchType: "none",
+      });
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: listBookingsQueryKey() }),
+  });
+}
+
+/** BKG-09: like a walk-in, but it books many dates, so every day's free slots go stale. */
+export function useBookSeries(onBooked: () => void) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    ...createRepeatSeriesMutation(),
+    meta: { silent: true },
+    onSuccess: () => {
+      onBooked();
+      void queryClient.invalidateQueries({
+        queryKey: [{ _id: "listAvailability" }],
         refetchType: "none",
       });
     },

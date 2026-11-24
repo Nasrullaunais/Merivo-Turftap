@@ -1,3 +1,4 @@
+import type { CreateRepeatSeries, StaffRole } from "@turftap/contract";
 import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -61,7 +62,7 @@ const slot = (startsAt: string, hours: number, rupees: number, free: boolean) =>
  * Court 2 is free at 19:00 and 20:00 and taken at 21:00, so two slots fit from 19:00.
  * Two slots cost 9,500 because the evening Price Rule starts at 20:00. Booking takes 19:00.
  */
-function mockWalkInApi(book: (request: Request) => Response) {
+function mockWalkInApi(book: (request: Request) => Response, role: StaffRole = "FRONT_DESK") {
   const created: unknown[] = [];
   let isSevenPmTaken = false;
   mockApi({
@@ -70,7 +71,7 @@ function mockWalkInApi(book: (request: Request) => Response) {
       phone: PHONE,
       name: "Desk",
       isPlatformAdmin: false,
-      tenants: [myTenant({ id: 1, slug: "demo", name: "Demo Sports", role: "FRONT_DESK" })],
+      tenants: [myTenant({ id: 1, slug: "demo", name: "Demo Sports", role })],
     },
     "GET /v1/venues": page([arena]),
     "GET /v1/resources": page([court]),
@@ -205,5 +206,105 @@ describe("BKG-04 walk-in booking", () => {
       "That slot was just taken. Please pick another time",
     );
     expect(screen.getByRole("dialog", { name: "Walk-in booking" })).toBeInTheDocument();
+  });
+});
+
+// Court 2 is taken at 19:00 on Fri 8 Jan, the third of the series' weeks.
+const TAKEN_WEEK = "2027-01-08";
+
+/** As the API answers (D-10): any week that isn't free refuses the whole series with its dates. */
+function mockSeriesApi() {
+  const sent: CreateRepeatSeries[] = [];
+  mockWalkInApi(booked, "MANAGER");
+  const fetch = globalThis.fetch;
+  vi.stubGlobal("fetch", async (request: Request) => {
+    if (request.method !== "POST" || !request.url.endsWith("/v1/repeat-series"))
+      return fetch(request);
+    const body = (await request.json()) as CreateRepeatSeries;
+    sent.push(body);
+    const clashing = [TAKEN_WEEK].filter((date) => !body.skipDates.includes(date));
+    if (clashing.length > 0)
+      return Response.json(
+        {
+          status: 409,
+          code: "tt_bkg_009",
+          message: `These weeks aren't free: ${clashing.join(", ")}. Skip them or pick another time`,
+          traceId: "test",
+          clashingDates: clashing,
+        },
+        { status: 409 },
+      );
+    return Response.json({ status: 201, message: "success", data: {} }, { status: 201 });
+  });
+  return sent;
+}
+
+async function askForFiveWeeks(form: ReturnType<typeof within>) {
+  fireEvent.change(form.getByRole("textbox", { name: "Phone number" }), {
+    target: { value: "077 000 1111" },
+  });
+  await waitFor(() =>
+    expect(form.getByRole("textbox", { name: "Name" })).toHaveValue("Nimal Perera"),
+  );
+  fireEvent.click(form.getByRole("switch", { name: "Repeat every week" }));
+  // The second Increase belongs to Weeks; the first to Slots.
+  fireEvent.click(form.getAllByRole("button", { name: /increase/i }).at(-1)!);
+  expect(form.getByText("Fri 25 Dec – Fri 22 Jan")).toBeInTheDocument();
+  fireEvent.click(form.getByRole("button", { name: "Book 5 weeks" }));
+}
+
+describe("BKG-09 repeat series from the walk-in form", () => {
+  it("clashingWeek_isListed_thenSkippedAndTheRestBooked", async () => {
+    const sent = mockSeriesApi();
+    const form = await openSevenPm();
+
+    await askForFiveWeeks(form);
+
+    const clashes = await form.findByRole("list", { name: "Weeks that aren't free" });
+    expect(within(clashes).getAllByRole("listitem")).toHaveLength(1);
+    expect(within(clashes).getByText("Friday, 8 January 2027")).toBeInTheDocument();
+    expect(form.getByText("1 week isn't free")).toBeInTheDocument();
+    expect(screen.getByRole("dialog", { name: "Walk-in booking" })).toBeInTheDocument();
+
+    expect(form.getByText("4 of 5 weeks are free")).toBeInTheDocument();
+    fireEvent.click(form.getByRole("button", { name: "Skip and book 4 weeks" }));
+
+    await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+    const asked = {
+      resourceId: 12,
+      startsAt: AT_SEVEN_PM,
+      slots: 1,
+      weeks: 5,
+      customerName: "Nimal Perera",
+      customerPhone: "077 000 1111",
+    };
+    expect(sent).toEqual([
+      { ...asked, skipDates: [] },
+      { ...asked, skipDates: [TAKEN_WEEK] },
+    ]);
+  });
+
+  it("cancelOnClashes_booksNothing_andGoesBackToTheForm", async () => {
+    const sent = mockSeriesApi();
+    const form = await openSevenPm();
+
+    await askForFiveWeeks(form);
+    await form.findByRole("list", { name: "Weeks that aren't free" });
+    fireEvent.click(form.getByRole("button", { name: "Cancel" }));
+
+    await waitFor(() =>
+      expect(form.queryByRole("list", { name: "Weeks that aren't free" })).toBeNull(),
+    );
+    expect(form.getByRole("button", { name: "Book 5 weeks" })).toBeInTheDocument();
+    expect(form.getByRole("textbox", { name: "Name" })).toHaveValue("Nimal Perera");
+    expect(sent).toHaveLength(1);
+  });
+
+  it("repeat_isNotOfferedToFrontDesk", async () => {
+    mockWalkInApi(booked);
+    const form = await openSevenPm();
+
+    expect(form.getByRole("textbox", { name: "Phone number" })).toBeInTheDocument();
+    expect(form.queryByRole("switch", { name: "Repeat every week" })).toBeNull();
   });
 });

@@ -12,6 +12,13 @@ const shortDate = (instant: string, timeZone: string) =>
     day: "numeric",
     month: "short",
   }).format(new Date(instant));
+const onDate = (date: string) =>
+  new Intl.DateTimeFormat("en-GB", {
+    timeZone: "UTC",
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+  }).format(new Date(`${date}T00:00:00Z`));
 
 export default {
   /** "Fri 25 Dec, 19:00–21:00" on the venue's clock. */
@@ -28,6 +35,11 @@ export default {
     CANCELLED: "Cancelled",
   },
   sources: { ONLINE: "Online", WALK_IN: "Walk-in" },
+  weekly: "Every week",
+  /** "Every week, 8 weeks from Fri 25 Dec": a booking's Repeat Series. */
+  seriesLine: (weeks: number, firstDate: string) =>
+    `Every week, ${weeks} weeks from ${onDate(firstDate)}`,
+  seriesCancelled: "Series cancelled",
   price: "Price",
   paid: "Paid",
   balance: "Balance",
@@ -46,6 +58,7 @@ export default {
   recordCash: "Record cash",
   recordRefund: "Record refund",
   cancel: "Cancel booking",
+  cancelSeries: "Cancel the rest of the series",
   keep: "Keep it",
   amountLabel: "Amount (LKR)",
   noteLabel: "Note",
