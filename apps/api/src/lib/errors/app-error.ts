@@ -39,7 +39,11 @@ export class NotFound extends AppError {
 }
 
 export class Conflict extends AppError {
-  constructor(code: string, message: string) {
+  /** D-10: the venue's dates a Repeat Series can't be booked on. */
+  readonly clashingDates?: string[];
+
+  constructor(code: string, message: string, clashingDates?: string[]) {
     super(409, code, message);
+    this.clashingDates = clashingDates;
   }
 }

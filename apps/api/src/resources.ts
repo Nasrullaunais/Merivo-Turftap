@@ -1,5 +1,9 @@
 import type { Resource } from "./lib/resource";
-import { availabilityResource, bookingsResource } from "./modules/bookings/bookings.routes";
+import {
+  availabilityResource,
+  bookingsResource,
+  repeatSeriesResource,
+} from "./modules/bookings/bookings.routes";
 import { customersResource } from "./modules/customers/customers.routes";
 import { filesResource } from "./modules/files/files.routes";
 import { eventsResource } from "./modules/notifications/notifications.routes";
@@ -29,6 +33,7 @@ export const RESOURCES: Resource[] = [
   customersResource,
   availabilityResource,
   bookingsResource,
+  repeatSeriesResource,
   paymentsResource,
   eventsResource,
 ];

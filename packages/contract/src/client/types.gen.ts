@@ -28,6 +28,7 @@ export type ErrorReply = {
     message: string;
     traceId: string;
     errors?: Array<FieldError>;
+    clashingDates?: Array<string>;
 };
 
 export type BlockedTime = {
@@ -148,6 +149,7 @@ export type Booking = {
     customerId: number;
     customerName: string;
     customerPhone: string;
+    repeatSeriesId: number | null;
     startsAt: string;
     endsAt: string;
     status: 'AWAITING_PAYMENT' | 'AWAITING_CHECK' | 'CONFIRMED' | 'EXPIRED' | 'CANCELLED';
@@ -272,6 +274,10 @@ export const Permission = {
     BOOKINGS_CREATE: 'bookings:create',
     BOOKINGS_UPDATE: 'bookings:update',
     BOOKINGS_DELETE: 'bookings:delete',
+    REPEAT_SERIES_READ: 'repeat-series:read',
+    REPEAT_SERIES_CREATE: 'repeat-series:create',
+    REPEAT_SERIES_UPDATE: 'repeat-series:update',
+    REPEAT_SERIES_DELETE: 'repeat-series:delete',
     PAYMENTS_READ: 'payments:read',
     PAYMENTS_CREATE: 'payments:create',
     PAYMENTS_UPDATE: 'payments:update',
@@ -426,6 +432,40 @@ export type UpdatePriceRule = {
     startTime?: string;
     endTime?: string;
     price?: PriceInput;
+};
+
+export type RepeatSeries = {
+    id: number;
+    venueId: number;
+    resourceId: number;
+    customerId: number;
+    customerName: string;
+    customerPhone: string;
+    firstDate: string;
+    startTime: string;
+    slots: number;
+    weeks: number;
+    status: 'ACTIVE' | 'CANCELLED';
+    cancelReason: string | null;
+    seriesPaymentDaysBefore: number;
+    advancePercent: number;
+    createdAt: string;
+    updatedAt: string;
+};
+
+export type CreateRepeatSeries = {
+    resourceId: number;
+    startsAt: string;
+    slots?: number;
+    weeks: number;
+    customerName: string;
+    customerPhone: string;
+    skipDates?: Array<string>;
+};
+
+export type UpdateRepeatSeries = {
+    status: 'ACTIVE' | 'CANCELLED';
+    cancelReason?: string;
 };
 
 export const ResourceType = {
@@ -1896,6 +1936,7 @@ export type ListBookingsData = {
         venueId?: number;
         resourceId?: number;
         customerId?: number;
+        repeatSeriesId?: number;
         status?: 'AWAITING_PAYMENT' | 'AWAITING_CHECK' | 'CONFIRMED' | 'EXPIRED' | 'CANCELLED';
         from?: string;
         to?: string;
@@ -2021,6 +2062,140 @@ export type UpdateBookingResponses = {
 };
 
 export type UpdateBookingResponse = UpdateBookingResponses[keyof UpdateBookingResponses];
+
+export type ListRepeatSeriesData = {
+    body?: never;
+    path?: never;
+    query?: {
+        page?: number;
+        size?: number;
+        sort?: 'firstDate,asc' | 'firstDate,desc' | 'createdAt,asc' | 'createdAt,desc';
+        venueId?: number;
+        resourceId?: number;
+        customerId?: number;
+        status?: 'ACTIVE' | 'CANCELLED';
+    };
+    url: '/v1/repeat-series';
+};
+
+export type ListRepeatSeriesErrors = {
+    /**
+     * Error
+     */
+    default: ErrorReply;
+};
+
+export type ListRepeatSeriesError = ListRepeatSeriesErrors[keyof ListRepeatSeriesErrors];
+
+export type ListRepeatSeriesResponses = {
+    /**
+     * One page
+     */
+    200: {
+        status: number;
+        message: string;
+        data: {
+            content: Array<RepeatSeries>;
+            page: number;
+            size: number;
+            totalElements: number;
+            totalPages: number;
+        };
+    };
+};
+
+export type ListRepeatSeriesResponse = ListRepeatSeriesResponses[keyof ListRepeatSeriesResponses];
+
+export type CreateRepeatSeriesData = {
+    body: CreateRepeatSeries;
+    path?: never;
+    query?: never;
+    url: '/v1/repeat-series';
+};
+
+export type CreateRepeatSeriesErrors = {
+    /**
+     * Error
+     */
+    default: ErrorReply;
+};
+
+export type CreateRepeatSeriesError = CreateRepeatSeriesErrors[keyof CreateRepeatSeriesErrors];
+
+export type CreateRepeatSeriesResponses = {
+    /**
+     * Created
+     */
+    201: {
+        status: number;
+        message: string;
+        data: RepeatSeries;
+    };
+};
+
+export type CreateRepeatSeriesResponse = CreateRepeatSeriesResponses[keyof CreateRepeatSeriesResponses];
+
+export type GetRepeatSeriesData = {
+    body?: never;
+    path: {
+        id: number;
+    };
+    query?: never;
+    url: '/v1/repeat-series/{id}';
+};
+
+export type GetRepeatSeriesErrors = {
+    /**
+     * Error
+     */
+    default: ErrorReply;
+};
+
+export type GetRepeatSeriesError = GetRepeatSeriesErrors[keyof GetRepeatSeriesErrors];
+
+export type GetRepeatSeriesResponses = {
+    /**
+     * Found
+     */
+    200: {
+        status: number;
+        message: string;
+        data: RepeatSeries;
+    };
+};
+
+export type GetRepeatSeriesResponse = GetRepeatSeriesResponses[keyof GetRepeatSeriesResponses];
+
+export type UpdateRepeatSeriesData = {
+    body: UpdateRepeatSeries;
+    path: {
+        id: number;
+    };
+    query?: never;
+    url: '/v1/repeat-series/{id}';
+};
+
+export type UpdateRepeatSeriesErrors = {
+    /**
+     * Error
+     */
+    default: ErrorReply;
+};
+
+export type UpdateRepeatSeriesError = UpdateRepeatSeriesErrors[keyof UpdateRepeatSeriesErrors];
+
+export type UpdateRepeatSeriesResponses = {
+    /**
+     * Changed
+     */
+    200: {
+        status: number;
+        message: string;
+        data: RepeatSeries;
+    };
+};
+
+export type UpdateRepeatSeriesResponse = UpdateRepeatSeriesResponses[keyof UpdateRepeatSeriesResponses];
 
 export type ListPaymentsData = {
     body?: never;

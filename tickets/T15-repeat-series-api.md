@@ -1,6 +1,6 @@
 # T15 Repeat series API
 
-Status: todo · Stories: `BKG-09` · Depends on: T10 · Decisions: **D-09**, **D-10**
+Status: done · Stories: `BKG-09` · Depends on: T10 · Decisions: **D-09**, **D-10**
 
 ## Goal
 Staff book the same resource and time every week for a number of weeks, all up front, and can cancel one booking or the rest of the series.

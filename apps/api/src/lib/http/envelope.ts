@@ -2,7 +2,7 @@ import type { ErrorReply } from "@turftap/contract";
 import type { Context } from "hono";
 import type { ContentfulStatusCode } from "hono/utils/http-status";
 
-import type { AppError } from "../errors";
+import { type AppError, Conflict } from "../errors";
 
 export const SUCCESS_MESSAGE = "success";
 
@@ -15,4 +15,5 @@ export const errorReply = (error: AppError, traceId: string): ErrorReply => ({
   message: error.message,
   traceId,
   ...(error.fieldErrors?.length && { errors: error.fieldErrors }),
+  ...(error instanceof Conflict && error.clashingDates && { clashingDates: error.clashingDates }),
 });

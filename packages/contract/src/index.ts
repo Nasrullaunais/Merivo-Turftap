@@ -10,6 +10,7 @@ export * from "./payments";
 export * from "./permissions";
 export * from "./photos";
 export * from "./price-rules";
+export * from "./repeat-series";
 export * from "./resources";
 export * from "./staff";
 export * from "./venues";

@@ -1,7 +1,8 @@
-import { BOOKING_SOURCES, BOOKING_STATUSES } from "@turftap/contract";
+import { BOOKING_SOURCES, BOOKING_STATUSES, REPEAT_SERIES_STATUSES } from "@turftap/contract";
 import { sql } from "drizzle-orm";
 import {
   bigint,
+  date,
   index,
   integer,
   pgEnum,
@@ -18,6 +19,40 @@ import { resources, venues } from "../venues/venues.tables";
 
 export const bookingStatus = pgEnum("booking_status", BOOKING_STATUSES);
 export const bookingSource = pgEnum("booking_source", BOOKING_SOURCES);
+export const repeatSeriesStatus = pgEnum("repeat_series_status", REPEAT_SERIES_STATUSES);
+
+export const repeatSeries = pgTable(
+  "repeat_series",
+  {
+    id: idColumn(),
+    tenantId: tenantIdColumn(),
+    venueId: bigint("venue_id", { mode: "number" })
+      .notNull()
+      .references(() => venues.id),
+    resourceId: bigint("resource_id", { mode: "number" })
+      .notNull()
+      .references(() => resources.id),
+    customerId: bigint("customer_id", { mode: "number" })
+      .notNull()
+      .references(() => customers.id),
+    firstDate: date("first_date", { mode: "string" }).notNull(),
+    startMinute: integer("start_minute").notNull(),
+    slots: integer("slots").notNull(),
+    weeks: integer("weeks").notNull(),
+    status: repeatSeriesStatus("status").notNull(),
+    cancelReason: text("cancel_reason"),
+    seriesPaymentDaysBefore: integer("series_payment_days_before").notNull(),
+    advancePercent: integer("advance_percent").notNull(),
+    ...timestampColumns(),
+  },
+  (table) => [
+    index("repeat_series_tenant_idx").on(table.tenantId),
+    index("repeat_series_venue_idx").on(table.venueId),
+  ],
+);
+
+export type RepeatSeriesRow = typeof repeatSeries.$inferSelect;
+export type NewRepeatSeries = Omit<typeof repeatSeries.$inferInsert, "id" | "tenantId">;
 
 /** Holding bookings may not overlap on one resource; see migration 0015_bookings_no_overlap. */
 export const bookings = pgTable(
@@ -35,6 +70,9 @@ export const bookings = pgTable(
     customerId: bigint("customer_id", { mode: "number" })
       .notNull()
       .references(() => customers.id),
+    repeatSeriesId: bigint("repeat_series_id", { mode: "number" }).references(
+      () => repeatSeries.id,
+    ),
     startsAt: timestamp("starts_at", { withTimezone: true }).notNull(),
     endsAt: timestamp("ends_at", { withTimezone: true }).notNull(),
     status: bookingStatus("status").notNull(),
@@ -52,6 +90,7 @@ export const bookings = pgTable(
     index("bookings_tenant_idx").on(table.tenantId),
     index("bookings_venue_starts_at_idx").on(table.venueId, table.startsAt),
     index("bookings_resource_starts_at_idx").on(table.resourceId, table.startsAt),
+    index("bookings_repeat_series_idx").on(table.repeatSeriesId),
     // D-07: one booking waiting for payment per customer per tenant.
     uniqueIndex("bookings_one_awaiting_payment")
       .on(table.tenantId, table.customerId)

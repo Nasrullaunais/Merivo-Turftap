@@ -25,6 +25,17 @@ export const bookingErrors = {
     new BadRequest("tt_bkg_008", "Please give the customer's name, phone and how they pay", [
       { field: "walkIn", message: "Required when staff book" },
     ]),
+  seriesClashes: (dates: string[]) =>
+    new Conflict(
+      "tt_bkg_009",
+      `These weeks aren't free: ${dates.join(", ")}. Skip them or pick another time`,
+      dates,
+    ),
+  seriesNotFound: (id: number) => new NotFound("tt_bkg_010", `Repeat Series ${id} was not found`),
+  seriesAllSkipped: () =>
+    new BadRequest("tt_bkg_011", "Every week is skipped, so there is nothing to book", [
+      { field: "skipDates", message: "Must leave at least one week" },
+    ]),
 };
 
 constraintErrors({

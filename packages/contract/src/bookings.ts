@@ -19,8 +19,8 @@ export const WALK_IN_PAYMENTS = ["CASH", "PAY_LATER"] as const;
 /** D-06: customers can book up to this many days ahead of the venue's today. */
 export const BOOKING_HORIZON_DAYS = 30;
 /** A whole day of the shortest slots; opening hours limit a booking long before this. */
-const MAX_SLOTS_PER_BOOKING = 96;
-const MAX_CANCEL_REASON_LENGTH = 200;
+export const MAX_SLOTS_PER_BOOKING = 96;
+export const MAX_CANCEL_REASON_LENGTH = 200;
 
 export const Booking = z
   .object({
@@ -30,6 +30,8 @@ export const Booking = z
     customerId: Id,
     customerName: z.string(),
     customerPhone: PhoneNumber,
+    /** BKG-09: the Repeat Series this booking belongs to, if any. */
+    repeatSeriesId: Id.nullable(),
     startsAt: Timestamp,
     endsAt: Timestamp,
     status: z.enum(BOOKING_STATUSES),
@@ -87,6 +89,7 @@ export const BookingFilters = z.object({
   venueId: z.coerce.number().pipe(Id).optional(),
   resourceId: z.coerce.number().pipe(Id).optional(),
   customerId: z.coerce.number().pipe(Id).optional(),
+  repeatSeriesId: z.coerce.number().pipe(Id).optional(),
   status: z.enum(BOOKING_STATUSES).optional(),
   /** Only bookings that end after this instant. */
   from: Timestamp.optional(),

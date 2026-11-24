@@ -39,7 +39,7 @@ Status: `todo`, `doing`, `done`, `blocked` (waiting on a decision or an outside 
 | [T12](T12-ai-receipt-reading.md) | AI reads receipts, reused-receipt warning | PAY-03, PAY-06 | T11 | done |
 | [T13](T13-accept-reject-receipts.md) | Accept or reject a receipt | PAY-04, PAY-05 | T12 | done |
 | [T14](T14-live-updates-events.md) | Live updates (`events`) | BKG-05, PAY-07 (part) | T06 | done |
-| [T15](T15-repeat-series-api.md) | Repeat series API | BKG-09 | T10 | todo |
+| [T15](T15-repeat-series-api.md) | Repeat series API | BKG-09 | T10 | done |
 | [T16](T16-booking-reminders.md) | Booking reminders | BKG-10 | T10, T13 | todo |
 | [T47](T47-series-payment-collection.md) | Ask for series payments before each booking | BKG-09 | T15, T13, T46 | blocked (OQ-01) |
 | **D. Bookings and payments (Staff Console)** |||||
@@ -108,6 +108,8 @@ Settled in a grilling session with the user. Each answer is written here, then i
 | D-23 | How does customer `search` match phone numbers? | Ignore spaces and dashes; a leading 0 counts as +94 | Yes: "077 123" finds +94771234567 |
 | D-24 | Is a customer's name required? | Yes | Yes |
 | D-25 | Platform Admin work (create and turn off tenants, link WhatsApp numbers, list tenants): Staff Console screens, or scripts on the server? | Scripts for v1 | Scripts for v1. T34 (screens) is dropped, and T03 and T33 build scripts instead of API resources. Only the Assistant's number lookup stays in the API. Screens can come later if the number of tenants grows |
+| D-26 | How does the 409 for a clashing Repeat Series list the dates? | Reuse `errors` with one item per date | A new optional `clashingDates` field on error replies, so the dates aren't hidden in `message` |
+| D-27 | What does the customer get when staff cancel the rest of a Repeat Series? | One new `series_cancelled` message | Yes: one message with the count and reason, not one per booking |
 
 ## Open questions for venue owners
 

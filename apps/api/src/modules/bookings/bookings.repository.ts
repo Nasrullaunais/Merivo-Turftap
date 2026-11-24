@@ -59,6 +59,8 @@ export function list(
     conditions.push(eq(bookings.resourceId, filters.resourceId));
   if (filters.customerId !== undefined)
     conditions.push(eq(bookings.customerId, filters.customerId));
+  if (filters.repeatSeriesId !== undefined)
+    conditions.push(eq(bookings.repeatSeriesId, filters.repeatSeriesId));
   if (filters.status !== undefined) conditions.push(eq(bookings.status, filters.status));
   if (filters.from !== undefined) conditions.push(gt(bookings.endsAt, filters.from));
   if (filters.to !== undefined) conditions.push(lt(bookings.startsAt, filters.to));
@@ -91,6 +93,27 @@ export async function setStatus(
     .where(and(eq(bookings.tenantId, tenantId), eq(bookings.id, id), eq(bookings.status, from)))
     .returning();
   return booking && toBooking(booking);
+}
+
+/** BKG-09: cancels the series' bookings that still hold slots and haven't started yet. */
+export async function cancelUpcomingInSeries(
+  tenantId: number,
+  repeatSeriesId: number,
+  cancelReason: string,
+) {
+  const rows = await db()
+    .update(bookings)
+    .set({ status: "CANCELLED", cancelReason })
+    .where(
+      and(
+        eq(bookings.tenantId, tenantId),
+        eq(bookings.repeatSeriesId, repeatSeriesId),
+        inArray(bookings.status, HOLDING_STATUSES),
+        gt(bookings.startsAt, sql`now()`),
+      ),
+    )
+    .returning();
+  return rows.map(toBooking).toSorted((a, b) => a.startsAt.getTime() - b.startsAt.getTime());
 }
 
 /** BKG-03: only a booking still waiting for payment and past its Payment Time Limit expires. */
