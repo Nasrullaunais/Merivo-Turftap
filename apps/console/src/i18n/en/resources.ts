@@ -1,5 +1,6 @@
 export default {
   loading: "Loading resources",
+  loadingOne: "Loading the resource",
   backToVenue: "Back to the venue",
   none: "No resources yet.",
   turnedOff: "Turned off",

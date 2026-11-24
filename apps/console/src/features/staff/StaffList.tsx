@@ -1,5 +1,4 @@
-import { Spinner } from "@heroui/react";
-
+import { SkeletonRows } from "../../components/SkeletonRows";
 import m from "../../i18n/en/staff";
 import tenants from "../../i18n/en/tenants";
 import { StaffActions } from "./StaffActions";
@@ -10,7 +9,7 @@ import { useStaff } from "./useStaff";
 export function StaffList({ canManage }: { canManage: boolean }) {
   const { data: staff, isPending } = useStaff();
 
-  if (isPending) return <Spinner aria-label={m.loading} />;
+  if (isPending) return <SkeletonRows label={m.loading} />;
 
   return (
     <ul className="grid divide-y divide-separator">

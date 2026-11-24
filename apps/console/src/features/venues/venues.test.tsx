@@ -119,12 +119,27 @@ describe("VEN-01 add a venue from the Staff Console", () => {
     expect(screen.queryByRole("heading", { name: "Add a venue" })).not.toBeInTheDocument();
   });
 
+  it("venueList_showsLoadingRowsUntilTheVenuesArrive", async () => {
+    signInForTesting(PHONE);
+    let answer: (reply: Response) => void = () => {};
+    mockApi({
+      "GET /v1/me": meAs("FRONT_DESK"),
+      "GET /v1/venues": () =>
+        new Promise<Response>((resolve) => (answer = resolve)) as unknown as Response,
+    });
+    renderApp("/venues");
+    expect(await screen.findByRole("status", { name: "Loading venues" })).toBeInTheDocument();
+    answer(Response.json({ status: 200, message: "success", data: page([arena]) }));
+    expect(await screen.findByText("City Arena")).toBeInTheDocument();
+    expect(screen.queryByRole("status", { name: "Loading venues" })).not.toBeInTheDocument();
+  });
+
   it("everyStaffRole_seesTheVenuesLink", async () => {
     signInForTesting(PHONE);
     mockApi({ "GET /v1/me": meAs("FRONT_DESK"), "GET /v1/venues": page([]) });
     renderApp("/");
-    const banner = await screen.findByRole("banner");
-    fireEvent.click(within(banner).getByRole("link", { name: "Venues" }));
+    const nav = await screen.findByRole("navigation", { name: "Main" });
+    fireEvent.click(within(nav).getByRole("link", { name: "Venues" }));
     await waitFor(() =>
       expect(screen.getByRole("heading", { name: "Venues" })).toBeInTheDocument(),
     );

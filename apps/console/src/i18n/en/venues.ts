@@ -1,6 +1,8 @@
 export default {
   title: "Venues",
   loading: "Loading venues",
+  loadingOne: "Loading the venue",
+  backToVenues: "Back to venues",
   none: "No venues yet.",
   turnedOff: "Turned off",
   addTitle: "Add a venue",

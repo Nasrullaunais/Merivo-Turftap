@@ -173,6 +173,27 @@ describe("VEN-02 close a venue for a day", () => {
     expect(requestsOf(fetch, "DELETE")).toHaveLength(1);
   });
 
+  it("reopen_showsItIsBusyAndCannotBeSentTwice", async () => {
+    signInForTesting(PHONE);
+    let answer: (reply: Response) => void = () => {};
+    const fetch = mockApi({
+      "GET /v1/me": meAs("MANAGER"),
+      "GET /v1/venues/3": arena,
+      "GET /v1/resources": page([]),
+      "GET /v1/closed-dates": page([christmas]),
+      "DELETE /v1/closed-dates/31": () =>
+        new Promise<Response>((resolve) => (answer = resolve)) as unknown as Response,
+    });
+    renderApp("/venues/3");
+    const reopen = await screen.findByRole("button", { name: "Reopen Fri, 25 Dec 2026" });
+    fireEvent.click(reopen);
+    await waitFor(() => expect(reopen).toHaveAttribute("data-pending", "true"));
+    fireEvent.click(reopen);
+    answer(ok(null));
+    await waitFor(() => expect(reopen).not.toHaveAttribute("data-pending"));
+    expect(requestsOf(fetch, "DELETE")).toHaveLength(1);
+  });
+
   it("manager_closingADateWithBookings_seesThemInTheVenuesTimeBeforeSaving", async () => {
     const fetch = closeChristmasAs([evening, morning]);
     await pickChristmas();

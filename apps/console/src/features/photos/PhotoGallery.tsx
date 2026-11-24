@@ -1,10 +1,13 @@
-import { Button, Spinner } from "@heroui/react";
+import { Button, Skeleton } from "@heroui/react";
 import { ApiError } from "@turftap/ui";
 import type { ChangeEvent } from "react";
 
+import { LoadingButton } from "../../components/LoadingButton";
 import m from "../../i18n/en/photos";
 import { useAddPhoto, useDeletePhoto, useMovePhoto } from "./useChangePhotos";
 import { type PhotoOwner, usePhotos } from "./usePhotos";
+
+const SKELETON_PHOTOS = 3;
 
 type Props = { owner: PhotoOwner; canAdd: boolean; canMove: boolean; canDelete: boolean };
 
@@ -27,7 +30,13 @@ export function PhotoGallery({ owner, canAdd, canMove, canDelete }: Props) {
   return (
     <section className="grid gap-3">
       <h2 className="text-lg font-semibold">{m.title}</h2>
-      {isPending && <Spinner aria-label={m.loading} />}
+      {isPending && (
+        <div role="status" aria-label={m.loading} className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+          {Array.from({ length: SKELETON_PHOTOS }, (_, index) => (
+            <Skeleton key={index} className="aspect-4/3 w-full rounded-lg" />
+          ))}
+        </div>
+      )}
       {photos?.length === 0 && <p className="text-muted">{m.none}</p>}
       <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3">
         {photos?.map((photo, index) => {
@@ -63,19 +72,25 @@ export function PhotoGallery({ owner, canAdd, canMove, canDelete }: Props) {
                   </Button>
                 )}
                 {canDelete && (
-                  <Button
+                  <LoadingButton
                     size="sm"
                     variant="danger-soft"
                     aria-label={m.removeFor(alt)}
+                    isPending={deletePhoto.isPending && deletePhoto.variables?.path.id === photo.id}
                     onPress={() => deletePhoto.mutate({ path: { id: photo.id } })}
                   >
                     {m.remove}
-                  </Button>
+                  </LoadingButton>
                 )}
               </div>
             </li>
           );
         })}
+        {addPhoto.isPending && (
+          <li role="status" aria-label={m.adding} className="animate-tt-pop">
+            <Skeleton className="aspect-4/3 w-full rounded-lg" />
+          </li>
+        )}
       </ul>
       {canAdd && (
         <label className="grid gap-1 text-sm font-medium">
@@ -89,7 +104,6 @@ export function PhotoGallery({ owner, canAdd, canMove, canDelete }: Props) {
           />
         </label>
       )}
-      {addPhoto.isPending && <Spinner aria-label={m.adding} />}
       {unreadable && <p className="text-danger">{m.unreadable}</p>}
     </section>
   );

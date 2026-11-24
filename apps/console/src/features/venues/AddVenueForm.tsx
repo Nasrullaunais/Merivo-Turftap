@@ -1,7 +1,8 @@
-import { Button, FieldError, Form, Input, Label, TextField } from "@heroui/react";
+import { FieldError, Form, Input, Label, TextField } from "@heroui/react";
 import { PhoneInput } from "@turftap/contract";
 import { type FormEvent, useState } from "react";
 
+import { LoadingButton } from "../../components/LoadingButton";
 import m from "../../i18n/en/venues";
 import { OpeningHoursFields } from "./OpeningHoursFields";
 import { useAddVenue } from "./useAddVenue";
@@ -56,9 +57,9 @@ export function AddVenueForm() {
         <FieldError />
       </TextField>
       <OpeningHoursFields days={hours.days} onChange={hours.change} />
-      <Button type="submit" isPending={addVenue.isPending}>
+      <LoadingButton type="submit" isPending={addVenue.isPending}>
         {m.submit}
-      </Button>
+      </LoadingButton>
       {addVenue.isSuccess && <p role="status">{m.added(addVenue.data.data.name)}</p>}
     </Form>
   );

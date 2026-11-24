@@ -1,8 +1,9 @@
-import { Button, Form } from "@heroui/react";
+import { Form } from "@heroui/react";
 import type { Resource } from "@turftap/contract/client";
 import { lkr, rupeesOf } from "@turftap/ui";
 import { type FormEvent, useState } from "react";
 
+import { LoadingButton } from "../../components/LoadingButton";
 import { PriceField } from "../../components/PriceField";
 import m from "../../i18n/en/prices";
 import { useChangeResource } from "./useChangeResources";
@@ -27,9 +28,9 @@ function DefaultPriceForm({ resource }: { resource: Resource }) {
       <h2 className="text-lg font-semibold">{m.defaultPriceTitle}</h2>
       <p className="text-muted">{m.defaultPriceHint}</p>
       <PriceField label={m.defaultPriceLabel} value={rupees} onChange={setRupees} />
-      <Button type="submit" isPending={changeResource.isPending}>
+      <LoadingButton type="submit" isPending={changeResource.isPending}>
         {m.saveDefaultPrice}
-      </Button>
+      </LoadingButton>
     </Form>
   );
 }

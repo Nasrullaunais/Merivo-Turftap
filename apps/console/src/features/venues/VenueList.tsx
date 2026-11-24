@@ -1,13 +1,14 @@
-import { Chip, Spinner } from "@heroui/react";
+import { Chip } from "@heroui/react";
 import { Link } from "@tanstack/react-router";
 
+import { SkeletonRows } from "../../components/SkeletonRows";
 import m from "../../i18n/en/venues";
 import { useVenues } from "./useVenues";
 
 export function VenueList() {
   const { data: venues, isPending } = useVenues();
 
-  if (isPending) return <Spinner aria-label={m.loading} />;
+  if (isPending) return <SkeletonRows label={m.loading} />;
   if (!venues?.length) return <p className="text-muted">{m.none}</p>;
 
   return (

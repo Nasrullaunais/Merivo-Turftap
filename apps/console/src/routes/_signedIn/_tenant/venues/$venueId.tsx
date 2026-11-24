@@ -7,8 +7,11 @@ import { CloseDateForm } from "../../../../features/closed-dates/CloseDateForm";
 import { AddResourceForm } from "../../../../features/resources/AddResourceForm";
 import { ResourceList } from "../../../../features/resources/ResourceList";
 import { PaymentSettings } from "../../../../features/venues/PaymentSettings";
-import { VenueHeading } from "../../../../features/venues/VenueHeading";
+import { VenueAddress, VenueName } from "../../../../features/venues/VenueHeading";
 import { PhotoGallery } from "../../../../features/photos/PhotoGallery";
+import { BackLink } from "../../../../components/BackLink";
+import m from "../../../../i18n/en/venues";
+import { PageLayout } from "../../../../layout/PageLayout";
 import { can } from "../../../../lib/tenant/activeTenant";
 
 export const Route = createFileRoute("/_signedIn/_tenant/venues/$venueId")({
@@ -27,8 +30,12 @@ function VenuePage() {
   const { venueId } = Route.useParams();
 
   return (
-    <main className="mx-auto grid max-w-2xl gap-6 p-6">
-      <VenueHeading venueId={venueId} />
+    <PageLayout
+      title={<VenueName venueId={venueId} />}
+      back={<BackLink to="/venues" label={m.backToVenues} />}
+      width="form"
+    >
+      <VenueAddress venueId={venueId} />
       <PhotoGallery
         owner={{ venueId }}
         canAdd={can(tenant, "photos:create")}
@@ -40,6 +47,6 @@ function VenuePage() {
       <ClosedDateList venueId={venueId} canReopen={can(tenant, "closed-dates:delete")} />
       {can(tenant, "closed-dates:create") && <CloseDateForm venueId={venueId} />}
       <PaymentSettings venueId={venueId} canChange={can(tenant, "venues:update")} />
-    </main>
+    </PageLayout>
   );
 }

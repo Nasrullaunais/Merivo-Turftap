@@ -1,32 +1,34 @@
-import { Spinner } from "@heroui/react";
-import { Link } from "@tanstack/react-router";
 import { formatMoney } from "@turftap/ui";
 
+import { BackLink } from "../../components/BackLink";
+import { SkeletonLine } from "../../components/SkeletonRows";
 import m from "../../i18n/en/resources";
 import { useResource } from "./useResource";
 
-export function ResourceHeading({ resourceId }: { resourceId: number }) {
+export function ResourceName({ resourceId }: { resourceId: number }) {
   const { data: resource } = useResource(resourceId);
+  return resource ? resource.name : <SkeletonLine label={m.loadingOne} className="h-7 w-48" />;
+}
 
-  if (!resource) return <Spinner aria-label={m.loading} />;
+export function ResourceBackLink({ resourceId }: { resourceId: number }) {
+  const { data: resource } = useResource(resourceId);
+  if (!resource) return null;
   return (
-    <header className="grid gap-1">
-      <Link
-        to="/venues/$venueId"
-        params={{ venueId: resource.venueId }}
-        className="text-sm text-muted underline-offset-4 hover:underline"
-      >
-        {m.backToVenue}
-      </Link>
-      <h1 className="text-2xl font-semibold">{resource.name}</h1>
-      <p className="text-muted">
-        {m.details(
-          m.types[resource.type],
-          resource.slotMinutes,
-          resource.startIntervalMinutes,
-          formatMoney(resource.price),
-        )}
-      </p>
-    </header>
+    <BackLink to="/venues/$venueId" params={{ venueId: resource.venueId }} label={m.backToVenue} />
+  );
+}
+
+export function ResourceDetails({ resourceId }: { resourceId: number }) {
+  const { data: resource } = useResource(resourceId);
+  if (!resource) return <SkeletonLine label={m.loadingOne} className="h-4 w-80" />;
+  return (
+    <p className="-mt-4 text-muted">
+      {m.details(
+        m.types[resource.type],
+        resource.slotMinutes,
+        resource.startIntervalMinutes,
+        formatMoney(resource.price),
+      )}
+    </p>
   );
 }

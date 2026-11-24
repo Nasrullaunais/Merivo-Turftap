@@ -4,6 +4,7 @@ import { canOpen } from "../../../../config/routePermissions";
 import { AddVenueForm } from "../../../../features/venues/AddVenueForm";
 import { VenueList } from "../../../../features/venues/VenueList";
 import m from "../../../../i18n/en/venues";
+import { PageLayout } from "../../../../layout/PageLayout";
 import { can } from "../../../../lib/tenant/activeTenant";
 
 export const Route = createFileRoute("/_signedIn/_tenant/venues/")({
@@ -17,10 +18,9 @@ function VenuesPage() {
   const { tenant } = Route.useRouteContext();
 
   return (
-    <main className="mx-auto grid max-w-2xl gap-6 p-6">
-      <h1 className="text-2xl font-semibold">{m.title}</h1>
+    <PageLayout title={m.title} width="form">
       <VenueList />
       {can(tenant, "venues:create") && <AddVenueForm />}
-    </main>
+    </PageLayout>
   );
 }

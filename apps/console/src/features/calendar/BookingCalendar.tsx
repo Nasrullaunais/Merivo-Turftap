@@ -1,10 +1,10 @@
-import { Spinner } from "@heroui/react";
 import type { Booking, Venue } from "@turftap/contract/client";
 import { useState } from "react";
 
 import m from "../../i18n/en/calendar";
 import { addDays, type CalendarView, datesShown, layOut, onVenueClock } from "./calendarGrid";
 import { CalendarGrid, type SlotPress } from "./CalendarGrid";
+import { CalendarSkeleton } from "./CalendarSkeleton";
 import { CalendarToolbar } from "./CalendarToolbar";
 import { StateLegend } from "./StateIcon";
 import { useCalendar, useCalendarVenues } from "./useCalendar";
@@ -20,7 +20,7 @@ export function BookingCalendar(props: Props) {
   const [venueId, setVenueId] = useState<number>();
   const venue = venues?.find((each) => each.id === venueId) ?? venues?.[0];
 
-  if (isPending) return <Spinner aria-label={m.loading} />;
+  if (isPending) return <CalendarSkeleton label={m.loading} withToolbar />;
   if (!venues || !venue) return <p className="text-muted">{m.noVenues}</p>;
   return (
     <VenueCalendar
@@ -68,7 +68,7 @@ function VenueCalendar({
         <p className="text-sm text-muted">{m.timeZoneHint(venue.timeZone)}</p>
       </div>
       <StateLegend />
-      {isPending && <Spinner aria-label={m.loading} />}
+      {isPending && <CalendarSkeleton label={m.loading} />}
       {!isPending && resources.length === 0 && <p className="text-muted">{m.noResources}</p>}
       {!isPending && resources.length > 0 && (
         <CalendarGrid view={view} timeZone={venue.timeZone} {...layout} {...handlers} />

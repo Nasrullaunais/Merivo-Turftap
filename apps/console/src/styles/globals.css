@@ -1,1 +1,249 @@
 @import "@turftap/ui/theme.css";
+
+/* Tokens for docs/architecture/console-design.md. Light only; dark mode is one more block like this. */
+:root {
+  --tt-canvas: oklch(97.5% 0 0);
+  --tt-panel: oklch(100% 0 0);
+  --tt-field: oklch(95.6% 0 0);
+  --tt-hover: oklch(94.5% 0 0);
+  --tt-line: rgb(24 24 24 / 0.08);
+  --tt-line-strong: rgb(24 24 24 / 0.14);
+  --tt-shadow-card: 0 1px 2px rgb(0 0 0 / 0.04), 0 4px 16px -6px rgb(0 0 0 / 0.06);
+  --tt-shadow-raised: 0 4px 12px -2px rgb(0 0 0 / 0.08), 0 16px 40px -12px rgb(0 0 0 / 0.18);
+
+  /* Hue: what kind of thing (§3.2). */
+  --tt-hue-booking: var(--accent);
+  --tt-hue-place: oklch(0.5 0.17 275);
+  --tt-hue-money: oklch(0.5 0.19 305);
+  --tt-hue-membership: oklch(0.6 0.17 48);
+  --tt-hue-people: oklch(0.55 0.19 355);
+  --tt-hue-plain: oklch(0.52 0.025 260);
+
+  /* Tone: how it is doing (§3.3). */
+  --tt-tone-good: oklch(0.56 0.14 148);
+  --tt-tone-busy: oklch(0.55 0.17 255);
+  --tt-tone-watch: oklch(0.68 0.15 70);
+  --tt-tone-bad: oklch(0.56 0.2 27);
+  --tt-tone-off: oklch(0.55 0.02 260);
+
+  --tooltip-delay: 300ms;
+  --tooltip-close-delay: 0ms;
+}
+
+@theme {
+  --tt-dur-1: 120ms;
+  --tt-dur-2: 200ms;
+  --tt-dur-3: 320ms;
+  --tt-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --tt-ease-pop: cubic-bezier(0.34, 1.4, 0.64, 1);
+
+  --animate-tt-rise: tt-rise var(--tt-dur-2) var(--tt-ease) both;
+  --animate-tt-fade: tt-fade var(--tt-dur-2) var(--tt-ease) both;
+  --animate-tt-pop: tt-pop 260ms var(--tt-ease-pop) both;
+  --animate-tt-nudge: tt-nudge 360ms var(--tt-ease) both;
+  --animate-tt-leave: tt-leave 240ms var(--tt-ease) both;
+
+  @keyframes tt-rise {
+    from {
+      opacity: 0;
+      transform: translateY(4px);
+    }
+  }
+  @keyframes tt-fade {
+    from {
+      opacity: 0;
+    }
+  }
+  @keyframes tt-pop {
+    from {
+      opacity: 0;
+      transform: scale(0.6);
+    }
+  }
+  @keyframes tt-nudge {
+    20%,
+    60% {
+      transform: translateX(-4px);
+    }
+    40%,
+    80% {
+      transform: translateX(4px);
+    }
+  }
+  @keyframes tt-leave {
+    to {
+      opacity: 0;
+      transform: scale(0.97);
+    }
+  }
+  @keyframes tt-tint {
+    from {
+      background-color: color-mix(in oklab, var(--tt-tint) 22%, transparent);
+    }
+  }
+}
+
+html,
+body {
+  background: var(--tt-canvas);
+}
+
+@utility tt-panel {
+  background: var(--tt-panel);
+  border: 1px solid var(--tt-line);
+  border-radius: 12px;
+  box-shadow: var(--tt-shadow-card);
+}
+
+@utility tt-t1 {
+  transition-property: color, background-color, border-color, box-shadow, opacity;
+  transition-duration: var(--tt-dur-1);
+  transition-timing-function: var(--tt-ease);
+}
+
+/* Folds height open or shut; the child needs no padding of its own (put it one level down). */
+@utility tt-collapse {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transition:
+    grid-template-rows var(--tt-dur-3) var(--tt-ease),
+    opacity var(--tt-dur-3) var(--tt-ease);
+  &[data-open="true"] {
+    grid-template-rows: 1fr;
+    opacity: 1;
+  }
+  & > * {
+    min-height: 0;
+    overflow: hidden;
+  }
+}
+
+/* Rows rise one after another; each row sets --i to its index. */
+@utility tt-sweep {
+  & > * {
+    animation: tt-rise var(--tt-dur-2) var(--tt-ease) both;
+    animation-delay: calc(min(var(--i, 0), 11) * 30ms);
+  }
+}
+
+@utility tt-flash {
+  --tt-tint: var(--tt-hue, var(--accent));
+  animation: tt-tint 1200ms var(--tt-ease) both;
+}
+@utility tt-saved {
+  --tt-tint: var(--tt-tone-good);
+  animation: tt-tint 1800ms var(--tt-ease) both;
+}
+@utility tt-landed {
+  --tt-tint: var(--accent);
+  animation: tt-tint 2600ms var(--tt-ease) both;
+}
+
+@utility tt-hue-booking {
+  --tt-hue: var(--tt-hue-booking);
+}
+@utility tt-hue-place {
+  --tt-hue: var(--tt-hue-place);
+}
+@utility tt-hue-money {
+  --tt-hue: var(--tt-hue-money);
+}
+@utility tt-hue-membership {
+  --tt-hue: var(--tt-hue-membership);
+}
+@utility tt-hue-people {
+  --tt-hue: var(--tt-hue-people);
+}
+@utility tt-hue-plain {
+  --tt-hue: var(--tt-hue-plain);
+}
+
+@utility tt-tone-good {
+  --tt-tone: var(--tt-tone-good);
+}
+@utility tt-tone-busy {
+  --tt-tone: var(--tt-tone-busy);
+}
+@utility tt-tone-watch {
+  --tt-tone: var(--tt-tone-watch);
+}
+@utility tt-tone-bad {
+  --tt-tone: var(--tt-tone-bad);
+}
+@utility tt-tone-off {
+  --tt-tone: var(--tt-tone-off);
+}
+
+/* A tinted square with the kind's icon; solid when it is the section you are in. */
+@utility tt-tile {
+  display: inline-grid;
+  place-items: center;
+  flex-shrink: 0;
+  border-radius: 8px;
+  color: var(--tt-hue);
+  background: color-mix(in oklab, var(--tt-hue) 13%, var(--tt-panel));
+  transition: all var(--tt-dur-2) var(--tt-ease);
+  &[data-on="true"] {
+    color: white;
+    background: var(--tt-hue);
+  }
+}
+
+@utility tt-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  height: 1.5rem;
+  padding-inline: 0.625rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  white-space: nowrap;
+  color: color-mix(in oklab, var(--tt-tone) 72%, black);
+  background: color-mix(in oklab, var(--tt-tone) 13%, transparent);
+}
+
+@utility tt-dot {
+  display: inline-block;
+  width: 0.5rem;
+  height: 0.5rem;
+  flex-shrink: 0;
+  border-radius: 9999px;
+  background: var(--tt-tone);
+}
+
+/* Readable text in a tone, on a light background. */
+@utility tt-tone-text {
+  color: color-mix(in oklab, var(--tt-tone) 72%, black);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+  }
+}
+
+/* A booking or Blocked Time on the calendar, in its state's tone. */
+@utility tt-block {
+  color: color-mix(in oklab, var(--tt-tone) 70%, black);
+  background-color: color-mix(in oklab, var(--tt-tone) 12%, var(--tt-panel));
+  border-inline-start: 3px solid var(--tt-tone);
+  transition: background-color var(--tt-dur-1) var(--tt-ease);
+  &:hover {
+    background-color: color-mix(in oklab, var(--tt-tone) 18%, var(--tt-panel));
+  }
+}
+
+@utility tt-striped {
+  background-image: repeating-linear-gradient(
+    135deg,
+    transparent 0 6px,
+    color-mix(in oklab, var(--tt-tone) 14%, transparent) 6px 12px
+  );
+}

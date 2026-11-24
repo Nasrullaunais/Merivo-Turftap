@@ -202,13 +202,14 @@ describe("SIG-04 change or remove staff from the Staff Console", () => {
 });
 
 describe("SIG-05 what each role can see in the Staff Console", () => {
-  const staffLink = () => within(screen.getByRole("banner")).queryByRole("link", { name: "Staff" });
+  const staffLink = () =>
+    within(screen.getByRole("navigation", { name: "Main" })).queryByRole("link", { name: "Staff" });
 
   it.each(["OWNER", "MANAGER"] as const)("%s_seesTheStaffLink", async (role) => {
     signInForTesting(OWNER_PHONE);
     mockApi({ "GET /v1/me": meAs(role), "GET /v1/staff": page([owner]) });
     renderApp("/");
-    await screen.findByRole("banner");
+    await screen.findByRole("navigation", { name: "Main" });
     expect(staffLink()).toBeInTheDocument();
   });
 
@@ -216,7 +217,7 @@ describe("SIG-05 what each role can see in the Staff Console", () => {
     signInForTesting(OWNER_PHONE);
     const fetch = mockApi({ "GET /v1/me": meAs("FRONT_DESK"), "GET /v1/staff": page([owner]) });
     const { router } = renderApp("/staff");
-    await screen.findByRole("banner");
+    await screen.findByRole("navigation", { name: "Main" });
     await waitFor(() => expect(router.state.location.pathname).toBe("/"));
     expect(staffLink()).not.toBeInTheDocument();
     expect(screen.queryByText("Demo Owner")).not.toBeInTheDocument();

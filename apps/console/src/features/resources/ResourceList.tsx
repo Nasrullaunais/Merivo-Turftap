@@ -1,7 +1,8 @@
-import { Chip, Spinner } from "@heroui/react";
+import { Chip } from "@heroui/react";
 import { Link } from "@tanstack/react-router";
 import { formatMoney } from "@turftap/ui";
 
+import { SkeletonRows } from "../../components/SkeletonRows";
 import m from "../../i18n/en/resources";
 import { TurnOffResource } from "./TurnOffResource";
 import { useResources } from "./useResources";
@@ -11,7 +12,7 @@ type Props = { venueId: number; canTurnOff: boolean };
 export function ResourceList({ venueId, canTurnOff }: Props) {
   const { data: resources, isPending } = useResources(venueId);
 
-  if (isPending) return <Spinner aria-label={m.loading} />;
+  if (isPending) return <SkeletonRows label={m.loading} />;
   if (!resources?.length) return <p className="text-muted">{m.none}</p>;
 
   return (

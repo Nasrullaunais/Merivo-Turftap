@@ -1,7 +1,8 @@
-import { Alert, Button, FieldError, Form, Input, Label, TextField } from "@heroui/react";
+import { Alert, FieldError, Form, Input, Label, TextField } from "@heroui/react";
 import { ApiError, instantInZone } from "@turftap/ui";
 import { type FormEvent, useState } from "react";
 
+import { LoadingButton } from "../../components/LoadingButton";
 import m from "../../i18n/en/blockedTimes";
 import { useVenueTimeZone } from "./useBlockedTimes";
 import { useBlockTime } from "./useChangeBlockedTimes";
@@ -108,9 +109,9 @@ function BlockForm({ resourceId, timeZone }: { resourceId: number; timeZone: str
           </Alert.Content>
         </Alert>
       )}
-      <Button type="submit" isPending={blockTime.isPending}>
+      <LoadingButton type="submit" isPending={blockTime.isPending}>
         {m.submit}
-      </Button>
+      </LoadingButton>
     </Form>
   );
 }

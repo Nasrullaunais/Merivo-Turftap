@@ -1,5 +1,5 @@
-import { Button, Spinner } from "@heroui/react";
-
+import { SkeletonRows } from "../../components/SkeletonRows";
+import { LoadingButton } from "../../components/LoadingButton";
 import m from "../../i18n/en/blockedTimes";
 import { useBlockedTimes, useVenueTimeZone } from "./useBlockedTimes";
 import { useUnblockTime } from "./useChangeBlockedTimes";
@@ -14,7 +14,7 @@ export function BlockedTimeList({ resourceId, canUnblock }: Props) {
   return (
     <section className="grid gap-2">
       <h2 className="text-lg font-semibold">{m.title}</h2>
-      {(isPending || !timeZone) && <Spinner aria-label={m.loading} />}
+      {(isPending || !timeZone) && <SkeletonRows label={m.loading} rows={2} tile={false} />}
       {blocks?.length === 0 && <p className="text-muted">{m.none}</p>}
       {timeZone && (
         <ul className="grid divide-y divide-separator">
@@ -25,15 +25,16 @@ export function BlockedTimeList({ resourceId, canUnblock }: Props) {
                 <span className="font-medium">{window}</span>
                 {block.reason && <span className="text-muted">{block.reason}</span>}
                 {canUnblock && (
-                  <Button
+                  <LoadingButton
                     className="ml-auto"
                     size="sm"
                     variant="danger-soft"
                     aria-label={m.unblockFor(window)}
+                    isPending={unblock.isPending && unblock.variables?.path.id === block.id}
                     onPress={() => unblock.mutate({ path: { id: block.id } })}
                   >
                     {m.unblock}
-                  </Button>
+                  </LoadingButton>
                 )}
               </li>
             );

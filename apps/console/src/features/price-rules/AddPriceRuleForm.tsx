@@ -1,17 +1,9 @@
-import {
-  Button,
-  Checkbox,
-  CheckboxGroup,
-  FieldError,
-  Form,
-  Label,
-  ListBox,
-  Select,
-} from "@heroui/react";
+import { Checkbox, CheckboxGroup, FieldError, Form, Label, ListBox, Select } from "@heroui/react";
 import { localTimeAt } from "@turftap/contract";
 import { lkr } from "@turftap/ui";
 import { type FormEvent, useState } from "react";
 
+import { LoadingButton } from "../../components/LoadingButton";
 import { PriceField } from "../../components/PriceField";
 import m from "../../i18n/en/prices";
 import { useAddPriceRule } from "./useChangePriceRules";
@@ -109,9 +101,9 @@ function PriceRuleForm({
         />
       </div>
       <PriceField label={m.rulePriceLabel} value={rupees} onChange={setRupees} />
-      <Button type="submit" isPending={addRule.isPending}>
+      <LoadingButton type="submit" isPending={addRule.isPending}>
         {m.addRule}
-      </Button>
+      </LoadingButton>
     </Form>
   );
 }

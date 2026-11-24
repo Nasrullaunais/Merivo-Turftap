@@ -7,8 +7,13 @@ import { BlockResourceForm } from "../../../../features/blocked-times/BlockResou
 import { AddPriceRuleForm } from "../../../../features/price-rules/AddPriceRuleForm";
 import { PriceRuleList } from "../../../../features/price-rules/PriceRuleList";
 import { DefaultPrice } from "../../../../features/resources/DefaultPrice";
-import { ResourceHeading } from "../../../../features/resources/ResourceHeading";
+import {
+  ResourceBackLink,
+  ResourceDetails,
+  ResourceName,
+} from "../../../../features/resources/ResourceHeading";
 import { PhotoGallery } from "../../../../features/photos/PhotoGallery";
+import { PageLayout } from "../../../../layout/PageLayout";
 import { can } from "../../../../lib/tenant/activeTenant";
 
 export const Route = createFileRoute("/_signedIn/_tenant/resources/$resourceId")({
@@ -27,8 +32,12 @@ function ResourcePage() {
   const { resourceId } = Route.useParams();
 
   return (
-    <main className="mx-auto grid max-w-2xl gap-6 p-6">
-      <ResourceHeading resourceId={resourceId} />
+    <PageLayout
+      title={<ResourceName resourceId={resourceId} />}
+      back={<ResourceBackLink resourceId={resourceId} />}
+      width="form"
+    >
+      <ResourceDetails resourceId={resourceId} />
       <PhotoGallery
         owner={{ resourceId }}
         canAdd={can(tenant, "photos:create")}
@@ -40,6 +49,6 @@ function ResourcePage() {
       {can(tenant, "price-rules:create") && <AddPriceRuleForm resourceId={resourceId} />}
       <BlockedTimeList resourceId={resourceId} canUnblock={can(tenant, "blocked-times:delete")} />
       {can(tenant, "blocked-times:create") && <BlockResourceForm resourceId={resourceId} />}
-    </main>
+    </PageLayout>
   );
 }

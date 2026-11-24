@@ -1,7 +1,8 @@
-import { Button, Spinner } from "@heroui/react";
 import type { PriceRule } from "@turftap/contract/client";
 import { formatMoney } from "@turftap/ui";
 
+import { SkeletonRows } from "../../components/SkeletonRows";
+import { LoadingButton } from "../../components/LoadingButton";
 import m from "../../i18n/en/prices";
 import { useDeletePriceRule } from "./useChangePriceRules";
 import { usePriceRules } from "./usePriceRules";
@@ -18,7 +19,7 @@ export function PriceRuleList({ resourceId, canDelete }: Props) {
   return (
     <section className="grid gap-2">
       <h2 className="text-lg font-semibold">{m.rulesTitle}</h2>
-      {isPending && <Spinner aria-label={m.rulesLoading} />}
+      {isPending && <SkeletonRows label={m.rulesLoading} rows={2} tile={false} />}
       {rules?.length === 0 && <p className="text-muted">{m.noRules}</p>}
       <ul className="grid divide-y divide-separator">
         {rules?.map((rule) => (
@@ -26,15 +27,16 @@ export function PriceRuleList({ resourceId, canDelete }: Props) {
             <span className="font-medium">{describe(rule)}</span>
             <span className="text-muted">{m.perSlot(formatMoney(rule.price))}</span>
             {canDelete && (
-              <Button
+              <LoadingButton
                 className="ml-auto"
                 size="sm"
                 variant="danger-soft"
                 aria-label={m.deleteRuleFor(describe(rule))}
+                isPending={deleteRule.isPending && deleteRule.variables?.path.id === rule.id}
                 onPress={() => deleteRule.mutate({ path: { id: rule.id } })}
               >
                 {m.deleteRule}
-              </Button>
+              </LoadingButton>
             )}
           </li>
         ))}

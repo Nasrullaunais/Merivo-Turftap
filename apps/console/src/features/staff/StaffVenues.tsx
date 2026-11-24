@@ -2,6 +2,7 @@ import { Button, Form } from "@heroui/react";
 import type { Staff } from "@turftap/contract/client";
 import { type FormEvent, useState } from "react";
 
+import { LoadingButton } from "../../components/LoadingButton";
 import m from "../../i18n/en/staff";
 import { useChangeStaff } from "./useManageStaff";
 import { useVenueChoices } from "./useVenueChoices";
@@ -53,9 +54,9 @@ function ChangeVenuesForm({ person, onDone }: { person: Staff; onDone: () => voi
     <Form className="grid gap-3" onSubmit={submit}>
       <VenueAccessFields value={access} onChange={setAccess} />
       <div className="flex gap-2">
-        <Button type="submit" size="sm" isPending={changeStaff.isPending}>
+        <LoadingButton type="submit" size="sm" isPending={changeStaff.isPending}>
           {m.save}
-        </Button>
+        </LoadingButton>
         <Button size="sm" variant="tertiary" onPress={onDone}>
           {m.cancel}
         </Button>

@@ -1,16 +1,8 @@
-import {
-  Button,
-  FieldError,
-  Form,
-  Input,
-  Label,
-  Radio,
-  RadioGroup,
-  TextField,
-} from "@heroui/react";
+import { FieldError, Form, Input, Label, Radio, RadioGroup, TextField } from "@heroui/react";
 import { PhoneInput, STAFF_ROLES, type StaffRole } from "@turftap/contract";
 import { type FormEvent, useState } from "react";
 
+import { LoadingButton } from "../../components/LoadingButton";
 import m from "../../i18n/en/staff";
 import tenants from "../../i18n/en/tenants";
 import { useAddStaff } from "./useAddStaff";
@@ -74,9 +66,9 @@ export function AddStaffForm() {
         ))}
       </RadioGroup>
       {!isOwner && <VenueAccessFields value={access} onChange={setAccess} />}
-      <Button type="submit" isPending={addStaff.isPending}>
+      <LoadingButton type="submit" isPending={addStaff.isPending}>
         {m.submit}
-      </Button>
+      </LoadingButton>
       {addStaff.isSuccess && <p role="status">{m.added(addStaff.data.data.phone)}</p>}
     </Form>
   );

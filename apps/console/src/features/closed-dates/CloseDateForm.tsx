@@ -1,6 +1,7 @@
 import { Alert, Button, FieldError, Form, Input, Label, TextField } from "@heroui/react";
 import { type FormEvent, useState } from "react";
 
+import { LoadingButton } from "../../components/LoadingButton";
 import m from "../../i18n/en/closedDates";
 import { type AffectedBooking, useCloseDate } from "./useChangeClosedDates";
 import { today, useResourceNames, useVenueTimeZone } from "./useClosedDates";
@@ -62,9 +63,9 @@ function CloseForm({ venueId, timeZone }: { venueId: number; timeZone: string })
           onBack={() => setAffected([])}
         />
       ) : (
-        <Button type="submit" isPending={closeDate.isPending}>
+        <LoadingButton type="submit" isPending={closeDate.isPending}>
           {m.submit}
-        </Button>
+        </LoadingButton>
       )}
     </Form>
   );
@@ -103,9 +104,9 @@ function AffectedBookings(props: AffectedBookingsProps) {
           ))}
         </ul>
         <div className="flex gap-2">
-          <Button variant="danger" isPending={props.isClosing} onPress={props.onConfirm}>
+          <LoadingButton variant="danger" isPending={props.isClosing} onPress={props.onConfirm}>
             {m.closeAnyway}
-          </Button>
+          </LoadingButton>
           <Button variant="secondary" onPress={props.onBack}>
             {m.goBack}
           </Button>

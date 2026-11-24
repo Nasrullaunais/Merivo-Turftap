@@ -1,5 +1,4 @@
 import {
-  Button,
   FieldError,
   Form,
   Input,
@@ -13,6 +12,7 @@ import { BankAccountInput, CreateVenue, FULL_AMOUNT_PERCENT } from "@turftap/con
 import type { Venue } from "@turftap/contract/client";
 import { type FormEvent, useState } from "react";
 
+import { LoadingButton } from "../../components/LoadingButton";
 import m from "../../i18n/en/paymentSettings";
 import { useChangeVenue } from "./useChangeVenue";
 import { useVenue } from "./useVenue";
@@ -239,9 +239,9 @@ function PaymentSettingsForm({ venue }: { venue: Venue }) {
           </TextField>
         )}
       </div>
-      <Button type="submit" isPending={changeVenue.isPending}>
+      <LoadingButton type="submit" isPending={changeVenue.isPending}>
         {m.save}
-      </Button>
+      </LoadingButton>
       {changeVenue.isSuccess && <p role="status">{m.saved}</p>}
     </Form>
   );

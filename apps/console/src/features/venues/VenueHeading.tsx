@@ -1,16 +1,17 @@
-import { Spinner } from "@heroui/react";
-
+import { SkeletonLine } from "../../components/SkeletonRows";
 import m from "../../i18n/en/venues";
 import { useVenue } from "./useVenue";
 
-export function VenueHeading({ venueId }: { venueId: number }) {
+export function VenueName({ venueId }: { venueId: number }) {
   const { data: venue } = useVenue(venueId);
+  return venue ? venue.name : <SkeletonLine label={m.loadingOne} className="h-7 w-56" />;
+}
 
-  if (!venue) return <Spinner aria-label={m.loading} />;
-  return (
-    <header className="grid gap-1">
-      <h1 className="text-2xl font-semibold">{venue.name}</h1>
-      <p className="text-muted">{venue.address}</p>
-    </header>
+export function VenueAddress({ venueId }: { venueId: number }) {
+  const { data: venue } = useVenue(venueId);
+  return venue ? (
+    <p className="-mt-4 text-muted">{venue.address}</p>
+  ) : (
+    <SkeletonLine label={m.loadingOne} className="h-4 w-72" />
   );
 }

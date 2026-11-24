@@ -1,5 +1,4 @@
 import {
-  Button,
   Description,
   FieldError,
   Form,
@@ -18,6 +17,7 @@ import {
 import { lkr } from "@turftap/ui";
 import { type FormEvent, useState } from "react";
 
+import { LoadingButton } from "../../components/LoadingButton";
 import { PriceField } from "../../components/PriceField";
 import m from "../../i18n/en/resources";
 import { useAddResource } from "./useChangeResources";
@@ -102,9 +102,9 @@ export function AddResourceForm({ venueId }: { venueId: number }) {
         longest={slotMinutes}
       />
       <PriceField label={m.priceLabel} value={rupees} onChange={setRupees} />
-      <Button type="submit" isPending={addResource.isPending}>
+      <LoadingButton type="submit" isPending={addResource.isPending}>
         {m.submit}
-      </Button>
+      </LoadingButton>
     </Form>
   );
 }

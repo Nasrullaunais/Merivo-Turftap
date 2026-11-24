@@ -132,7 +132,7 @@ function EntryCard({ entry, timeZone, onBookingPress }: Props & { entry: Entry }
       <span className="truncate">{who}</span>
     </>
   );
-  const className = `z-10 flex flex-col overflow-hidden rounded border-l-4 px-1 text-left text-xs ${STATE_COLOURS[entry.state]}`;
+  const className = `z-10 flex flex-col overflow-hidden rounded-md px-1.5 text-left text-xs ${STATE_COLOURS[entry.state]}`;
   const style = {
     gridColumn: entry.column + FIRST_CELL,
     gridRow: `${entry.first + FIRST_CELL} / ${entry.last + FIRST_CELL + 1}`,
