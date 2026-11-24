@@ -12,7 +12,7 @@ import { LoadingButton } from "../../components/LoadingButton";
 import { ChoicePills } from "../../components/Pills";
 import { PriceField } from "../../components/PriceField";
 import m from "../../i18n/en/resources";
-import { TYPE_ICONS } from "./resourceLook";
+import { TYPE_ICONS } from "../../components/resourceLook";
 import { useAddResource } from "./useChangeResources";
 
 const DEFAULT_TYPE: ResourceType = "FUTSAL_COURT";

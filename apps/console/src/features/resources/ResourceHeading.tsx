@@ -6,7 +6,7 @@ import { BackLink } from "../../components/BackLink";
 import { RecordHeader } from "../../components/RecordHeader";
 import { SkeletonLine } from "../../components/SkeletonRows";
 import m from "../../i18n/en/resources";
-import { TYPE_ICONS } from "./resourceLook";
+import { TYPE_ICONS } from "../../components/resourceLook";
 import { useResource } from "./useResource";
 
 /** The resource page's header card; a skeleton holds its place while the resource loads. */

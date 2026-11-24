@@ -18,7 +18,7 @@ import {
 } from "../../../../features/resources/ResourceHeading";
 import blockedTimes from "../../../../i18n/en/blockedTimes";
 import prices from "../../../../i18n/en/prices";
-import { PageLayout } from "../../../../layout/PageLayout";
+import { PageLayout, TwoColumns } from "../../../../layout/PageLayout";
 import { can } from "../../../../lib/tenant/activeTenant";
 
 export const Route = createFileRoute("/_signedIn/_tenant/resources/$resourceId")({
@@ -40,34 +40,44 @@ function ResourcePage() {
     <PageLayout
       title={<ResourceVenueName resourceId={resourceId} />}
       back={<ResourceBackLink resourceId={resourceId} />}
-      width="form"
     >
       <ResourceHeader resourceId={resourceId} />
-      <Section hue="money" icon={Tag} title={prices.title}>
-        <DefaultPrice resourceId={resourceId} canChange={can(tenant, "resources:update")} />
-        <PriceRuleList resourceId={resourceId} canDelete={can(tenant, "price-rules:delete")} />
-        {can(tenant, "price-rules:create") && (
-          <AddSlot label={prices.addRuleTitle}>
-            {(fold) => <AddPriceRuleForm resourceId={resourceId} onAdded={fold} />}
-          </AddSlot>
-        )}
-      </Section>
-      <BlockedTimeList
-        resourceId={resourceId}
-        canUnblock={can(tenant, "blocked-times:delete")}
-        addSlot={
-          can(tenant, "blocked-times:create") && (
-            <AddSlot label={blockedTimes.addTitle}>
-              {(fold) => <BlockResourceForm resourceId={resourceId} onBlocked={fold} />}
-            </AddSlot>
-          )
+      <TwoColumns
+        main={
+          <>
+            <Section hue="money" icon={Tag} title={prices.title}>
+              <DefaultPrice resourceId={resourceId} canChange={can(tenant, "resources:update")} />
+              <PriceRuleList
+                resourceId={resourceId}
+                canDelete={can(tenant, "price-rules:delete")}
+              />
+              {can(tenant, "price-rules:create") && (
+                <AddSlot label={prices.addRuleTitle}>
+                  {(fold) => <AddPriceRuleForm resourceId={resourceId} onAdded={fold} />}
+                </AddSlot>
+              )}
+            </Section>
+            <PhotoGallery
+              owner={{ resourceId }}
+              canAdd={can(tenant, "photos:create")}
+              canMove={can(tenant, "photos:update")}
+              canDelete={can(tenant, "photos:delete")}
+            />
+          </>
         }
-      />
-      <PhotoGallery
-        owner={{ resourceId }}
-        canAdd={can(tenant, "photos:create")}
-        canMove={can(tenant, "photos:update")}
-        canDelete={can(tenant, "photos:delete")}
+        side={
+          <BlockedTimeList
+            resourceId={resourceId}
+            canUnblock={can(tenant, "blocked-times:delete")}
+            addSlot={
+              can(tenant, "blocked-times:create") && (
+                <AddSlot label={blockedTimes.addTitle}>
+                  {(fold) => <BlockResourceForm resourceId={resourceId} onBlocked={fold} />}
+                </AddSlot>
+              )
+            }
+          />
+        }
       />
     </PageLayout>
   );

@@ -14,7 +14,7 @@ export const Route = createFileRoute("/_signedIn/_tenant/calendar")({
 
 function CalendarPage() {
   return (
-    <PageLayout title={m.title}>
+    <PageLayout title={m.title} width="fill">
       <BookingCalendar />
     </PageLayout>
   );

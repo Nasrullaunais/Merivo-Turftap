@@ -5,7 +5,7 @@ import type { ReactNode } from "react";
 import { DateStub } from "../../components/DateStub";
 import { IconAction } from "../../components/IconAction";
 import { Row, Rows } from "../../components/Rows";
-import { useFirstIds } from "../../components/useFirstIds";
+import { usePresence } from "../../components/usePresence";
 import { EmptyLine, Section } from "../../components/Section";
 import { SkeletonRows } from "../../components/SkeletonRows";
 import m from "../../i18n/en/blockedTimes";
@@ -39,16 +39,17 @@ type RowsProps = { blocks: BlockedTime[]; timeZone: string; canUnblock: boolean 
 
 function BlockRows({ blocks, timeZone, canUnblock }: RowsProps) {
   const unblock = useUnblockTime();
-  const isNew = useFirstIds(blocks.map((block) => block.id));
+  const shown = usePresence(blocks, (block) => block.id);
   return (
     <Rows>
-      {blocks.map((block, index) => {
+      {shown.map(({ item: block, isNew, isLeaving }, index) => {
         const window = m.window(block.startsAt, block.endsAt, timeZone);
         return (
           <Row
             key={block.id}
             index={index}
-            landed={isNew(block.id)}
+            landed={isNew}
+            leaving={isLeaving}
             lead={<DateStub date={m.startDate(block.startsAt, timeZone)} label={window} />}
             title={
               <span aria-hidden className="tabular-nums">

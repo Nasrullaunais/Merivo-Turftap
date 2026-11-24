@@ -12,7 +12,7 @@ The starting point is GenexoAI's gam-ui V2 (`genexoai/gam-ui`, branch `v2`, docs
 2. **Colour always means something.** Every colour is either *what kind of thing* (hue, §3.2) or *how it is doing* (tone, §3.3). A colour doing neither is removed.
 3. **Every press gets an answer.** A press shows something at once: a pressed look, a spinner, a fill, a flash. Nothing is ever silent, and nothing can be pressed twice by mistake.
 4. **Motion explains change.** Things rise in when they arrive, fold when they open, flash when they changed, shake when something is missing. Each effect has one meaning (§6), so people learn what it says.
-5. **Nothing jumps.** Loading shapes match the content that replaces them. Buttons keep their width while busy. Hover never moves anything.
+5. **Nothing jumps.** Loading shapes match the content that replaces them. Buttons keep their width while busy. Hover moves only cards, and only by a small lift.
 6. **Simple first.** Each extra effect, part or option needs a reason in one sentence (AGENTS.md "Decisions").
 
 ## 2. Words
@@ -49,6 +49,7 @@ Backgrounds are plain greys with no hue. Colour sits on things, never on the flo
 | `--tt-line-strong` | Popovers, dialogs, warning boxes | `rgb(24 24 24 / 0.14)` |
 
 - **A hairline draws every edge.** Panels are told apart by a 1px line, not by heavy shadows or different greys.
+- **Never an edge stripe.** No coloured bar down one side of anything: not on pills, calendar entries, rows, cards or the current page in the sidebar. The user turned it down on 2026-11-24. Colour goes in a tint, a tile, an icon or a full outline instead.
 - **Shadow** is one soft two-layer shadow for cards (`--tt-shadow-card`) and a bigger one for dialogs and popovers. Nothing else casts a shadow.
 - **Radius** has three steps: 6px for chips and icon buttons, 8px for buttons, inputs and rows, 12px for panels and dialogs. `rounded-full` is only for dots, avatars and pills.
 - **Light only for now.** Every colour is a token in `apps/console/src/styles/globals.css`, so dark mode is one more block of values later, not a rewrite. Never write a raw colour (`#fff`, `bg-white`, `text-gray-500`) in a component.
@@ -66,7 +67,7 @@ A hue sits on an **icon tile** (`TopicTile`): a small rounded square, tinted in 
 | Pink | `--tt-hue-people` | People | Customer, Staff | `Users` |
 | Slate | `--tt-hue-plain` | Everything else | Closed Date, Blocked Time, settings | `CalendarOff`, `Ban` |
 
-Within a kind, a few things have their own icon on the kind's hue: a Resource shows its type (`Goal` futsal court, `Table2` table tennis table, `CircleDot` pool table, in `features/resources/resourceLook.ts`), Photos use `Images`, prices use `Tag`.
+Within a kind, a few things have their own icon on the kind's hue: a Resource shows its type (`Goal` futsal court, `Table2` table tennis table, `CircleDot` pool table, in `components/resourceLook.ts`), Photos use `Images`, prices use `Tag`.
 
 A new hue is the user's decision. Don't invent one; use slate until it is decided.
 
@@ -102,7 +103,7 @@ Each state has one tone and one icon, the same everywhere:
 Teal (`--accent`, `oklch(0.52 0.1 186)`, white text at 5:1) does two jobs only:
 
 - **Actions**: the one primary button in a view, links, the focus ring, selected controls.
-- **Where you are**: the current page in the sidebar (teal tint plus a teal bar on its edge). (The accent mark beside the page title was dropped for gen-ui V2's plain top row.)
+- **Where you are**: the current page in the sidebar (a teal tint). (The accent mark beside the page title was dropped for gen-ui V2's plain top row.)
 
 Teal is also the bookings hue, because bookings are the product's centre. Green (`good`) is a different, yellower green, and always comes with an icon.
 
@@ -138,7 +139,7 @@ The shell is built once, in `apps/console/src/layout/`, and wraps every page und
 - **Logo row** is 56px high, the same height as the page's top row, so the two line up across the seam.
 - **Groups** (desk work, selling, setting up) are separated by space and a hairline, without headings (§2).
 - **A section row**: its hue tile, its name, then on the right an optional count badge, an optional **+** action (e.g. "New walk-in booking") and a chevron when it has sub-pages. Link, **+** and chevron are separate buttons, never nested. Badges and **+** actions arrive with the screens that need them (T18, T20).
-- **Two "you are here" marks that nest**: the section you are in turns its tile solid (white icon on the hue); the page you are on gets the teal tint fill and the teal bar on the sidebar's edge.
+- **Two "you are here" marks that nest**: the section you are in turns its tile solid (white icon on the hue); the page you are on gets the teal tint fill.
 - **Count badges** appear only when someone must act (receipts waiting for a check). A zero shows nothing. The number pops in when it changes.
 - **Rail mode**: tiles only, centred. Hover or focus shows the name as a tooltip on the right after 150ms. A count shows as a small dot-badge on the tile's corner.
 - **Phones and narrow screens** (below `md`): the sidebar becomes a drawer over a dimmed page. It closes on a tap outside, on `Escape`, and when the user goes to another page.
@@ -164,7 +165,8 @@ Every page uses `PageLayout` from `layout/`. It owns:
 
 - **The top row** (as gen-ui V2): nav toggle, an optional back arrow, then the title in `text-lg font-semibold`, then the page's actions on the right. No accent mark before the title, no separate top bar and no breadcrumb trail. It always spans the page, whatever the content width.
 - **`back`**: a detail page (a venue, a resource) shows an arrow before the title that goes one level up. There is never a second hop. The title then names the parent: "Venues" on a venue page, the venue's name on a resource page.
-- **Width**: `width="full"` (calendar, lists, queues: up to 1600px) or `width="form"` (forms and settings: a 768px column on the left, under the top row).
+- **Width**: `width="full"` (lists, record pages, queues: up to 1600px), `width="form"` (a page that is one form: a 768px column on the left) or `width="fill"` (the calendar: the content reaches the bottom of the screen and scrolls inside).
+- **Wide screens are used.** A record page puts its main sections in a wide column and its short ones (opening hours, Closed Dates, Blocked Times) in a 400px column beside them (`TwoColumns`), from `xl` up. Below that they stack.
 - **Record header** (`RecordHeader`): a record page opens with a card holding the record's tile (solid, 56px) on a soft glow of its hue, its name and its details as icon + text pieces. Actions sit on its right.
 - **Arrival**: the content rises in once when the page opens (§6).
 
@@ -190,6 +192,8 @@ Arriving:
 | Skeleton (`Skeleton`) | Grey shapes with a moving sheen, shaped like what is coming | First load only |
 | `tt-rise` | A small rise (4px) and fade | Page content, tab content, a dialog's body, empty states |
 | `tt-sweep` | Rows rise one after another, 30ms apart, first 12 only | A list's rows arrive for the first time, a new page of rows |
+| `tt-card-in` | Cards rise a little further (10px) and settle, one after another | Cards and calendar entries arrive |
+| `tt-from-next`, `tt-from-previous` | The calendar grid and week strip slide in from the side you moved to | Next or previous day or week, a date picked |
 | `tt-fade` | A plain short fade | Search, filter or sort swaps the rows |
 | View transition | A row's tile and name travel into the page header | A row opens its record's page |
 
@@ -197,7 +201,8 @@ Answering an action:
 
 | Effect | The user sees | Plays when |
 |---|---|---|
-| Hover | Background tone change only | The pointer is over anything pressable |
+| Hover | Background tone change | The pointer is over anything pressable |
+| Lift | Rises 2px with a bigger shadow (gen-ui V2) | The pointer is over a card, a summary tile or a calendar booking |
 | Pressed | Shrinks to 98% while held (HeroUI's own) | A button or row is pressed |
 | Spinner in the button | A spinner takes the icon's place (or the label's), the width doesn't change | Its action is running (§7) |
 | `Collapse` | Height folds open or shut, with a fade | Sidebar sections, form steps, read ↔ edit |
@@ -206,12 +211,13 @@ Answering an action:
 | `tt-saved` | A green tint that fades | A value was just saved |
 | `tt-landed` | A longer teal tint | A new row arrived: a booking created here, or one that came in live (T14 events) |
 | `tt-nudge` | A short sideways shake | A required field is missing on submit |
-| `tt-leave` | The thing fades and shrinks a little | A record was deleted or cancelled |
+| `tt-leaving` | The thing fades and shrinks where it was, then the space closes smoothly (`usePresence`, `SmoothHeight`) | A record was deleted, removed, cancelled or turned off |
 
 ### 6.3 Rules
 
 - **Once.** An arrival effect plays when content first appears, never again on a background refetch. Only the skeleton sheen and spinners loop.
-- **Hover never moves anything**: tone only. Movement is for things that change, not for things that could.
+- **Nothing appears or disappears at once.** New things rise or land, removed things fade out in place (`usePresence`), and a box whose content changes eases to its new height (`SmoothHeight`). The calendar slides to a new date.
+- **Hover moves only cards**: cards, summary tiles and calendar bookings lift (§8). Everything else changes tone only.
 - **No long waits for effects.** Nothing over 400ms blocks a person from their next press, except the slower saved and landed tints, which never block anything.
 - **Reduced motion.** With `prefers-reduced-motion: reduce`, every animation and transition is cut to near zero (one rule in `globals.css`), and view transitions are skipped by checking the media query first. Content still appears; it just doesn't move.
 
@@ -231,11 +237,12 @@ Answering an action:
 | Primary button (one per view) | Teal fill | Slightly darker teal | 98% scale | 2px teal ring, offset | Spinner, same width | Result shown in place (row lands, value flashes) |
 | Other buttons | Grey fill or outline | `--tt-hover` | 98% scale | Ring | Spinner | As above |
 | Icon-only button | Icon in muted grey | `--tt-hover`, icon to full colour, tooltip after 300ms | 98% scale | Ring + tooltip | Spinner | — |
-| Danger action | Red outline or soft red | Darker | 98% scale | Ring | Spinner | `tt-leave` on what it removed |
+| Danger action | Red outline or soft red | Darker | 98% scale | Ring | Spinner | `tt-leaving` on what it removed |
 | List row | Panel | `--tt-hover` | — | Ring around the row | — | Opens the record's page |
 | Sidebar row | Muted text | `--tt-hover`, text to full colour | — | Ring | — | Teal tint + bar |
 | Calendar free slot | Empty | Teal tint with "+ 19:00" | — | Ring | — | Opens walk-in (T18) |
-| Calendar booking | Tone tint, icon, name | Slightly stronger tint | — | Ring | — | Opens booking details (T19) |
+| Calendar booking | Tone tint with a thin outline, icon, name | Lifts; a details card shows who, phone, state, price, paid and Balance | — | Ring | — | Opens booking details (T19) |
+| Card | Panel, hairline, soft shadow | Lifts 2px, bigger shadow, stronger line | 98% scale | Ring | — | Opens the record's page |
 | Field | `--tt-field` fill + hairline | `--tt-hover` | — | Stronger line + ring | — | `tt-saved` after saving |
 
 - **Everything pressable** has `cursor: pointer`, a hover tone, a pressed look and a visible focus ring. Nothing that can't be pressed looks pressable.
@@ -249,13 +256,22 @@ Answering an action:
 
 These are the shapes to reuse. Build new screens from them before inventing a new one.
 
-- **List** (venues, staff, memberships): one panel of rows (`Rows`, `Row`): the record's tile or avatar, its name with details under it, its own icon buttons at the end. The whole row opens the record's page (`ROW_LINK` on the name). The last line is a dashed **+ Add …** slot (`AddSlot`) that unfolds the form in place and folds again after saving; the new row lands (`tt-landed`). Empty: one short line (`EmptyLine`). A toolbar (search, filters, create button) arrives with the first list long enough to need it.
+- **Card list** (venues, staff, resources on a venue): cards that fill the width (`CardGrid`, `CardCell`), as gen-ui V2's Users and Groups pages. A card holds the record's tile or avatar, its name with details under it, and a footer line split by a hairline. The name is the card's link and covers the card (`CARD_LINK`); the card's own icon buttons sit above it. The page's create button sits in the top row and opens the form in a window (`FormModal`); inside a section, a dashed **+ Add …** card ends the grid (`AddCard`). A new card lands, a removed one fades out.
+- **Summary tiles** (`SummaryTiles`): above a list or the calendar, a row of counts that double as filters, as gen-ui V2. Pressing one shows only (or highlights) what it counts; pressing it again clears it. Each tile has its kind's hue or its state's tone.
+- **Search** comes with a list that people look things up in (staff): a `SearchField` that says only "Search", and a live count ("3 of 5 people") beside it.
+- **Row list** (inside a section: Price Rules, Closed Dates, Blocked Times): one panel of rows (`Rows`, `Row`). The last line is a dashed **+ Add …** slot (`AddSlot`) that unfolds the form in place and folds again after saving; the new row lands (`tt-landed`). Empty: one short line (`EmptyLine`).
 - **Section** (`Section`): a panel on a record page with its tile, a sentence-case heading and a count, then rows, an empty line or a form, and its add slot last. Dates in rows are a small tear-off page (`DateStub`) that screen readers hear as the full date.
-- **Record page** (a venue, a resource, a booking): three layers. The header says *how it is doing* (tile, name, state pills, main action). The sections say *what it is* (read first, a pencil edits in place). The tabs or lists below say *what happened* or *what belongs to it*.
+- **Record page** (a venue, a resource, a booking): three layers. The header says *how it is doing* (tile, name, state pills, main action). The sections say *what it is* (read first, a pencil edits in place). The tabs or lists below say *what happened* or *what belongs to it*. On wide screens the short sections sit in a column beside the rest (`TwoColumns`).
 - **Form**: one column of fields, two side by side where they pair up (date and time, bank and branch). Choices you can see beat dropdowns when there are a handful: `ChoicePills` for one of a few (radio), `TogglePills` for any of a few (checkboxes, such as weekdays). Fill in what can be worked out (a resource picked fills its venue), and flash what was filled. The submit button sits on the left at the end; a saved note that says something the screen can't show (a WhatsApp message goes out, settings apply to new bookings) appears beside it with a green check.
 - **Pages outside the shell** (sign in, choose a tenant, no access): the brand mark, then one small centred panel (`CentredPanel`).
 - **Queue** (receipt checks): one item at a time, large, with the decision buttons in their tones (Accept green, Reject red). The next item slides in after a decision. The sidebar count drops with a pop.
-- **Calendar**: the grid is the page. The toolbar holds the venue picker on the left, then Day/Week as a segmented control and the previous/today/next buttons on the right. The date is the largest text on the page. A red line with a dot marks the current time across today's columns: the one loud element. States follow §3.3. Free slots show "+ time" on hover. A booking arriving live plays `tt-landed`.
+- **Calendar**: the grid is the page, and it fills the screen down to the bottom edge. From the top:
+  - **Toolbar**: the venue picker; in the week view, one chip per resource with its type icon; Day/Week as a segmented control whose white thumb slides.
+  - **Date row**: the date as the largest text on the page. Pressing it opens a month to jump to. On the right, the **week strip**: seven day buttons with the weekday, the day number and a bar showing how full that day is; today has a dot, closed days are striped. Pressing a day opens it. Previous and next arrows sit at the strip's ends, and **Today** beside it.
+  - **Summary tiles**: Bookings (with "62% booked"), Waiting for payment, Waiting for receipt check, Confirmed, for what is shown. Pressing a state makes its bookings stand out and fades the rest.
+  - **Grid**: it scrolls inside, with the column heads staying on top. Each head shows the resource (its type tile) or the date, and a bar of how full it is. Time already gone is greyed. A red line with a dot and the time marks now across today's columns: the one loud element. When the grid opens on today it scrolls so now sits a third of the way down. Bookings are rounded tints with a thin outline in their state's tone; tall ones also show the phone number. Hovering a booking lifts it and shows a details card. Free slots show "+ time" on hover. A booking arriving live plays `tt-landed`; one that ends fades out.
+  - **Keys**: ← and → move a day or a week, T goes to today, D and W switch the view. Tooltips show the key.
+  - The whole week loads at once, so moving between its days is instant and the strip can count each day.
 
 **Saving.** Fields of one record change only when the user presses Save; a change not yet saved shows an amber dot. Anything that is a record of its own (a payment, a Blocked Time, a photo) takes effect at once from its own button.
 
@@ -267,7 +283,8 @@ These are the shapes to reuse. Build new screens from them before inventing a ne
 | Brand accent shared with the portal | `packages/ui/src/theme.css` |
 | Sidebar (`Sidebar`), shell (`AppShell`), page frame (`PageLayout`) | `apps/console/src/layout/` |
 | Nav items, their hues and icons | `apps/console/src/config/nav.ts` |
-| `LoadingButton`, `IconAction`, `SkeletonRows`, `SkeletonLine`, `TopicTile`, `StatePill`, `StateDot`, `BackLink`, `Collapse`, `Section`, `EmptyLine`, `EmptyState`, `Rows`, `Row`, `AddSlot`, `DateStub`, `ChoicePills`, `TogglePills`, `RecordHeader`, `CentredPanel`, `BrandMark`; hue and tone names in `look.ts` | `apps/console/src/components/` |
+| `LoadingButton`, `IconAction`, `SkeletonRows`, `SkeletonLine`, `SkeletonCards`, `TopicTile`, `StatePill`, `StateDot`, `BackLink`, `Collapse`, `Section`, `EmptyLine`, `EmptyState`, `Rows`, `Row`, `AddSlot`, `CardGrid`, `CardCell`, `AddCard`, `CARD_LINK`, `SummaryTiles`, `FormModal`, `SmoothHeight`, `usePresence`, `DateStub`, `ChoicePills`, `TogglePills`, `RecordHeader`, `CentredPanel`, `BrandMark`; hue and tone names in `look.ts`, resource type icons in `resourceLook.ts` | `apps/console/src/components/` |
+| `TwoColumns` (a record page's wide and side columns) | `apps/console/src/layout/PageLayout.tsx` |
 | Text | `apps/console/src/i18n/en/` |
 
 ## 11. A screen is done when
@@ -287,7 +304,8 @@ These are the shapes to reuse. Build new screens from them before inventing a ne
 | Dark mode now | Half the colour and testing work; tokens make it a later addition |
 | An animation library | CSS and View Transitions cover every effect in §6 |
 | Breadcrumbs | The sidebar is the root; detail pages get one back arrow |
-| Card views for lists | Tables are the only list view |
+| A table view beside the cards | Each list has one view: cards. A table toggle comes only when a list grows long enough to need it |
+| Edge stripes (a coloured bar down one side) | Turned down by the user; tints, tiles and outlines carry colour |
 | Group headings in the sidebar | Space and a line separate groups; fewer words |
 | Long placeholders and help text | Structure explains; a search box says "Search" |
 | A centred spinner while content loads | Skeletons keep the layout still |

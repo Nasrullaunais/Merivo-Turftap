@@ -4,7 +4,7 @@ import { Trash2 } from "lucide-react";
 
 import { IconAction } from "../../components/IconAction";
 import { Row, Rows } from "../../components/Rows";
-import { useFirstIds } from "../../components/useFirstIds";
+import { usePresence } from "../../components/usePresence";
 import { EmptyLine } from "../../components/Section";
 import { SkeletonRows } from "../../components/SkeletonRows";
 import m from "../../i18n/en/prices";
@@ -32,14 +32,15 @@ export function PriceRuleList({ resourceId, canDelete }: Props) {
 
 function RuleRows({ rules, canDelete }: { rules: PriceRule[]; canDelete: boolean }) {
   const deleteRule = useDeletePriceRule();
-  const isNew = useFirstIds(rules.map((rule) => rule.id));
+  const shown = usePresence(rules, (rule) => rule.id);
   return (
     <Rows label={m.rulesTitle}>
-      {rules.map((rule, index) => (
+      {shown.map(({ item: rule, isNew, isLeaving }, index) => (
         <Row
           key={rule.id}
           index={index}
-          landed={isNew(rule.id)}
+          landed={isNew}
+          leaving={isLeaving}
           lead={<WeekStrip days={rule.weekdays} />}
           title={
             <>

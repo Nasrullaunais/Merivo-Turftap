@@ -19,9 +19,6 @@ const rowBase =
   "relative flex items-center rounded-lg text-sm outline-none tt-t1 hover:bg-[var(--tt-hover)] hover:text-foreground focus-visible:ring-2 focus-visible:ring-focus";
 const rowCurrent =
   "bg-accent-soft font-medium text-accent-soft-foreground hover:bg-accent-soft-hover";
-// The bar sits in the sidebar's side padding, flush with its edge.
-const currentBar =
-  "before:absolute before:inset-y-1.5 before:-start-3 before:w-1 before:rounded-e-full before:bg-accent";
 
 /** gam-ui V2's sidebar: a 256px column that folds into a 64px rail (console-design.md §5.1). */
 export function Sidebar({ tenant, canSwitchTenant, collapsed }: Props) {
@@ -85,7 +82,7 @@ function SectionLink({ section, pathname }: { section: NavSection; pathname: str
     <Link
       to={section.to}
       aria-current={isCurrent ? "page" : undefined}
-      className={`${rowBase} h-10 gap-3 ps-1.5 pe-3 ${isCurrent ? `${rowCurrent} ${currentBar}` : isIn ? "text-foreground" : "text-muted"}`}
+      className={`${rowBase} h-10 gap-3 ps-1.5 pe-3 ${isCurrent ? rowCurrent : isIn ? "text-foreground" : "text-muted"}`}
     >
       <TopicTile hue={section.hue} icon={section.icon} size={28} on={isIn} />
       <span className="flex-1 truncate">{section.label}</span>
@@ -102,7 +99,7 @@ function RailLink({ section, pathname }: { section: NavSection; pathname: string
           to={section.to}
           aria-label={section.label}
           aria-current={pathname === section.to ? "page" : undefined}
-          className={`${rowBase} size-10 justify-center ${isIn ? `${rowCurrent} ${currentBar}` : ""}`}
+          className={`${rowBase} size-10 justify-center ${isIn ? rowCurrent : ""}`}
         >
           <TopicTile hue={section.hue} icon={section.icon} size={30} on={isIn} />
         </Link>

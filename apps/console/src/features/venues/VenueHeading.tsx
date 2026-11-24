@@ -3,6 +3,7 @@ import { MapPin, Phone } from "lucide-react";
 import { RecordHeader } from "../../components/RecordHeader";
 import { SkeletonLine } from "../../components/SkeletonRows";
 import m from "../../i18n/en/venues";
+import { TodayHours } from "./TodayHours";
 import { useVenue } from "./useVenue";
 
 /** The venue page's header card; a skeleton holds its place while the venue loads. */
@@ -21,6 +22,7 @@ export function VenueHeader({ venueId }: { venueId: number }) {
               <Phone aria-hidden size={14} />
               {venue.phone}
             </span>
+            <TodayHours venue={venue} />
           </span>
         ) : (
           <SkeletonLine label={m.loadingOne} className="h-4 w-72" />

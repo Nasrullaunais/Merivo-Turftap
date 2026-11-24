@@ -1,7 +1,8 @@
 import { Button, type ButtonProps, Spinner, Tooltip } from "@heroui/react";
 import type { LucideIcon } from "lucide-react";
 
-type Props = Omit<ButtonProps, "children" | "isPending" | "isIconOnly"> & {
+type Props = Omit<ButtonProps, "children" | "isPending" | "isIconOnly" | "className"> & {
+  className?: string;
   icon: LucideIcon;
   /** The full name screen readers hear, such as "Reopen Fri, 25 Dec 2026". */
   label: string;
@@ -18,6 +19,7 @@ export function IconAction({
   hint,
   isPending = false,
   danger,
+  className = "",
   ...props
 }: Props) {
   return (
@@ -29,7 +31,7 @@ export function IconAction({
         variant="ghost"
         aria-label={label}
         isPending={isPending}
-        className={`text-muted hover:text-foreground ${danger ? "hover:bg-danger-soft hover:text-danger" : ""}`}
+        className={`text-muted hover:text-foreground ${danger ? "hover:bg-danger-soft hover:text-danger" : ""} ${className}`}
       >
         {isPending ? <Spinner color="current" size="sm" /> : <Icon aria-hidden size={17} />}
       </Button>

@@ -5,7 +5,7 @@ import type { ReactNode } from "react";
 import { DateStub } from "../../components/DateStub";
 import { IconAction } from "../../components/IconAction";
 import { Row, Rows } from "../../components/Rows";
-import { useFirstIds } from "../../components/useFirstIds";
+import { usePresence } from "../../components/usePresence";
 import { EmptyLine, Section } from "../../components/Section";
 import { SkeletonRows } from "../../components/SkeletonRows";
 import m from "../../i18n/en/closedDates";
@@ -33,14 +33,15 @@ export function ClosedDateList({ venueId, canReopen, addSlot }: Props) {
 
 function ClosedRows({ closedDates, canReopen }: { closedDates: ClosedDate[]; canReopen: boolean }) {
   const reopen = useReopenDate();
-  const isNew = useFirstIds(closedDates.map((closed) => closed.id));
+  const shown = usePresence(closedDates, (closed) => closed.id);
   return (
     <Rows>
-      {closedDates.map((closed, index) => (
+      {shown.map(({ item: closed, isNew, isLeaving }, index) => (
         <Row
           key={closed.id}
           index={index}
-          landed={isNew(closed.id)}
+          landed={isNew}
+          leaving={isLeaving}
           lead={<DateStub date={closed.date} label={m.day(closed.date)} />}
           title={closed.reason ?? <span className="text-muted">{m.noReason}</span>}
           end={

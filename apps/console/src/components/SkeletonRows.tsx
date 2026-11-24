@@ -37,3 +37,38 @@ export function SkeletonLine({
     </span>
   );
 }
+
+/** A grid of cards still loading, shaped like the cards that replace them. */
+export function SkeletonCards({
+  label,
+  cards = DEFAULT_ROWS,
+  min = "18rem",
+  cover = false,
+}: {
+  label: string;
+  cards?: number;
+  min?: string;
+  cover?: boolean;
+}) {
+  return (
+    <div
+      role="status"
+      aria-label={label}
+      className="grid gap-3 tt-sweep"
+      style={{ gridTemplateColumns: `repeat(auto-fill, minmax(min(100%, ${min}), 1fr))` }}
+    >
+      {Array.from({ length: cards }, (_, index) => (
+        <div key={index} style={sweepIndex(index)} className="grid gap-3 overflow-hidden tt-card">
+          {cover && <Skeleton className="h-28 w-full rounded-none" />}
+          <div className="flex items-center gap-3 p-4">
+            <Skeleton className="size-10 shrink-0 rounded-xl" />
+            <div className="grid flex-1 gap-2">
+              <Skeleton className="h-3.5 w-3/5 rounded" />
+              <Skeleton className="h-3 w-2/5 rounded" />
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}

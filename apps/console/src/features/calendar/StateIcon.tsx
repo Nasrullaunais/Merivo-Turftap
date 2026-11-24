@@ -1,5 +1,5 @@
 import m from "../../i18n/en/calendar";
-import { CALENDAR_STATES, type CalendarState, STATE_COLOURS, STATE_ICONS } from "./calendarStates";
+import { type CalendarState, STATE_ICONS } from "./calendarStates";
 
 /** `decorative` when the state's name is written next to the icon anyway. */
 export function StateIcon({ state, decorative }: { state: CalendarState; decorative?: boolean }) {
@@ -10,21 +10,5 @@ export function StateIcon({ state, decorative }: { state: CalendarState; decorat
       className="shrink-0"
       {...(decorative ? { "aria-hidden": true } : { role: "img", "aria-label": m.states[state] })}
     />
-  );
-}
-
-export function StateLegend() {
-  return (
-    <ul aria-label={m.legend} className="flex flex-wrap gap-1.5 text-xs">
-      {CALENDAR_STATES.map((state) => (
-        <li
-          key={state}
-          className={`flex items-center gap-1.5 rounded-md px-2 py-1 font-medium ${STATE_COLOURS[state]}`}
-        >
-          <StateIcon state={state} decorative />
-          {m.states[state]}
-        </li>
-      ))}
-    </ul>
   );
 }

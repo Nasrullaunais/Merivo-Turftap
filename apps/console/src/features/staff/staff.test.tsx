@@ -337,11 +337,12 @@ describe("SIG-06 choose which venues staff work at", () => {
     const change = await screen.findByRole("button", { name: "Change venues for +94770001111" });
     expect(screen.queryByRole("button", { name: "Change venues for Demo Owner" })).toBeNull();
     fireEvent.click(change);
-    const row = screen.getByText("+94770001111").closest("li")!;
-    fireEvent.click(within(row).getByRole("checkbox", { name: "All venues" }));
-    fireEvent.click(await within(row).findByRole("checkbox", { name: "Kandy Arena" }));
-    fireEvent.click(within(row).getByRole("button", { name: "Save" }));
+    const picker = await screen.findByRole("dialog", { name: "Change venues for +94770001111" });
+    fireEvent.click(within(picker).getByRole("checkbox", { name: "All venues" }));
+    fireEvent.click(await within(picker).findByRole("checkbox", { name: "Kandy Arena" }));
+    fireEvent.click(within(picker).getByRole("button", { name: "Save" }));
     await waitFor(() => expect(sent).toEqual([{ allVenues: false, venueIds: [3] }]));
-    expect(await within(row).findByText("Kandy Arena")).toBeInTheDocument();
+    const card = screen.getByText("+94770001111").closest("li")!;
+    expect(await within(card).findByText("Kandy Arena")).toBeInTheDocument();
   });
 });

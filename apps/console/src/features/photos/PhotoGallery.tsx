@@ -6,6 +6,7 @@ import type { ChangeEvent } from "react";
 import { IconAction } from "../../components/IconAction";
 import { sweepIndex } from "../../components/look";
 import { Section } from "../../components/Section";
+import { usePresence } from "../../components/usePresence";
 import m from "../../i18n/en/photos";
 import { useAddPhoto, useDeletePhoto, useMovePhoto } from "./useChangePhotos";
 import { type PhotoOwner, usePhotos } from "./usePhotos";
@@ -16,6 +17,7 @@ type Props = { owner: PhotoOwner; canAdd: boolean; canMove: boolean; canDelete: 
 
 export function PhotoGallery({ owner, canAdd, canMove, canDelete }: Props) {
   const { data: photos, isPending } = usePhotos(owner);
+  const shown = usePresence(photos ?? [], (photo) => photo.id);
   const addPhoto = useAddPhoto(owner);
   const movePhoto = useMovePhoto();
   const deletePhoto = useDeletePhoto();
@@ -47,19 +49,21 @@ export function PhotoGallery({ owner, canAdd, canMove, canDelete }: Props) {
         {photos?.length === 0 && !canAdd && <p className="text-muted">{m.none}</p>}
         {photos && (
           <ul className="grid grid-cols-2 gap-3 tt-sweep sm:grid-cols-3">
-            {photos.map((photo, index) => {
+            {shown.map(({ item: photo, isNew, isLeaving }, index) => {
               const alt = m.photoAlt(photo.position);
               return (
                 <li
                   key={photo.id}
                   style={sweepIndex(index)}
-                  className="group relative overflow-hidden rounded-lg"
+                  inert={isLeaving}
+                  aria-hidden={isLeaving || undefined}
+                  className={`group relative overflow-hidden rounded-lg ${isLeaving ? "tt-leaving" : ""} ${isNew ? "animate-tt-pop" : ""}`}
                 >
                   <img
                     src={photo.url}
                     alt={alt}
                     loading="lazy"
-                    className="aspect-4/3 w-full bg-[var(--tt-field)] object-cover"
+                    className="aspect-4/3 w-full bg-[var(--tt-field)] object-cover transition-[scale] duration-500 ease-(--tt-ease) group-hover:scale-105"
                   />
                   {photo.position === 1 && (
                     <span className="absolute start-2 top-2 rounded-md bg-[var(--tt-panel)] px-2 py-0.5 text-xs font-medium shadow-sm">
@@ -67,7 +71,7 @@ export function PhotoGallery({ owner, canAdd, canMove, canDelete }: Props) {
                     </span>
                   )}
                   <div className="absolute end-2 bottom-2 flex gap-0.5 rounded-lg bg-[var(--tt-panel)] p-0.5 opacity-0 shadow-sm tt-t1 group-focus-within:opacity-100 group-hover:opacity-100 [@media(hover:none)]:opacity-100">
-                    {canMove && index > 0 && (
+                    {canMove && photo.position > 1 && (
                       <IconAction
                         icon={ArrowLeft}
                         label={m.moveEarlierFor(alt)}
@@ -75,7 +79,7 @@ export function PhotoGallery({ owner, canAdd, canMove, canDelete }: Props) {
                         onPress={() => move(photo.id, photo.position - 1)}
                       />
                     )}
-                    {canMove && index < photos.length - 1 && (
+                    {canMove && photo.position < photos.length && (
                       <IconAction
                         icon={ArrowRight}
                         label={m.moveLaterFor(alt)}

@@ -11,6 +11,8 @@ const clock = (instant: string, timeZone: string) =>
     hourCycle: "h23",
   }).format(new Date(instant));
 
+const weekdayShort = onDate({ weekday: "short" });
+const dayNumber = onDate({ day: "numeric" });
 const fullDate = onDate({ weekday: "short", day: "numeric", month: "short", year: "numeric" });
 const shortDate = onDate({ weekday: "short", day: "numeric", month: "short" });
 const dayAndMonth = onDate({ day: "numeric", month: "short" });
@@ -42,7 +44,24 @@ export default {
   dayColumn: shortDate,
   timeZone: (timeZone: string) => `Venue time (${timeZone})`,
   closed: "Closed",
-  legend: "What the colours mean",
+  byState: "Bookings by state",
+  allBookings: "Bookings",
+  /** "62% booked": how much of the open time shown is taken. */
+  booked: (percent: number) => `${percent}% booked`,
+  pickDate: "Pick a date",
+  weekStrip: "Days of this week",
+  weekday: weekdayShort,
+  dayNumber,
+  /** "Mon 21 Dec, 3 bookings", for a day in the strip. */
+  stripDay: (date: string, bookings: number, isClosed: boolean) =>
+    `${shortDate(date)}, ${isClosed ? "closed" : bookings === 1 ? "1 booking" : `${bookings} bookings`}`,
+  keys: { previous: "←", next: "→", today: "T", day: "D", week: "W" },
+  sources: { ONLINE: "Online", WALK_IN: "Walk-in" },
+  price: "Price",
+  paid: "Paid",
+  balance: "Balance",
+  /** The current time on the venue's clock, beside the red line. */
+  now: "Now",
   states,
   /** "19:00–20:00" on the venue's clock. */
   window: (startsAt: string, endsAt: string, timeZone: string) =>

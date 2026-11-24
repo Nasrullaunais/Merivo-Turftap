@@ -4,6 +4,7 @@ export default {
   loadingOne: "Loading the resource",
   backToVenue: "Back to the venue",
   none: "No resources yet.",
+  count: (count: number) => (count === 1 ? "1 resource" : `${count} resources`),
   turnedOff: "Turned off",
   types: {
     FUTSAL_COURT: "Futsal court",

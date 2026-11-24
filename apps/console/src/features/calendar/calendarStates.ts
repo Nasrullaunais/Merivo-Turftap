@@ -8,7 +8,7 @@ export type CalendarState = keyof typeof m.states;
 export const CALENDAR_STATES = Object.keys(m.states) as CalendarState[];
 
 /** Tone and icon per state, as console-design.md §3.3 lists them. */
-const STATE_TONES: Record<CalendarState, Tone> = {
+export const STATE_TONES: Record<CalendarState, Tone> = {
   AWAITING_PAYMENT: "watch",
   AWAITING_CHECK: "busy",
   CONFIRMED: "good",
