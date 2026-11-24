@@ -58,6 +58,7 @@ function CalendarPage() {
           <WalkInForm
             key={`${slot.resource.id}-${slot.startsAt}`}
             {...slot}
+            canRepeat={can(tenant, "repeat-series:create")}
             onBooked={() => walkIn.setOpen(false)}
           />
         )}

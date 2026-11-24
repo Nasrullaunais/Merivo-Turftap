@@ -9,10 +9,12 @@ import type { Booking, Payment, Resource } from "@turftap/contract/client";
 import { ApiError, formatMoney, lkr, rupeesOf } from "@turftap/ui";
 import {
   Banknote,
+  CalendarX,
   CircleCheck,
   CircleX,
   Phone,
   ReceiptText,
+  Repeat,
   Undo2,
   type LucideIcon,
   ScanSearch,
@@ -33,7 +35,14 @@ import { TopicTile } from "../../components/TopicTile";
 import { usePresence } from "../../components/usePresence";
 import m from "../../i18n/en/bookings";
 import { can } from "../../lib/tenant/activeTenant";
-import { useBooking, useCancelBooking, usePayments, useRecordPayment } from "./useBooking";
+import {
+  useBooking,
+  useCancelBooking,
+  useCancelSeries,
+  usePayments,
+  useRecordPayment,
+  useSeries,
+} from "./useBooking";
 
 const KIND_ICONS: Record<Payment["kind"], LucideIcon> = {
   TRANSFER: ReceiptText,
@@ -46,7 +55,7 @@ const PAYMENT_LOOK: Record<Payment["status"], { tone: Tone; icon: LucideIcon }> 
   REJECTED: { tone: "bad", icon: CircleX },
 };
 
-type Action = "cash" | "refund" | "cancel";
+type Action = "cash" | "refund" | "cancel" | "series";
 
 type Props = {
   booking: Booking;
@@ -55,9 +64,10 @@ type Props = {
   tenant: MyTenant | undefined;
 };
 
-/** BKG-07, PAY-08, BKG-08: one booking's state and money, and what staff can do with it. */
+/** BKG-07, PAY-08, BKG-08, BKG-09: one booking's state and money, and what staff can do with it. */
 export function BookingDetails({ booking: pressed, resource, timeZone, tenant }: Props) {
   const { data: booking = pressed } = useBooking(pressed);
+  const { data: series } = useSeries(booking.repeatSeriesId);
   const [action, setAction] = useState<Action>();
   const actions: Record<Action, boolean> = {
     cash:
@@ -72,6 +82,7 @@ export function BookingDetails({ booking: pressed, resource, timeZone, tenant }:
     cancel:
       can(tenant, "bookings:update") &&
       (HOLDING_STATUSES as readonly string[]).includes(booking.status),
+    series: can(tenant, "repeat-series:update") && series?.status === "ACTIVE",
   };
   const shownAction = action && actions[action] ? action : undefined;
   const toggle = (pressedAction: Action) =>
@@ -108,6 +119,17 @@ export function BookingDetails({ booking: pressed, resource, timeZone, tenant }:
             {booking.customerPhone}
           </span>
           <span>{m.sources[booking.source]}</span>
+          {booking.repeatSeriesId !== null && (
+            <span className="inline-flex items-center gap-1.5 tabular-nums">
+              <Repeat aria-hidden size={14} />
+              {series ? m.seriesLine(series.weeks, series.firstDate) : m.weekly}
+            </span>
+          )}
+          {series?.status === "CANCELLED" && (
+            <span className="animate-tt-pop">
+              <StateDot tone="off" label={m.seriesCancelled} />
+            </span>
+          )}
         </div>
         <MoneyLine booking={booking} />
       </div>
@@ -123,7 +145,7 @@ export function BookingDetails({ booking: pressed, resource, timeZone, tenant }:
           <PaymentRows bookingId={booking.id} timeZone={timeZone} />
         </div>
       </section>
-      {(actions.cash || actions.refund || actions.cancel) && (
+      {Object.values(actions).some(Boolean) && (
         <div className="grid">
           <div role="group" aria-label={m.actions} className="flex flex-wrap gap-2">
             {actions.cash && (
@@ -141,6 +163,11 @@ export function BookingDetails({ booking: pressed, resource, timeZone, tenant }:
                 {m.cancel}
               </ActionButton>
             )}
+            {actions.series && (
+              <ActionButton action="series" open={shownAction} onPress={toggle} icon={CalendarX}>
+                {m.cancelSeries}
+              </ActionButton>
+            )}
           </div>
           <div>
             <Collapse isOpen={shownAction === "cash"}>
@@ -150,8 +177,17 @@ export function BookingDetails({ booking: pressed, resource, timeZone, tenant }:
               <RefundForm key={booking.paid.amount} booking={booking} onDone={done} />
             </Collapse>
             <Collapse isOpen={shownAction === "cancel"}>
-              <CancelForm booking={booking} onDone={done} onKeep={done} />
+              <CancelForm booking={booking} onDone={done} />
             </Collapse>
+            {booking.repeatSeriesId !== null && (
+              <Collapse isOpen={shownAction === "series"}>
+                <CancelSeriesForm
+                  seriesId={booking.repeatSeriesId}
+                  booking={booking}
+                  onDone={done}
+                />
+              </Collapse>
+            )}
           </div>
         </div>
       )}
@@ -235,7 +271,8 @@ type ActionButtonProps = {
 
 function ActionButton({ action, open, onPress, icon: Icon, children }: ActionButtonProps) {
   const isOpen = open === action;
-  const variant = action === "cancel" ? "danger-soft" : isOpen ? "primary" : "secondary";
+  const isDanger = action === "cancel" || action === "series";
+  const variant = isDanger ? "danger-soft" : isOpen ? "primary" : "secondary";
   return (
     <Button variant={variant} aria-expanded={isOpen} onPress={() => onPress(action)}>
       <Icon aria-hidden size={16} />
@@ -311,16 +348,48 @@ function RefundForm({ booking, onDone }: FormProps) {
 }
 
 /** BKG-07: staff always give a reason, and the customer is sent it. */
-function CancelForm({ booking, onDone, onKeep }: FormProps & { onKeep: () => void }) {
+function CancelForm({ booking, onDone }: FormProps) {
   const cancel = useCancelBooking(booking.id, onDone);
+  return (
+    <ReasonForm
+      submitLabel={m.cancel}
+      mutation={cancel}
+      onSubmit={(cancelReason) =>
+        cancel.mutate({ path: { id: booking.id }, body: { status: "CANCELLED", cancelReason } })
+      }
+      onKeep={onDone}
+    />
+  );
+}
+
+/** BKG-09: the series's bookings that haven't started are cancelled; past ones stay. */
+function CancelSeriesForm({ seriesId, booking, onDone }: FormProps & { seriesId: number }) {
+  const cancel = useCancelSeries(seriesId, booking.id, onDone);
+  return (
+    <ReasonForm
+      submitLabel={m.cancelSeries}
+      mutation={cancel}
+      onSubmit={(cancelReason) =>
+        cancel.mutate({ path: { id: seriesId }, body: { status: "CANCELLED", cancelReason } })
+      }
+      onKeep={onDone}
+    />
+  );
+}
+
+type ReasonFormProps = {
+  submitLabel: string;
+  mutation: { isPending: boolean; error: unknown };
+  onSubmit: (reason: string) => void;
+  onKeep: () => void;
+};
+
+function ReasonForm({ submitLabel, mutation, onSubmit, onKeep }: ReasonFormProps) {
   const [reason, setReason] = useState("");
 
   const submit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    cancel.mutate({
-      path: { id: booking.id },
-      body: { status: "CANCELLED", cancelReason: reason.trim() },
-    });
+    onSubmit(reason.trim());
   };
 
   return (
@@ -336,10 +405,10 @@ function CancelForm({ booking, onDone, onKeep }: FormProps & { onKeep: () => voi
         <TextArea rows={2} />
         <FieldError />
       </TextField>
-      <Refused error={cancel.error} />
+      <Refused error={mutation.error} />
       <div className="flex flex-wrap items-center gap-3">
-        <LoadingButton type="submit" variant="danger" icon={CircleX} isPending={cancel.isPending}>
-          {m.cancel}
+        <LoadingButton type="submit" variant="danger" icon={CircleX} isPending={mutation.isPending}>
+          {submitLabel}
         </LoadingButton>
         <Button variant="tertiary" onPress={onKeep}>
           {m.keep}

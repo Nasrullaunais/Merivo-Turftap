@@ -12,6 +12,11 @@ const shortDate = (instant: string, timeZone: string) =>
     day: "numeric",
     month: "short",
   }).format(new Date(instant));
+const onDate = (options: Intl.DateTimeFormatOptions) => (date: string) =>
+  new Intl.DateTimeFormat("en-GB", { timeZone: "UTC", ...options }).format(
+    new Date(`${date}T00:00:00Z`),
+  );
+const dayOf = onDate({ weekday: "short", day: "numeric", month: "short" });
 
 export default {
   title: "Walk-in booking",
@@ -30,4 +35,14 @@ export default {
   balance: "Balance",
   notBookable: "This time can't be booked. Pick a free slot.",
   submit: "Book",
+  repeatLabel: "Repeat every week",
+  weeksLabel: "Weeks",
+  /** "Fri 25 Dec – Fri 12 Feb", the first and last week of a Repeat Series. */
+  weekRange: (first: string, last: string) => `${dayOf(first)} – ${dayOf(last)}`,
+  bookWeeks: (weeks: number) => `Book ${weeks} weeks`,
+  clashTitle: (count: number) => (count === 1 ? "1 week isn't free" : `${count} weeks aren't free`),
+  clashList: "Weeks that aren't free",
+  fullDate: onDate({ weekday: "long", day: "numeric", month: "long", year: "numeric" }),
+  skipAndBook: "Skip these dates and book the rest",
+  cancelClash: "Cancel",
 };

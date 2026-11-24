@@ -5,10 +5,13 @@ import {
   createPaymentMutation,
   getBookingOptions,
   getBookingQueryKey,
+  getRepeatSeriesOptions,
+  getRepeatSeriesQueryKey,
   listBookingsQueryKey,
   listPaymentsOptions,
   listPaymentsQueryKey,
   updateBookingMutation,
+  updateRepeatSeriesMutation,
 } from "@turftap/contract/client/react-query";
 
 /** The booking as it is now. The calendar's copy shows at once while the latest loads. */
@@ -24,6 +27,15 @@ export function usePayments(bookingId: number) {
   return useQuery({
     ...listPaymentsOptions({ query: { bookingId, sort: "createdAt,asc", size: MAX_PAGE_SIZE } }),
     select: (reply) => reply.data.content,
+  });
+}
+
+/** BKG-09: the Repeat Series a booking belongs to, if any. */
+export function useSeries(seriesId: number | null) {
+  return useQuery({
+    ...getRepeatSeriesOptions({ path: { id: seriesId ?? 0 } }),
+    enabled: seriesId !== null,
+    select: (reply) => reply.data,
   });
 }
 
@@ -54,6 +66,23 @@ export function useCancelBooking(bookingId: number, onDone: () => void) {
     onSuccess: onDone,
     onSettled: () => {
       refetchAfterChange(queryClient, bookingId);
+      void queryClient.invalidateQueries({ queryKey: [{ _id: "listAvailability" }] });
+    },
+  });
+}
+
+/** BKG-09: cancels every booking in the series that hasn't started, this one included. */
+export function useCancelSeries(seriesId: number, bookingId: number, onDone: () => void) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    ...updateRepeatSeriesMutation(),
+    meta: { silent: true },
+    onSuccess: onDone,
+    onSettled: () => {
+      refetchAfterChange(queryClient, bookingId);
+      void queryClient.invalidateQueries({
+        queryKey: getRepeatSeriesQueryKey({ path: { id: seriesId } }),
+      });
       void queryClient.invalidateQueries({ queryKey: [{ _id: "listAvailability" }] });
     },
   });

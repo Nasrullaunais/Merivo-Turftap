@@ -1,5 +1,5 @@
-import type { RecordPayment, StaffRole } from "@turftap/contract";
-import type { Booking, Payment } from "@turftap/contract/client";
+import type { RecordPayment, StaffRole, UpdateRepeatSeries } from "@turftap/contract";
+import type { Booking, Payment, RepeatSeries } from "@turftap/contract/client";
 import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -90,8 +90,30 @@ const transfer: Payment = {
   ...times,
 };
 
+/** Nimal plays every Friday at 19:00 for 8 weeks; booking 21 is the first week. */
+const nimalsSeries: RepeatSeries = {
+  id: 40,
+  venueId: 3,
+  resourceId: 12,
+  customerId: 7,
+  customerName: "Nimal Perera",
+  customerPhone: "+94770001111",
+  firstDate: "2026-12-25",
+  startTime: "19:00",
+  slots: 1,
+  weeks: 8,
+  status: "ACTIVE",
+  cancelReason: null,
+  seriesPaymentDaysBefore: 2,
+  advancePercent: 50,
+  ...times,
+};
+
+type Options = { refuse?: () => Response; inSeries?: boolean };
+
 type Fake = {
   patches: unknown[];
+  seriesPatches: UpdateRepeatSeries[];
   posts: unknown[];
   calendarFetches: () => number;
 };
@@ -100,11 +122,17 @@ type Fake = {
  * Works out paid and Balance the way the API does: accepted payments added up, and no Balance
  * once cancelled. `refuse` answers a payment instead of saving it.
  */
-function mockBookingApi(role: StaffRole, refuse?: () => Response): Fake {
-  let booking = { ...nimalsBooking };
+function mockBookingApi(role: StaffRole, { refuse, inSeries = false }: Options = {}): Fake {
+  let booking = { ...nimalsBooking, repeatSeriesId: inSeries ? nimalsSeries.id : null };
+  let series = { ...nimalsSeries };
   const payments = [transfer];
   let calendarFetches = 0;
-  const fake: Fake = { patches: [], posts: [], calendarFetches: () => calendarFetches };
+  const fake: Fake = {
+    patches: [],
+    seriesPatches: [],
+    posts: [],
+    calendarFetches: () => calendarFetches,
+  };
   const settle = () => {
     const paid = payments.reduce((sum, payment) => sum + payment.amount.amount, 0);
     const owed = booking.status === "CANCELLED" ? 0 : booking.price.amount - paid;
@@ -139,6 +167,17 @@ function mockBookingApi(role: StaffRole, refuse?: () => Response): Fake {
       booking = { ...booking, status: "CANCELLED", cancelReason: body.cancelReason };
       settle();
       return ok(booking);
+    },
+    "GET /v1/repeat-series/40": () => ok(series),
+    // As the API does: the series's bookings that haven't started are cancelled with it.
+    "PATCH /v1/repeat-series/40": async (request: Request) => {
+      const body = (await request.json()) as UpdateRepeatSeries;
+      fake.seriesPatches.push(body);
+      series = { ...series, status: "CANCELLED", cancelReason: body.cancelReason ?? null };
+      const reason = body.cancelReason ?? null;
+      booking = { ...booking, status: "CANCELLED", cancelReason: reason };
+      settle();
+      return ok(series);
     },
     "GET /v1/payments": () => ok(page(payments)),
     "POST /v1/payments": async (request: Request) => {
@@ -253,9 +292,10 @@ describe("BKG-07, PAY-08, BKG-08 booking details", () => {
   });
 
   it("cash_moreThanTheBalance_showsWhyItWasRefused", async () => {
-    mockBookingApi("FRONT_DESK", () =>
-      apiError(409, "tt_pay_004", "That is more than the balance left on this booking"),
-    );
+    mockBookingApi("FRONT_DESK", {
+      refuse: () =>
+        apiError(409, "tt_pay_004", "That is more than the balance left on this booking"),
+    });
     const details = await openNimalsBooking();
 
     fireEvent.click(details.getByRole("button", { name: "Record cash", expanded: false }));
@@ -299,5 +339,58 @@ describe("BKG-07, PAY-08, BKG-08 booking details", () => {
 
     expect(amountOf(details, "Paid")).toHaveTextContent("LKR 2,250");
     expect(details.queryByRole("button", { name: "Record refund" })).toBeNull();
+  });
+});
+
+describe("BKG-09 repeat series in booking details", () => {
+  it("cancelTheRest_needsAReason_thenCancelsThisBookingAndTheSeries", async () => {
+    const fake = mockBookingApi("MANAGER", { inSeries: true });
+    const details = await openNimalsBooking();
+    expect(await details.findByText("Every week, 8 weeks from Fri 25 Dec")).toBeInTheDocument();
+
+    fireEvent.click(
+      details.getByRole("button", { name: "Cancel the rest of the series", expanded: false }),
+    );
+    const submit = () =>
+      details.getAllByRole("button", { name: "Cancel the rest of the series" }).at(-1)!;
+    fireEvent.click(submit());
+    await waitFor(() =>
+      expect(details.getByRole("textbox", { name: "Reason" })).toHaveAttribute(
+        "aria-invalid",
+        "true",
+      ),
+    );
+    expect(fake.seriesPatches).toEqual([]);
+
+    fireEvent.change(details.getByRole("textbox", { name: "Reason" }), {
+      target: { value: "Team stopped playing" },
+    });
+    fireEvent.click(submit());
+
+    expect(await details.findByText("Series cancelled")).toBeInTheDocument();
+    expect(fake.seriesPatches).toEqual([
+      { status: "CANCELLED", cancelReason: "Team stopped playing" },
+    ]);
+    expect(fake.patches).toEqual([]);
+    await waitFor(() => expect(details.getByText("Cancelled")).toBeInTheDocument());
+    expect(details.getByText("Team stopped playing", { selector: "p" })).toBeInTheDocument();
+    expect(details.queryByRole("button", { name: "Cancel the rest of the series" })).toBeNull();
+  });
+
+  it("cancelTheRest_isNotOfferedToFrontDesk", async () => {
+    mockBookingApi("FRONT_DESK", { inSeries: true });
+    const details = await openNimalsBooking();
+
+    expect(await details.findByText("Every week, 8 weeks from Fri 25 Dec")).toBeInTheDocument();
+    expect(details.getByRole("button", { name: "Cancel booking" })).toBeInTheDocument();
+    expect(details.queryByRole("button", { name: "Cancel the rest of the series" })).toBeNull();
+  });
+
+  it("singleBooking_showsNoSeries", async () => {
+    mockBookingApi("MANAGER");
+    const details = await openNimalsBooking();
+
+    expect(details.queryByText(/Every week/)).toBeNull();
+    expect(details.queryByRole("button", { name: "Cancel the rest of the series" })).toBeNull();
   });
 });
