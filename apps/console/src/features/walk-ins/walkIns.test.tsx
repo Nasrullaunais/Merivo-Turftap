@@ -266,7 +266,8 @@ describe("BKG-09 repeat series from the walk-in form", () => {
     expect(form.getByText("1 week isn't free")).toBeInTheDocument();
     expect(screen.getByRole("dialog", { name: "Walk-in booking" })).toBeInTheDocument();
 
-    fireEvent.click(form.getByRole("button", { name: "Skip these dates and book the rest" }));
+    expect(form.getByText("4 of 5 weeks are free")).toBeInTheDocument();
+    fireEvent.click(form.getByRole("button", { name: "Skip and book 4 weeks" }));
 
     await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
     const asked = {

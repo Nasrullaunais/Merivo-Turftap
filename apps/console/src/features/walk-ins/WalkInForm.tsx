@@ -281,7 +281,8 @@ function WalkInFields(props: FieldsProps) {
       {clashes.length > 0 ? (
         <SeriesClashes
           dates={clashes}
-          canSkip={skipped.length + clashes.length < weeks}
+          weeks={weeks}
+          skippedBefore={skipped.length}
           isSkipping={series.isPending}
           onSkip={() => bookSeries([...skipped, ...clashes])}
           onCancel={() => changeSeries(() => undefined)}

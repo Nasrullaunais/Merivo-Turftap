@@ -43,6 +43,9 @@ export default {
   clashTitle: (count: number) => (count === 1 ? "1 week isn't free" : `${count} weeks aren't free`),
   clashList: "Weeks that aren't free",
   fullDate: onDate({ weekday: "long", day: "numeric", month: "long", year: "numeric" }),
-  skipAndBook: "Skip these dates and book the rest",
+  /** "3 of 4 weeks are free" */
+  freeOf: (free: number, weeks: number) => `${free} of ${weeks} weeks are free`,
+  skipAndBook: (free: number) =>
+    free === 1 ? "Skip and book 1 week" : `Skip and book ${free} weeks`,
   cancelClash: "Cancel",
 };
