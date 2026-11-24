@@ -63,3 +63,4 @@ Decided on 2026-11-23 while planning the tickets (`tickets/README.md`, D-05 to D
 12. **Payment Time Limit default is 20 minutes**, down from 30. `VEN-03`.
 13. **Repeat series are confirmed when created**, and the Advance is asked for a few days before each booking (venue setting, default 2). `BKG-09`.
 14. **Membership states**: `EXPIRED` means not paid in time, like a booking; `ENDED` means the end date passed. `MEM-*`.
+15. **A month-long membership ends the day before the same date next month**, or on that month's last day when the date doesn't exist (31 Jan → 28 Feb). Decided 2026-11-25 (D-28). `MEM-02`.

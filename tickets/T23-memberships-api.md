@@ -1,6 +1,6 @@
 # T23 Memberships API: buy, sell, renew
 
-Status: todo · Stories: `MEM-02`, `MEM-03`, `MEM-04` · Depends on: T13, T22 · Decision: **D-08** · Open question: **OQ-03**
+Status: done · Stories: `MEM-02`, `MEM-03`, `MEM-04` · Depends on: T13, T22 · Decision: **D-08** · Open question: **OQ-03**
 
 ## Goal
 A customer buys a membership online and pays with a Transfer Receipt; Front Desk sells one at the desk for cash; a customer renews early and the new one starts the day after the current one ends.

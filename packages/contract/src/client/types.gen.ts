@@ -212,7 +212,7 @@ export type UpdateClosedDate = {
 };
 
 export type LiveEvent = {
-    type: 'booking.changed' | 'payment.changed';
+    type: 'booking.changed' | 'payment.changed' | 'membership.changed';
     id: number;
 };
 
@@ -285,7 +285,11 @@ export const Permission = {
     MEMBERSHIP_PLANS_READ: 'membership-plans:read',
     MEMBERSHIP_PLANS_CREATE: 'membership-plans:create',
     MEMBERSHIP_PLANS_UPDATE: 'membership-plans:update',
-    MEMBERSHIP_PLANS_DELETE: 'membership-plans:delete'
+    MEMBERSHIP_PLANS_DELETE: 'membership-plans:delete',
+    MEMBERSHIPS_READ: 'memberships:read',
+    MEMBERSHIPS_CREATE: 'memberships:create',
+    MEMBERSHIPS_UPDATE: 'memberships:update',
+    MEMBERSHIPS_DELETE: 'memberships:delete'
 } as const;
 
 export type Permission = typeof Permission[keyof typeof Permission];
@@ -369,6 +373,39 @@ export type UpdateMembershipPlan = {
     price?: PriceInput;
 };
 
+export type Membership = {
+    id: number;
+    venueId: number;
+    planId: number;
+    planName: string;
+    customerId: number;
+    customerName: string;
+    customerPhone: string;
+    startsOn: string;
+    endsOn: string;
+    status: 'AWAITING_PAYMENT' | 'AWAITING_CHECK' | 'ACTIVE' | 'EXPIRED' | 'CANCELLED' | 'ENDED';
+    price: Money;
+    amountDue: Money;
+    paid: Money;
+    balance: Money;
+    expiresAt: string | null;
+    cancelReason: string | null;
+    bankAccount: BankAccount | null;
+    createdAt: string;
+    updatedAt: string;
+};
+
+export type CreateMembership = {
+    planId: number;
+    startsOn?: string;
+    walkIn?: WalkIn;
+};
+
+export type UpdateMembership = {
+    status: 'AWAITING_PAYMENT' | 'AWAITING_CHECK' | 'ACTIVE' | 'EXPIRED' | 'CANCELLED' | 'ENDED';
+    cancelReason?: string;
+};
+
 export type ReceiptReading = {
     unreadable: boolean;
     amount: Money | null;
@@ -381,12 +418,14 @@ export type ReceiptReading = {
     duplicateOf: {
         paymentId: number;
         bookingId: number | null;
+        membershipId: number | null;
     } | null;
 };
 
 export type Payment = {
     id: number;
     bookingId: number | null;
+    membershipId: number | null;
     venueId: number;
     kind: 'TRANSFER' | 'CASH' | 'REFUND';
     status: 'PENDING_CHECK' | 'ACCEPTED' | 'REJECTED';
@@ -401,7 +440,8 @@ export type Payment = {
 };
 
 export type RecordPayment = {
-    bookingId: number;
+    bookingId?: number;
+    membershipId?: number;
     kind: 'CASH' | 'REFUND';
     amount: {
         amount: number;
@@ -411,7 +451,8 @@ export type RecordPayment = {
 };
 
 export type SendTransferReceipt = {
-    bookingId: number;
+    bookingId?: number;
+    membershipId?: number;
     kind: 'TRANSFER';
     fileId: number;
 };
@@ -2241,6 +2282,7 @@ export type ListPaymentsData = {
         size?: number;
         sort?: 'createdAt,asc' | 'createdAt,desc';
         bookingId?: number;
+        membershipId?: number;
         kind?: 'TRANSFER' | 'CASH' | 'REFUND';
         status?: 'PENDING_CHECK' | 'ACCEPTED' | 'REJECTED';
     };
@@ -2528,6 +2570,140 @@ export type UpdateMembershipPlanResponses = {
 };
 
 export type UpdateMembershipPlanResponse = UpdateMembershipPlanResponses[keyof UpdateMembershipPlanResponses];
+
+export type ListMembershipsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        page?: number;
+        size?: number;
+        sort?: 'startsOn,asc' | 'startsOn,desc' | 'createdAt,asc' | 'createdAt,desc';
+        venueId?: number;
+        planId?: number;
+        customerId?: number;
+        status?: 'AWAITING_PAYMENT' | 'AWAITING_CHECK' | 'ACTIVE' | 'EXPIRED' | 'CANCELLED' | 'ENDED';
+    };
+    url: '/v1/memberships';
+};
+
+export type ListMembershipsErrors = {
+    /**
+     * Error
+     */
+    default: ErrorReply;
+};
+
+export type ListMembershipsError = ListMembershipsErrors[keyof ListMembershipsErrors];
+
+export type ListMembershipsResponses = {
+    /**
+     * One page
+     */
+    200: {
+        status: number;
+        message: string;
+        data: {
+            content: Array<Membership>;
+            page: number;
+            size: number;
+            totalElements: number;
+            totalPages: number;
+        };
+    };
+};
+
+export type ListMembershipsResponse = ListMembershipsResponses[keyof ListMembershipsResponses];
+
+export type CreateMembershipData = {
+    body: CreateMembership;
+    path?: never;
+    query?: never;
+    url: '/v1/memberships';
+};
+
+export type CreateMembershipErrors = {
+    /**
+     * Error
+     */
+    default: ErrorReply;
+};
+
+export type CreateMembershipError = CreateMembershipErrors[keyof CreateMembershipErrors];
+
+export type CreateMembershipResponses = {
+    /**
+     * Created
+     */
+    201: {
+        status: number;
+        message: string;
+        data: Membership;
+    };
+};
+
+export type CreateMembershipResponse = CreateMembershipResponses[keyof CreateMembershipResponses];
+
+export type GetMembershipData = {
+    body?: never;
+    path: {
+        id: number;
+    };
+    query?: never;
+    url: '/v1/memberships/{id}';
+};
+
+export type GetMembershipErrors = {
+    /**
+     * Error
+     */
+    default: ErrorReply;
+};
+
+export type GetMembershipError = GetMembershipErrors[keyof GetMembershipErrors];
+
+export type GetMembershipResponses = {
+    /**
+     * Found
+     */
+    200: {
+        status: number;
+        message: string;
+        data: Membership;
+    };
+};
+
+export type GetMembershipResponse = GetMembershipResponses[keyof GetMembershipResponses];
+
+export type UpdateMembershipData = {
+    body: UpdateMembership;
+    path: {
+        id: number;
+    };
+    query?: never;
+    url: '/v1/memberships/{id}';
+};
+
+export type UpdateMembershipErrors = {
+    /**
+     * Error
+     */
+    default: ErrorReply;
+};
+
+export type UpdateMembershipError = UpdateMembershipErrors[keyof UpdateMembershipErrors];
+
+export type UpdateMembershipResponses = {
+    /**
+     * Changed
+     */
+    200: {
+        status: number;
+        message: string;
+        data: Membership;
+    };
+};
+
+export type UpdateMembershipResponse = UpdateMembershipResponses[keyof UpdateMembershipResponses];
 
 export type ListEventsData = {
     body?: never;

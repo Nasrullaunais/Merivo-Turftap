@@ -1,5 +1,6 @@
 const MS_PER_MINUTE = 60 * 1000;
 const MS_PER_DAY = 24 * 60 * MS_PER_MINUTE;
+const MONTHS_PER_YEAR = 12;
 
 /** Today's date in a time zone, such as "2026-12-25". The en-CA format is already YYYY-MM-DD. */
 export function todayIn(timeZone: string, now = new Date()): string {
@@ -67,4 +68,23 @@ export function wallClockAt(instant: Date, timeZone: string): { date: string; mi
   const shifted = instant.getTime() + offsetMs(instant.getTime(), timeZone);
   const date = new Date(shifted).toISOString().slice(0, 10);
   return { date, minute: Math.floor((shifted - midnightUtc(date)) / MS_PER_MINUTE) };
+}
+
+/** "Tue, 1 Dec 2026", for a calendar date such as a membership's start. */
+export const describeDate = (date: string) =>
+  new Intl.DateTimeFormat("en-GB", {
+    timeZone: "UTC",
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  }).format(midnightUtc(date));
+
+/** The last day of a run of `months` from `start`: 15 Jan + 1 is 14 Feb, and 31 Jan + 1 is 28 Feb. */
+export function lastDayOfMonths(start: string, months: number) {
+  const [year, month, day] = start.split("-").map(Number);
+  const sameDay = new Date(Date.UTC(year!, month! - 1 + months, day!));
+  const targetMonth = (month! - 1 + months) % MONTHS_PER_YEAR;
+  if (sameDay.getUTCMonth() === targetMonth) return addDays(sameDay.toISOString().slice(0, 10), -1);
+  return addDays(sameDay.toISOString().slice(0, 10), -sameDay.getUTCDate());
 }

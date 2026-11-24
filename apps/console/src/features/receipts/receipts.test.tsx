@@ -87,6 +87,7 @@ const transfer = (
 ): Payment => ({
   id,
   bookingId,
+  membershipId: null,
   venueId: 3,
   kind: "TRANSFER",
   status: "PENDING_CHECK",
@@ -267,7 +268,7 @@ describe("PAY-03 to PAY-07 receipt checks", () => {
     const reused: ReceiptReading = {
       ...readWell,
       referenceNew: false,
-      duplicateOf: { paymentId: 7, bookingId: 9 },
+      duplicateOf: { paymentId: 7, bookingId: 9, membershipId: null },
     };
     mockReceiptApi([transfer(31, 21, OLDEST, reused)]);
     const check = await openQueue();

@@ -24,19 +24,25 @@ export const ReceiptReading = z
     reference: z.string().nullable(),
     /** The amount read is exactly the payment's amount. */
     amountMatches: z.boolean().nullable(),
-    /** Paid on or after the day the booking was made, and not in the future (D-12). */
+    /** Paid on or after the day the booking or membership was made, and not in the future (D-12). */
     dateRecent: z.boolean().nullable(),
     /** No earlier payment in the tenant has a receipt with this reference. */
     referenceNew: z.boolean().nullable(),
     /** The earliest payment in the tenant with the same receipt image or reference. */
-    duplicateOf: z.object({ paymentId: Id, bookingId: Id.nullable() }).nullable(),
+    duplicateOf: z
+      .object({ paymentId: Id, bookingId: Id.nullable(), membershipId: Id.nullable() })
+      .nullable(),
   })
   .meta({ id: "ReceiptReading" });
+
+const paidFor = { bookingId: Id.optional(), membershipId: Id.optional() };
 
 export const Payment = z
   .object({
     id: Id,
+    /** What the payment is for: a booking or a membership, never both. */
     bookingId: Id.nullable(),
+    membershipId: Id.nullable(),
     venueId: Id,
     kind: z.enum(PAYMENT_KINDS),
     status: z.enum(PAYMENT_STATUSES),
@@ -58,20 +64,25 @@ export const Payment = z
 /** PAY-08, BKG-08: cash or a refund, which staff record by hand. The amount is always above zero. */
 export const RecordPayment = z
   .object({
-    bookingId: Id,
+    ...paidFor,
     kind: z.enum(["CASH", "REFUND"]),
     amount: Money.extend({ amount: z.number().int().positive() }),
     note: z.string().trim().min(1).max(MAX_NOTE_LENGTH).nullable().default(null),
   })
   .meta({ id: "RecordPayment" });
 
-/** PAY-02: a Transfer Receipt, uploaded first as a `RECEIPT` file. It pays the booking's amount due. */
+/** PAY-02: a Transfer Receipt, uploaded first as a `RECEIPT` file. It pays the amount due. */
 export const SendTransferReceipt = z
-  .object({ bookingId: Id, kind: z.literal("TRANSFER"), fileId: Id })
+  .object({ ...paidFor, kind: z.literal("TRANSFER"), fileId: Id })
   .meta({ id: "SendTransferReceipt" });
 
+/** Each payment is for one booking or one membership: send exactly one of the two ids. */
 export const CreatePayment = z
   .discriminatedUnion("kind", [RecordPayment, SendTransferReceipt])
+  .refine((input) => (input.bookingId === undefined) !== (input.membershipId === undefined), {
+    message: "Send either bookingId or membershipId",
+    path: ["bookingId"],
+  })
   .meta({ id: "CreatePayment" });
 
 /** PAY-04, PAY-05: a Receipt Check. Staff accept or reject a transfer; a rejection needs a reason. */
@@ -84,6 +95,7 @@ export const UpdatePayment = z
 
 export const PaymentFilters = z.object({
   bookingId: z.coerce.number().pipe(Id).optional(),
+  membershipId: z.coerce.number().pipe(Id).optional(),
   kind: z.enum(PAYMENT_KINDS).optional(),
   status: z.enum(PAYMENT_STATUSES).optional(),
 });

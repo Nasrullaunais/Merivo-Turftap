@@ -8,7 +8,15 @@ const RECONNECT_DELAY_MS = 5_000;
 /** The generated query names whose data each event makes stale. */
 const STALE_AFTER: Record<LiveEventType, readonly string[]> = {
   "booking.changed": ["listBookings", "getBooking", "listAvailability"],
-  "payment.changed": ["listPayments", "getPayment", "listBookings", "getBooking"],
+  "payment.changed": [
+    "listPayments",
+    "getPayment",
+    "listBookings",
+    "getBooking",
+    "listMemberships",
+    "getMembership",
+  ],
+  "membership.changed": ["listMemberships", "getMembership"],
 };
 const EVERY_LIVE_QUERY = [...new Set(Object.values(STALE_AFTER).flat())];
 

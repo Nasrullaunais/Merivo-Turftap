@@ -6,7 +6,10 @@ import {
 } from "./modules/bookings/bookings.routes";
 import { customersResource } from "./modules/customers/customers.routes";
 import { filesResource } from "./modules/files/files.routes";
-import { membershipPlansResource } from "./modules/memberships/memberships.routes";
+import {
+  membershipPlansResource,
+  membershipsResource,
+} from "./modules/memberships/memberships.routes";
 import { eventsResource } from "./modules/notifications/notifications.routes";
 import { paymentsResource } from "./modules/payments/payments.routes";
 import { meResource, whatsappNumbersResource } from "./modules/platform/platform.routes";
@@ -37,5 +40,6 @@ export const RESOURCES: Resource[] = [
   repeatSeriesResource,
   paymentsResource,
   membershipPlansResource,
+  membershipsResource,
   eventsResource,
 ];

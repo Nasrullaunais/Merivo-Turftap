@@ -50,7 +50,7 @@ Status: `todo`, `doing`, `done`, `blocked` (waiting on a decision or an outside 
 | [T21](T21-console-repeat-series.md) | Repeat series screen | BKG-09 | T15, T18 | done |
 | **E. Memberships** |||||
 | [T22](T22-membership-plans.md) | Membership Plans (API + console) | MEM-01 | | done |
-| [T23](T23-memberships-api.md) | Memberships API: buy, sell, renew | MEM-02, MEM-03, MEM-04 | T13, T22 | todo |
+| [T23](T23-memberships-api.md) | Memberships API: buy, sell, renew | MEM-02, MEM-03, MEM-04 | T13, T22 | done (OQ-03 refused for now) |
 | [T24](T24-console-memberships.md) | Memberships screens in the console | MEM-03, PAY-04 | T23 | todo |
 | [T25](T25-check-ins.md) | Check-ins (API + console) | MEM-05 | T23 | todo |
 | [T26](T26-membership-end-and-reminders.md) | Memberships end, and reminders | MEM-06 | T23 | todo |
@@ -110,6 +110,7 @@ Settled in a grilling session with the user. Each answer is written here, then i
 | D-25 | Platform Admin work (create and turn off tenants, link WhatsApp numbers, list tenants): Staff Console screens, or scripts on the server? | Scripts for v1 | Scripts for v1. T34 (screens) is dropped, and T03 and T33 build scripts instead of API resources. Only the Assistant's number lookup stays in the API. Screens can come later if the number of tenants grows |
 | D-26 | How does the 409 for a clashing Repeat Series list the dates? | Reuse `errors` with one item per date | A new optional `clashingDates` field on error replies, so the dates aren't hidden in `message` |
 | D-27 | What does the customer get when staff cancel the rest of a Repeat Series? | One new `series_cancelled` message | Yes: one message with the count and reason, not one per booking |
+| D-28 | A month-long membership starting on the 29th, 30th or 31st: when does it end if next month has no such date? | That month's last day | Yes: 31 Jan + 1 month ends 28 Feb; otherwise the day before the same date (15 Jan → 14 Feb) |
 
 ## Open questions for venue owners
 

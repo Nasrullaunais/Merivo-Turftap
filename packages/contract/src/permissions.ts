@@ -18,6 +18,7 @@ export const STAFF_RESOURCES = [
   "repeat-series",
   "payments",
   "membership-plans",
+  "memberships",
 ] as const;
 export type StaffResource = (typeof STAFF_RESOURCES)[number];
 

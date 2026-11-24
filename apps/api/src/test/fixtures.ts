@@ -13,6 +13,7 @@ import type { AuthContext, StaffRole } from "../lib/auth/context";
 import { config } from "../lib/config";
 import { db } from "../lib/db";
 import { bookings } from "../modules/bookings/bookings.tables";
+import { memberships } from "../modules/memberships/memberships.tables";
 import { type MessageData, sendMessage } from "../modules/notifications/notifications.jobs";
 import { tenants, users } from "../modules/platform/platform.tables";
 import * as whatsappNumbersService from "../modules/platform/whatsapp-numbers.service";
@@ -266,4 +267,12 @@ export async function passTimeLimit(bookingId: number) {
     .update(bookings)
     .set({ expiresAt: sql`now() - interval '1 second'` })
     .where(eq(bookings.id, bookingId));
+}
+
+/** Moves the membership's Payment Time Limit into the past, so its expiry job finds it due. */
+export async function passMembershipTimeLimit(membershipId: number) {
+  await db()
+    .update(memberships)
+    .set({ expiresAt: sql`now() - interval '1 second'` })
+    .where(eq(memberships.id, membershipId));
 }
