@@ -4,6 +4,7 @@ import { can } from "../lib/tenant/activeTenant";
 
 /** The permission each page needs. The top bar and the page's guard both read it (SIG-05). */
 const ROUTE_PERMISSIONS = {
+  "/calendar": "bookings:read",
   "/staff": "staff:read",
   "/venues": "venues:read",
   "/venues/$venueId": "resources:read",
