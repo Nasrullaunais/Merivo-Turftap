@@ -1,6 +1,6 @@
 # T17 Booking calendar
 
-Status: todo · Stories: `BKG-05` · Depends on: T14
+Status: done · Stories: `BKG-05` · Depends on: T14
 
 ## Goal
 Staff see a day and a week calendar per venue, with every booking's state shown by colour **and** icon, and new bookings appearing without a refresh.

@@ -3,5 +3,5 @@ export default {
   comingSoon: "Bookings, calendars and receipts will appear here.",
   switchTenant: "Switch tenant",
   signOut: "Sign out",
-  nav: { staff: "Staff", venues: "Venues" },
+  nav: { calendar: "Calendar", staff: "Staff", venues: "Venues" },
 };

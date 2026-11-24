@@ -15,6 +15,7 @@ import { Route as SignedInTenantRouteImport } from './routes/_signedIn/_tenant'
 import { Route as SignedInChooseTenantRouteImport } from './routes/_signedIn/choose-tenant'
 import { Route as SignedInNoAccessRouteImport } from './routes/_signedIn/no-access'
 import { Route as SignedInTenantIndexRouteImport } from './routes/_signedIn/_tenant/index'
+import { Route as SignedInTenantCalendarRouteImport } from './routes/_signedIn/_tenant/calendar'
 import { Route as SignedInTenantStaffRouteImport } from './routes/_signedIn/_tenant/staff'
 import { Route as SignedInTenantResourcesResourceIdRouteImport } from './routes/_signedIn/_tenant/resources/$resourceId'
 import { Route as SignedInTenantVenuesIndexRouteImport } from './routes/_signedIn/_tenant/venues/index'
@@ -48,6 +49,11 @@ const SignedInTenantIndexRoute = SignedInTenantIndexRouteImport.update({
   path: '/',
   getParentRoute: () => SignedInTenantRoute,
 } as any)
+const SignedInTenantCalendarRoute = SignedInTenantCalendarRouteImport.update({
+  id: '/calendar',
+  path: '/calendar',
+  getParentRoute: () => SignedInTenantRoute,
+} as any)
 const SignedInTenantStaffRoute = SignedInTenantStaffRouteImport.update({
   id: '/staff',
   path: '/staff',
@@ -77,6 +83,7 @@ export interface FileRoutesByFullPath {
   '/sign-in': typeof SignInRoute
   '/choose-tenant': typeof SignedInChooseTenantRoute
   '/no-access': typeof SignedInNoAccessRoute
+  '/calendar': typeof SignedInTenantCalendarRoute
   '/staff': typeof SignedInTenantStaffRoute
   '/resources/$resourceId': typeof SignedInTenantResourcesResourceIdRoute
   '/venues/$venueId': typeof SignedInTenantVenuesVenueIdRoute
@@ -87,6 +94,7 @@ export interface FileRoutesByTo {
   '/sign-in': typeof SignInRoute
   '/choose-tenant': typeof SignedInChooseTenantRoute
   '/no-access': typeof SignedInNoAccessRoute
+  '/calendar': typeof SignedInTenantCalendarRoute
   '/staff': typeof SignedInTenantStaffRoute
   '/resources/$resourceId': typeof SignedInTenantResourcesResourceIdRoute
   '/venues/$venueId': typeof SignedInTenantVenuesVenueIdRoute
@@ -99,6 +107,7 @@ export interface FileRoutesById {
   '/_signedIn/_tenant': typeof SignedInTenantRouteWithChildren
   '/_signedIn/choose-tenant': typeof SignedInChooseTenantRoute
   '/_signedIn/no-access': typeof SignedInNoAccessRoute
+  '/_signedIn/_tenant/calendar': typeof SignedInTenantCalendarRoute
   '/_signedIn/_tenant/staff': typeof SignedInTenantStaffRoute
   '/_signedIn/_tenant/': typeof SignedInTenantIndexRoute
   '/_signedIn/_tenant/resources/$resourceId': typeof SignedInTenantResourcesResourceIdRoute
@@ -112,6 +121,7 @@ export interface FileRouteTypes {
     | '/sign-in'
     | '/choose-tenant'
     | '/no-access'
+    | '/calendar'
     | '/staff'
     | '/resources/$resourceId'
     | '/venues/$venueId'
@@ -122,6 +132,7 @@ export interface FileRouteTypes {
     | '/sign-in'
     | '/choose-tenant'
     | '/no-access'
+    | '/calendar'
     | '/staff'
     | '/resources/$resourceId'
     | '/venues/$venueId'
@@ -133,6 +144,7 @@ export interface FileRouteTypes {
     | '/_signedIn/_tenant'
     | '/_signedIn/choose-tenant'
     | '/_signedIn/no-access'
+    | '/_signedIn/_tenant/calendar'
     | '/_signedIn/_tenant/staff'
     | '/_signedIn/_tenant/'
     | '/_signedIn/_tenant/resources/$resourceId'
@@ -189,6 +201,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SignedInTenantIndexRouteImport
       parentRoute: typeof SignedInTenantRoute
     }
+    '/_signedIn/_tenant/calendar': {
+      id: '/_signedIn/_tenant/calendar'
+      path: '/calendar'
+      fullPath: '/calendar'
+      preLoaderRoute: typeof SignedInTenantCalendarRouteImport
+      parentRoute: typeof SignedInTenantRoute
+    }
     '/_signedIn/_tenant/staff': {
       id: '/_signedIn/_tenant/staff'
       path: '/staff'
@@ -221,6 +240,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface SignedInTenantRouteChildren {
+  SignedInTenantCalendarRoute: typeof SignedInTenantCalendarRoute
   SignedInTenantStaffRoute: typeof SignedInTenantStaffRoute
   SignedInTenantIndexRoute: typeof SignedInTenantIndexRoute
   SignedInTenantResourcesResourceIdRoute: typeof SignedInTenantResourcesResourceIdRoute
@@ -229,6 +249,7 @@ interface SignedInTenantRouteChildren {
 }
 
 const SignedInTenantRouteChildren: SignedInTenantRouteChildren = {
+  SignedInTenantCalendarRoute: SignedInTenantCalendarRoute,
   SignedInTenantStaffRoute: SignedInTenantStaffRoute,
   SignedInTenantIndexRoute: SignedInTenantIndexRoute,
   SignedInTenantResourcesResourceIdRoute:
