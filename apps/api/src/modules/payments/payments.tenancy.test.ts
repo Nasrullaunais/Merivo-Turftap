@@ -86,6 +86,16 @@ describe("payments tenant isolation", () => {
     expect(own.body.data.paid).toEqual(cash);
   });
 
+  it("payments_cannotBeCheckedInAnotherTenant", async () => {
+    const reply = await call("PATCH", `/v1/payments/${paymentOfB}`, asStaff(tenantA), {
+      status: "REJECTED",
+      rejectReason: "Wrong amount",
+    });
+    expect(reply).toMatchObject({ status: 404, body: { code: "tt_pay_001" } });
+    const own = await call("GET", `/v1/payments/${paymentOfB}`, asStaff(tenantB));
+    expect(own.body.data.status).toBe("ACCEPTED");
+  });
+
   const uploadReceipt = async (as: Parameters<typeof call>[2]) =>
     (await call("POST", "/v1/files", as, uploadForm(imageBytes(), "RECEIPT"))).body.data
       .id as number;

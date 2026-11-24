@@ -346,6 +346,7 @@ export type Payment = {
     status: 'PENDING_CHECK' | 'ACCEPTED' | 'REJECTED';
     amount: Money;
     note: string | null;
+    rejectReason: string | null;
     receiptUrl: string | null;
     receiptReading: ReceiptReading | null;
     createdBy: number | null;
@@ -370,6 +371,11 @@ export type SendTransferReceipt = {
 };
 
 export type CreatePayment = RecordPayment | SendTransferReceipt;
+
+export type UpdatePayment = {
+    status: 'PENDING_CHECK' | 'ACCEPTED' | 'REJECTED';
+    rejectReason?: string;
+};
 
 export type Photo = {
     id: number;
@@ -2112,3 +2118,34 @@ export type GetPaymentResponses = {
 };
 
 export type GetPaymentResponse = GetPaymentResponses[keyof GetPaymentResponses];
+
+export type UpdatePaymentData = {
+    body: UpdatePayment;
+    path: {
+        id: number;
+    };
+    query?: never;
+    url: '/v1/payments/{id}';
+};
+
+export type UpdatePaymentErrors = {
+    /**
+     * Error
+     */
+    default: ErrorReply;
+};
+
+export type UpdatePaymentError = UpdatePaymentErrors[keyof UpdatePaymentErrors];
+
+export type UpdatePaymentResponses = {
+    /**
+     * Changed
+     */
+    200: {
+        status: number;
+        message: string;
+        data: Payment;
+    };
+};
+
+export type UpdatePaymentResponse = UpdatePaymentResponses[keyof UpdatePaymentResponses];

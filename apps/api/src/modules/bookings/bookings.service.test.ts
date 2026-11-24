@@ -8,6 +8,7 @@ import { db } from "../../lib/db";
 import { addDays, instantAt, todayIn } from "../../lib/time";
 import {
   createTenant,
+  passTimeLimit,
   priceRuleInput,
   queuedMessagesFor,
   resourceInput,
@@ -425,6 +426,7 @@ describe("BKG-03 bookings expire without payment", () => {
 
   it("expire_freesTheSlotAndTellsTheCustomer", async () => {
     const { booking, customerId } = await bookAs("09:00");
+    await passTimeLimit(booking.id);
     await bookingExpiryService.expire(tenant.id, booking.id);
     expect(await statusOf(booking.id)).toBe("EXPIRED");
     expect(await queuedMessagesFor(customerId)).toEqual([
@@ -441,8 +443,16 @@ describe("BKG-03 bookings expire without payment", () => {
   it("expire_doesNothingIfTheReceiptArrivedFirst", async () => {
     const { booking, customerId } = await bookAs("11:00");
     await bookingsRepository.setStatus(tenant.id, booking.id, "AWAITING_PAYMENT", "AWAITING_CHECK");
+    await passTimeLimit(booking.id);
     await bookingExpiryService.expire(tenant.id, booking.id);
     expect(await statusOf(booking.id)).toBe("AWAITING_CHECK");
+    expect(await queuedMessagesFor(customerId)).toEqual([]);
+  });
+
+  it("expire_beforeTheTimeLimit_doesNothing", async () => {
+    const { booking, customerId } = await bookAs("13:00");
+    await bookingExpiryService.expire(tenant.id, booking.id);
+    expect(await statusOf(booking.id)).toBe("AWAITING_PAYMENT");
     expect(await queuedMessagesFor(customerId)).toEqual([]);
   });
 });

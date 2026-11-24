@@ -9,6 +9,10 @@ export const WHATSAPP_TEMPLATES = {
   bookingExpired: "booking_expired",
   /** Values: venue name, resource name, start time in the venue's time zone, reason (BKG-07). */
   bookingCancelled: "booking_cancelled",
+  /** Values: venue name, resource name, start time in the venue's time zone (PAY-04). */
+  bookingConfirmed: "booking_confirmed",
+  /** Values: venue name, resource name, start time, reason, new time limit to pay by (PAY-05). */
+  receiptRejected: "receipt_rejected",
 } as const;
 
 export type WhatsAppTemplate = (typeof WHATSAPP_TEMPLATES)[keyof typeof WHATSAPP_TEMPLATES];
