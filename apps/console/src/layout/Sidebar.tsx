@@ -1,14 +1,15 @@
 import { Dropdown, Label, ScrollShadow, Tooltip } from "@heroui/react";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import type { MyTenant } from "@turftap/contract";
-import { ArrowLeftRight, ChevronsUpDown, LogOut } from "lucide-react";
-import { Fragment } from "react";
+import { ArrowLeftRight, ChevronRight, ChevronsUpDown, LogOut } from "lucide-react";
+import { Fragment, useId, useState } from "react";
 import { Focusable } from "react-aria-components";
 
 import { BrandMark } from "../components/BrandMark";
+import { Collapse } from "../components/Collapse";
 import { HUE_CLASS, type Hue } from "../components/look";
 import { TopicTile } from "../components/TopicTile";
-import { type NavSection, NAV_GROUPS } from "../config/nav";
+import { type NavPage, type NavSection, NAV_GROUPS } from "../config/nav";
 import { canOpen } from "../config/routePermissions";
 import m from "../i18n/en/shell";
 import tenants from "../i18n/en/tenants";
@@ -25,8 +26,15 @@ const rowCurrent =
 export function Sidebar({ tenant, canSwitchTenant, collapsed }: Props) {
   const pathname = useRouterState({ select: (state) => state.location.pathname });
   const groups = NAV_GROUPS.map((group) =>
-    group.filter((section) => canOpen(tenant, section.to)),
+    group.flatMap((section) => allowedPart(section, tenant) ?? []),
   ).filter((group) => group.length > 0);
+  const sectionIn = groups.flat().find((section) => section.pages && section.isIn(pathname));
+  const [openSection, setOpenSection] = useState(sectionIn?.label);
+  const [seenPathname, setSeenPathname] = useState(pathname);
+  if (seenPathname !== pathname) {
+    setSeenPathname(pathname);
+    setOpenSection(sectionIn?.label);
+  }
 
   return (
     <aside
@@ -59,6 +67,19 @@ export function Sidebar({ tenant, canSwitchTenant, collapsed }: Props) {
                 {group.map((section) =>
                   collapsed ? (
                     <RailLink key={section.to} section={section} pathname={pathname} />
+                  ) : section.pages ? (
+                    <FoldingSection
+                      key={section.to}
+                      section={section}
+                      pages={section.pages}
+                      pathname={pathname}
+                      isOpen={openSection === section.label}
+                      onToggle={() =>
+                        setOpenSection((open) =>
+                          open === section.label ? undefined : section.label,
+                        )
+                      }
+                    />
                   ) : (
                     <SectionLink key={section.to} section={section} pathname={pathname} />
                   ),
@@ -73,6 +94,72 @@ export function Sidebar({ tenant, canSwitchTenant, collapsed }: Props) {
         <WhoAndWhere tenant={tenant} canSwitchTenant={canSwitchTenant} collapsed={collapsed} />
       </div>
     </aside>
+  );
+}
+
+/** The part of a section the person may open; a folding section then leads to its first page. */
+function allowedPart(section: NavSection, tenant?: MyTenant): NavSection | undefined {
+  if (!section.pages) return canOpen(tenant, section.to) ? section : undefined;
+  const pages = section.pages.filter((page) => canOpen(tenant, page.to));
+  return pages[0] && { ...section, to: pages[0].to, pages };
+}
+
+type FoldingProps = {
+  section: NavSection;
+  pages: NavPage[];
+  pathname: string;
+  isOpen: boolean;
+  onToggle: () => void;
+};
+
+/** A section with sub-pages: its link, a separate chevron that folds the pages, then the pages. */
+function FoldingSection({ section, pages, pathname, isOpen, onToggle }: FoldingProps) {
+  const pagesId = useId();
+  const isIn = section.isIn(pathname);
+  return (
+    <div>
+      <div className="relative">
+        <Link
+          to={section.to}
+          className={`${rowBase} h-10 gap-3 ps-1.5 pe-10 ${isIn ? "text-foreground" : "text-muted"}`}
+        >
+          <TopicTile hue={section.hue} icon={section.icon} size={28} on={isIn} />
+          <span className="flex-1 truncate">{section.label}</span>
+        </Link>
+        <button
+          type="button"
+          aria-expanded={isOpen}
+          aria-controls={pagesId}
+          aria-label={m.showPages(section.label)}
+          onClick={onToggle}
+          className="absolute end-1 top-1 grid size-8 cursor-pointer place-items-center rounded-md text-muted outline-none tt-t1 hover:bg-[var(--tt-hover)] hover:text-foreground focus-visible:ring-2 focus-visible:ring-focus"
+        >
+          <ChevronRight
+            aria-hidden
+            size={16}
+            className={`transition-transform duration-(--tt-dur-2) ease-(--tt-ease) ${isOpen ? "rotate-90" : ""}`}
+          />
+        </button>
+      </div>
+      <Collapse isOpen={isOpen} id={pagesId}>
+        <ul className="flex flex-col gap-0.5 pt-0.5">
+          {pages.map((page) => {
+            const isCurrent = pathname === page.to;
+            return (
+              <li key={page.to}>
+                <Link
+                  to={page.to}
+                  aria-current={isCurrent ? "page" : undefined}
+                  className={`${rowBase} h-9 ps-[46px] pe-3 ${isCurrent ? rowCurrent : "text-muted"}`}
+                >
+                  <span className="truncate">{page.label}</span>
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
+      </Collapse>
+    </div>
   );
 }
 

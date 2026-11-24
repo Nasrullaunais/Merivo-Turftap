@@ -1,4 +1,9 @@
-import { type CreatePriceRule, type CreateResource, CreateVenue } from "@turftap/contract";
+import {
+  type CreateMembershipPlan,
+  type CreatePriceRule,
+  type CreateResource,
+  CreateVenue,
+} from "@turftap/contract";
 import { eq, sql } from "drizzle-orm";
 import type { z } from "zod";
 
@@ -87,6 +92,18 @@ export const priceRuleInput = (
   startTime: "18:00",
   endTime: "22:00",
   price: { amount: 400_000, currency: "LKR" },
+  ...overrides,
+});
+
+export const planInput = (
+  venueId: number,
+  overrides: Partial<CreateMembershipPlan> = {},
+): CreateMembershipPlan => ({
+  venueId,
+  name: `Gym ${crypto.randomUUID().slice(0, 6)}`,
+  lengthCount: 1,
+  lengthUnit: "MONTHS",
+  price: { amount: 500_000, currency: "LKR" },
   ...overrides,
 });
 

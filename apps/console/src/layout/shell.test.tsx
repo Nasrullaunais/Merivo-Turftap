@@ -20,7 +20,7 @@ const screenIsWide = (wide: boolean) =>
 const sidebars = () => screen.queryAllByRole("navigation", { name: "Main" });
 const openConsole = async (path = "/") => {
   signInForTesting(me.phone);
-  mockApi({ "GET /v1/me": me, "GET /v1/venues": page });
+  mockApi({ "GET /v1/me": me, "GET /v1/venues": page, "GET /v1/membership-plans": page });
   const app = renderApp(path);
   await screen.findByRole("navigation", { name: "Main" });
   return app;
@@ -54,5 +54,28 @@ describe("Staff Console shell (console-design.md §5)", () => {
     fireEvent.click(screen.getByRole("button", { name: "Menu" }));
     await act(() => router.navigate({ to: "/venues" }));
     await waitFor(() => expect(sidebars()).toHaveLength(1));
+  });
+
+  it("foldingSection_opensWhereYouAreAndItsChevronFoldsThePages", async () => {
+    screenIsWide(true);
+    const { router } = await openConsole();
+    const nav = () => within(sidebars()[0]!);
+    const chevron = () => nav().getByRole("button", { name: "Memberships pages" });
+    expect(chevron()).toHaveAttribute("aria-expanded", "false");
+
+    fireEvent.click(chevron());
+    expect(chevron()).toHaveAttribute("aria-expanded", "true");
+    fireEvent.click(nav().getByRole("link", { name: "Membership Plans" }));
+    await waitFor(() => expect(router.state.location.pathname).toBe("/membership-plans"));
+    expect(nav().getByRole("link", { name: "Membership Plans" })).toHaveAttribute(
+      "aria-current",
+      "page",
+    );
+
+    fireEvent.click(chevron());
+    expect(chevron()).toHaveAttribute("aria-expanded", "false");
+    await act(() => router.navigate({ to: "/venues" }));
+    await act(() => router.navigate({ to: "/membership-plans" }));
+    expect(chevron()).toHaveAttribute("aria-expanded", "true");
   });
 });

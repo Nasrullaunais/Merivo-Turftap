@@ -6,6 +6,7 @@ export * from "./customers";
 export * from "./events";
 export * from "./files";
 export * from "./me";
+export * from "./membership-plans";
 export * from "./payments";
 export * from "./permissions";
 export * from "./photos";

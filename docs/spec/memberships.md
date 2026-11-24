@@ -2,7 +2,9 @@
 
 ## MEM-01 Membership Plans
 As a **Manager**, I want to create Membership Plans with a name, length (in days or months) and price, so that customers can buy them.
-- A plan can be turned off. Existing memberships keep working.
+- A plan belongs to one venue. Its name is unique among that venue's plans on sale.
+- The length is 1 to 365 days or 1 to 24 months.
+- A plan can be turned off. Customers can no longer buy it; existing memberships keep working.
 
 ## MEM-02 Buy a membership online
 As a **Customer**, I want to buy a membership on the portal or through the Assistant, so that I can use the gym.

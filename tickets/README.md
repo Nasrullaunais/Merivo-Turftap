@@ -49,7 +49,7 @@ Status: `todo`, `doing`, `done`, `blocked` (waiting on a decision or an outside 
 | [T20](T20-console-receipt-checks.md) | Receipt check queue and screen | PAY-03 to PAY-07 | T13, T14 | done |
 | [T21](T21-console-repeat-series.md) | Repeat series screen | BKG-09 | T15, T18 | done |
 | **E. Memberships** |||||
-| [T22](T22-membership-plans.md) | Membership Plans (API + console) | MEM-01 | | todo |
+| [T22](T22-membership-plans.md) | Membership Plans (API + console) | MEM-01 | | done |
 | [T23](T23-memberships-api.md) | Memberships API: buy, sell, renew | MEM-02, MEM-03, MEM-04 | T13, T22 | todo |
 | [T24](T24-console-memberships.md) | Memberships screens in the console | MEM-03, PAY-04 | T23 | todo |
 | [T25](T25-check-ins.md) | Check-ins (API + console) | MEM-05 | T23 | todo |
