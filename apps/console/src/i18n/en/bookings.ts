@@ -33,6 +33,7 @@ export default {
   balance: "Balance",
   cancelReason: "Reason for cancelling",
   payments: "Payments",
+  loadingBooking: "Loading booking",
   loadingPayments: "Loading payments",
   noPayments: "No payments yet.",
   kinds: { TRANSFER: "Bank transfer", CASH: "Cash", REFUND: "Refund" },

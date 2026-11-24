@@ -10,5 +10,7 @@ export default {
   menu: "Menu",
   closeMenu: "Close menu",
   back: "Back",
-  nav: { calendar: "Calendar", staff: "Staff", venues: "Venues" },
+  nav: { calendar: "Calendar", receiptChecks: "Receipt checks", staff: "Staff", venues: "Venues" },
+  /** A count badge read aloud, such as "3 waiting". */
+  waitingCount: (count: number) => `${count} waiting`,
 };

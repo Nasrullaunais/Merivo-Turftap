@@ -46,7 +46,7 @@ Status: `todo`, `doing`, `done`, `blocked` (waiting on a decision or an outside 
 | [T17](T17-console-booking-calendar.md) | Booking calendar | BKG-05 | T14 | done |
 | [T18](T18-console-walk-in.md) | Walk-in booking screen | BKG-04 | T10, T17 | done |
 | [T19](T19-console-booking-details.md) | Booking details: cancel, cash, refund | BKG-07, PAY-08, BKG-08 | T17 | done |
-| [T20](T20-console-receipt-checks.md) | Receipt check queue and screen | PAY-03 to PAY-07 | T13, T14 | todo |
+| [T20](T20-console-receipt-checks.md) | Receipt check queue and screen | PAY-03 to PAY-07 | T13, T14 | done |
 | [T21](T21-console-repeat-series.md) | Repeat series screen | BKG-09 | T15, T18 | todo |
 | **E. Memberships** |||||
 | [T22](T22-membership-plans.md) | Membership Plans (API + console) | MEM-01 | | todo |

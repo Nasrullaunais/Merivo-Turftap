@@ -24,18 +24,29 @@ type RowProps = {
   detail?: ReactNode;
   end?: ReactNode;
   landed?: boolean;
+  /** The one open beside the list, as in a queue. */
+  current?: boolean;
   /** Just removed: it fades out before it goes (`usePresence`). */
   leaving?: boolean;
 };
 
 /** One thing in a list: its tile or date, name and details, then its own buttons. */
-export function Row({ index, lead, title, detail, end, landed = false, leaving }: RowProps) {
+export function Row({
+  index,
+  lead,
+  title,
+  detail,
+  end,
+  landed = false,
+  current = false,
+  leaving,
+}: RowProps) {
   return (
     <li
       style={sweepIndex(index)}
       inert={leaving}
       aria-hidden={leaving || undefined}
-      className={`${leaving ? "tt-leaving" : ""} relative flex min-h-16 items-center gap-3 px-4 py-2.5 tt-t1 [&:has([data-row-link]:hover)]:bg-[var(--tt-hover)]`}
+      className={`${leaving ? "tt-leaving" : ""} ${current ? "bg-accent-soft" : ""} relative flex min-h-16 items-center gap-3 px-4 py-2.5 tt-t1 [&:has([data-row-link]:hover)]:bg-[var(--tt-hover)]`}
     >
       {landed && <span aria-hidden className="pointer-events-none absolute inset-0 tt-landed" />}
       {lead}

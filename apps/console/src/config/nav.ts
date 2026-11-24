@@ -1,6 +1,7 @@
-import { CalendarDays, type LucideIcon, MapPin, Users } from "lucide-react";
+import { CalendarDays, type LucideIcon, MapPin, ReceiptText, Users } from "lucide-react";
 
 import type { Hue } from "../components/look";
+import { useWaitingCount } from "../features/receipts/useReceiptChecks";
 import m from "../i18n/en/shell";
 import type { GuardedRoute } from "./routePermissions";
 
@@ -11,6 +12,8 @@ export type NavSection = {
   to: GuardedRoute;
   /** Pages that count as being in this section. */
   isIn: (pathname: string) => boolean;
+  /** How many things wait for someone to act; zero shows no badge. */
+  useCount?: () => number | undefined;
 };
 
 const under =
@@ -27,6 +30,14 @@ export const NAV_GROUPS: NavSection[][] = [
       hue: "booking",
       to: "/calendar",
       isIn: under("/calendar"),
+    },
+    {
+      label: m.nav.receiptChecks,
+      icon: ReceiptText,
+      hue: "money",
+      to: "/receipt-checks",
+      isIn: under("/receipt-checks"),
+      useCount: () => useWaitingCount().data,
     },
   ],
   [
