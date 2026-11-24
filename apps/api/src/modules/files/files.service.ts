@@ -82,6 +82,19 @@ export async function receipt(auth: AuthContext, id: number) {
   return file;
 }
 
+/** PAY-03: a receipt's bytes, for the AI to read; `undefined` if storage no longer has them. */
+export async function receiptContent(auth: AuthContext, id: number) {
+  const file = await get(auth, id, "RECEIPT");
+  return ports().storage.read(file.key);
+}
+
+/** PAY-06: the tenant's other receipt files with exactly the same bytes (D-13). */
+export async function sameReceiptImages(auth: AuthContext, id: number) {
+  const file = await get(auth, id, "RECEIPT");
+  if (file.sha256 === null) return [];
+  return filesRepository.idsWithSha256(auth.tenantId, file.sha256, id);
+}
+
 /** Receipt links work for a short while only; whoever may see the payment gets a fresh one. */
 export async function receiptUrls(auth: AuthContext, ids: number[]) {
   const files = await filesRepository.findByIds(auth.tenantId, ids);

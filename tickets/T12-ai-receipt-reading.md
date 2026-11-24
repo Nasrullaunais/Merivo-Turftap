@@ -1,6 +1,6 @@
 # T12 AI reads receipts, reused-receipt warning
 
-Status: todo · Stories: `PAY-03`, `PAY-06` · Depends on: T11 · Decisions: **D-12**, **D-13**
+Status: done · Stories: `PAY-03`, `PAY-06` · Depends on: T11 · Decisions: **D-12**, **D-13**
 
 ## Goal
 Each receipt is read by the AI in the background. Staff see a summary (amount matches, date recent, reference new) and a warning when the same receipt was used before in the tenant.
@@ -14,6 +14,8 @@ Each receipt is read by the AI in the background. Staff see a summary (amount ma
 - Summary flags on the payment item: `amountMatches`, `dateRecent` (**D-12**), `referenceNew`.
 - Duplicates (**D-13**): a payment in the same tenant whose receipt file has the same hash (`files.sha256`, saved by T11) or the same reference → `duplicateOf: { paymentId, bookingId }`. A warning only; it never blocks.
 - The job handler is an edge, so it may catch a reader failure and save "unreadable".
+- Decided with the user: the reading lives in its own table `receipt_readings` (one row per payment), and the flags and `duplicateOf` are worked out once by the job and saved. "Amount matches" means exactly the amount due.
+- The job handler doesn't catch: modules may not (architecture rule 12). The port promises never to reject instead, so the adapter turns a failure into "unreadable".
 - Add a port contract test (`ports/receipt-reader.contract-test.ts`) the fake passes and T39's Gemini adapter will pass.
 
 ## Done when

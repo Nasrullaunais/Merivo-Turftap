@@ -1,3 +1,4 @@
+import type { StoredFile } from "../../../ports/object-storage";
 import type { ReceiptReader, ReceiptReading } from "../../../ports/receipt-reader";
 
 /** Answers every receipt with `reading`; tests change it to try other answers. */
@@ -9,6 +10,9 @@ export function createFakeReceiptReader(
     reference: "FT0001",
   },
 ): ReceiptReader & { reading: ReceiptReading | undefined } {
-  const reader = { reading, read: async () => reader.reading };
+  const reader = {
+    reading,
+    read: async ({ body }: StoredFile) => (body.byteLength === 0 ? undefined : reader.reading),
+  };
   return reader;
 }

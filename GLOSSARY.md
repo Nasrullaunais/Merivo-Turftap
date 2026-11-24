@@ -142,6 +142,10 @@ _Avoid_: Slip, payment proof, invoice
 Staff's decision to accept or reject a transfer receipt, helped by an AI suggestion.
 _Avoid_: Verification, approval
 
+**Receipt Reading**:
+What the AI read from a Transfer Receipt (amount, date paid, bank, reference), with whether the amount matches, the date is recent and the receipt was used before. It only helps the Receipt Check; it never accepts or rejects anything.
+_Avoid_: Scan, OCR result, AI verdict
+
 **Advance**:
 The part of a booking's price a venue asks for before the booking is confirmed; the rest is paid at the venue. Each venue sets it as a percentage; 100% means the full amount.
 _Avoid_: Deposit, down payment

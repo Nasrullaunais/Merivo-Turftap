@@ -1235,6 +1235,110 @@
           "tenants"
         ]
       },
+      "ReceiptReading": {
+        "type": "object",
+        "properties": {
+          "unreadable": {
+            "type": "boolean"
+          },
+          "amount": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Money"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "paidOn": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "bank": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "reference": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "amountMatches": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "dateRecent": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "referenceNew": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "duplicateOf": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "paymentId": {
+                    "type": "integer",
+                    "exclusiveMinimum": 0,
+                    "maximum": 9007199254740991
+                  },
+                  "bookingId": {
+                    "anyOf": [
+                      {
+                        "type": "integer",
+                        "exclusiveMinimum": 0,
+                        "maximum": 9007199254740991
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
+                "required": [
+                  "paymentId",
+                  "bookingId"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "unreadable",
+          "amount",
+          "paidOn",
+          "bank",
+          "reference",
+          "amountMatches",
+          "dateRecent",
+          "referenceNew",
+          "duplicateOf"
+        ]
+      },
       "Payment": {
         "type": "object",
         "properties": {
@@ -1291,6 +1395,16 @@
               "null"
             ]
           },
+          "receiptReading": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ReceiptReading"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "createdBy": {
             "anyOf": [
               {
@@ -1323,6 +1437,7 @@
           "amount",
           "note",
           "receiptUrl",
+          "receiptReading",
           "createdBy",
           "createdAt",
           "updatedAt"

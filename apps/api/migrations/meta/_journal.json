@@ -141,6 +141,13 @@
       "when": 1795473349217,
       "tag": "0019_transfer_receipts",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1795476394878,
+      "tag": "0020_receipt_readings",
+      "breakpoints": true
     }
   ]
 }
