@@ -28,6 +28,7 @@ const MS_PER_MINUTE = 60 * 1000;
 const FIRST_HOUR = 6;
 const PRICE_RUPEES = 3_000;
 const PAYMENT_TIME_LIMIT_MINUTES = 45;
+const REMINDER_HOURS = 3;
 const openAllWeek = [1, 2, 3, 4, 5, 6, 7].map((weekday) => ({
   weekday,
   opens: "06:00",
@@ -174,6 +175,20 @@ describe("PAY-04, PAY-05 accept or reject a receipt", () => {
         template: WHATSAPP_TEMPLATES.bookingConfirmed,
         values: [expect.any(String), expect.any(String), expect.any(String)],
       },
+    ]);
+  });
+
+  it("accept_queuesAReminderThreeHoursBeforeStart", async () => {
+    const { booking, paymentId } = await waitingForCheck();
+
+    await accept(asFrontDesk(), paymentId);
+
+    const { startsAt } = await bookingOf(booking.id);
+    const { rows } = await db().execute(
+      sql`select start_after from pgboss.job where name = 'booking-reminder' and (data->>'bookingId')::int = ${booking.id}`,
+    );
+    expect(rows.map((row) => new Date(row.start_after as string).getTime())).toEqual([
+      new Date(startsAt).getTime() - REMINDER_HOURS * MINUTES_PER_HOUR * MS_PER_MINUTE,
     ]);
   });
 

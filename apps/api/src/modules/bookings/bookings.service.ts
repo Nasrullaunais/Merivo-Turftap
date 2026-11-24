@@ -24,7 +24,7 @@ import * as resourcesService from "../venues/resources.service";
 import * as venuesService from "../venues/venues.service";
 import * as availabilityService from "./availability.service";
 import { bookingErrors } from "./bookings.errors";
-import { expireBookingJob } from "./bookings.jobs";
+import { bookingReminderJob, expireBookingJob } from "./bookings.jobs";
 import * as bookingsRepository from "./bookings.repository";
 import { bookingTransitions } from "./bookings.transitions";
 
@@ -38,6 +38,7 @@ type Venue = Awaited<ReturnType<typeof venuesService.get>>;
 
 const MS_PER_MINUTE = 60 * 1000;
 const MS_PER_HOUR = 60 * MS_PER_MINUTE;
+const BOOKING_REMINDER_HOURS = 3;
 
 const isCustomerSide = (auth: AuthContext) =>
   auth.actor === "customer" || auth.actor === "assistant";
@@ -168,6 +169,7 @@ export async function create(auth: AuthContext, input: CreateBooking) {
       cancellationCutOffHours: venue.cancellationCutOffHours,
     });
     eventsService.publish(auth, "booking.changed", booking);
+    if (booking.status === "CONFIRMED") await queueReminder(auth, booking);
     if (expiresAt)
       await expireBookingJob.queue(
         { tenantId: auth.tenantId, bookingId: booking.id },
@@ -205,6 +207,7 @@ async function createWalkIn(auth: AuthContext, input: CreateBooking, walkIn: Wal
       cancellationCutOffHours: venue.cancellationCutOffHours,
     });
     eventsService.publish(auth, "booking.changed", booking);
+    await queueReminder(auth, booking);
     if (walkIn.payment === "CASH") await bookingPaymentsService.recordWalkInCash(auth, booking);
     return replyOf(booking, await detailsOfOne(auth, booking));
   });
@@ -238,7 +241,18 @@ export async function receiptAccepted(auth: AuthContext, id: number) {
   );
   if (!confirmed) return;
   eventsService.publish(auth, "booking.changed", confirmed);
+  await queueReminder(auth, confirmed);
   await tellCustomer(auth, confirmed, WHATSAPP_TEMPLATES.bookingConfirmed);
+}
+
+/** BKG-10: call when a booking becomes confirmed. No reminder if its time has already passed. */
+export async function queueReminder(auth: AuthContext, booking: { id: number; startsAt: Date }) {
+  const remindAt = new Date(booking.startsAt.getTime() - BOOKING_REMINDER_HOURS * MS_PER_HOUR);
+  if (remindAt.getTime() <= Date.now()) return;
+  await bookingReminderJob.queue(
+    { tenantId: auth.tenantId, bookingId: booking.id },
+    { startAfter: remindAt },
+  );
 }
 
 /**
