@@ -56,7 +56,19 @@ These are still resources, with only the operations that make sense:
 | `me` | get (`/v1/me`) | The signed-in user, their tenants and roles. Declared with `defineSingleton()`: one GET about the caller, with no id and no tenant header. |
 | `files` | create | Uploads one file as a multipart form (`file`, `purpose`) and returns its id, which another resource then points at (`POST /v1/photos { fileId }`, `POST /v1/payments { kind: "TRANSFER", fileId }`). The resource declares `upload: { maxBytes }`; a body much larger is cut off with 413 before it is read. The API checks the file's first bytes, not the name or type the browser sends: photos are JPG or PNG, receipts JPG, PNG or PDF. Customers and the Assistant may upload receipts only. There is no get: download links come with the resource that uses the file, such as a photo's `url` or a payment's `receiptUrl`. |
 | `whatsapp-numbers` | list | The Assistant finds which tenant a chat belongs to (`?phoneNumberId=`), before it knows the tenant. Declared with `forAssistantWithoutTenant: ["list"]`: nobody else may call it, no tenant header is needed, and the service receives a `Caller` without a tenant. Platform Admins link numbers with scripts, not the API. |
-| `events` | list | A Server-Sent Events stream (the server keeps the connection open and pushes events), so the console updates without refreshing. Events carry only a type and an id; the screen refetches. |
+| `events` | list | A Server-Sent Events stream (the server keeps the connection open and pushes events), so the console updates without refreshing. Events carry only a type and an id; the screen refetches. See [Live updates](#live-updates-events). |
+
+## Live updates (`events`)
+
+`GET /v1/events` is declared with `defineStream()`, not `defineResource()`, because it stays open instead of replying once ([tickets D-11](../../tickets/README.md#open-decisions)).
+
+- Only staff and Platform Admins of the chosen tenant may open it. A caller gets only events for their tenant, their venues (`venueIds`), and resources their role may read (`booking.changed` needs `bookings:read`).
+- Each event's `data` is `{ "type": "booking.changed", "id": 42 }`, without the reply envelope. Types: `booking.changed`, `payment.changed`.
+- Services call `eventsService.publish()` right after a change. Inside `transaction()` the event goes out only after the commit, so a rolled-back change sends nothing.
+- A comment line goes out every 8 seconds, because Bun closes a connection that sends nothing for 10.
+- Who the caller is gets checked once, when the stream opens. A staff member removed meanwhile keeps getting ids until they reconnect; any refetch they then make is refused.
+- Events are not stored. After a dropped connection the console refetches everything instead of asking for what it missed.
+- **One API process only.** The event bus lives in that process's memory. A second API process would not see the first one's events; it would need Postgres `LISTEN/NOTIFY` to share them.
 
 ## The one exception: vendor callbacks
 

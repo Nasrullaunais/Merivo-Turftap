@@ -17,6 +17,7 @@ import { type ListQuery, statusChangedMeanwhile } from "../../lib/resource";
 import { describeInstant, wallClockAt } from "../../lib/time";
 import { WHATSAPP_TEMPLATES, type WhatsAppTemplate } from "../../ports/messaging-channel";
 import * as customersService from "../customers/customers.service";
+import * as eventsService from "../notifications/events.service";
 import * as notificationsService from "../notifications/notifications.service";
 import * as bookingPaymentsService from "../payments/booking-payments.service";
 import * as resourcesService from "../venues/resources.service";
@@ -166,6 +167,7 @@ export async function create(auth: AuthContext, input: CreateBooking) {
       expiresAt,
       cancellationCutOffHours: venue.cancellationCutOffHours,
     });
+    eventsService.publish(auth, "booking.changed", booking);
     if (expiresAt)
       await expireBookingJob.queue(
         { tenantId: auth.tenantId, bookingId: booking.id },
@@ -202,6 +204,7 @@ async function createWalkIn(auth: AuthContext, input: CreateBooking, walkIn: Wal
       expiresAt: null,
       cancellationCutOffHours: venue.cancellationCutOffHours,
     });
+    eventsService.publish(auth, "booking.changed", booking);
     if (walkIn.payment === "CASH") await bookingPaymentsService.recordWalkInCash(auth, booking);
     return replyOf(booking, await detailsOfOne(auth, booking));
   });
@@ -219,6 +222,7 @@ export async function receiptSent(auth: AuthContext, id: number) {
     "AWAITING_CHECK",
   );
   if (!booking) throw statusChangedMeanwhile();
+  eventsService.publish(auth, "booking.changed", booking);
 }
 
 /**
@@ -232,7 +236,9 @@ export async function receiptAccepted(auth: AuthContext, id: number) {
     "AWAITING_CHECK",
     "CONFIRMED",
   );
-  if (confirmed) await tellCustomer(auth, confirmed, WHATSAPP_TEMPLATES.bookingConfirmed);
+  if (!confirmed) return;
+  eventsService.publish(auth, "booking.changed", confirmed);
+  await tellCustomer(auth, confirmed, WHATSAPP_TEMPLATES.bookingConfirmed);
 }
 
 /**
@@ -251,6 +257,7 @@ export async function receiptRejected(auth: AuthContext, id: number, reason: str
       { cancelReason: reason },
     );
     if (!cancelled) throw statusChangedMeanwhile();
+    eventsService.publish(auth, "booking.changed", cancelled);
     await tellCustomer(auth, cancelled, WHATSAPP_TEMPLATES.bookingCancelled, [reason]);
     return;
   }
@@ -264,6 +271,7 @@ export async function receiptRejected(auth: AuthContext, id: number, reason: str
     { expiresAt },
   );
   if (!reopened) throw statusChangedMeanwhile();
+  eventsService.publish(auth, "booking.changed", reopened);
   await expireBookingJob.queue(
     { tenantId: auth.tenantId, bookingId: id },
     { startAfter: expiresAt },
@@ -323,6 +331,7 @@ export async function update(auth: AuthContext, id: number, input: UpdateBooking
       { cancelReason },
     );
     if (!cancelled) throw statusChangedMeanwhile();
+    eventsService.publish(auth, "booking.changed", cancelled);
     if (auth.actor === "staff" && cancelReason)
       await tellCustomer(auth, cancelled, WHATSAPP_TEMPLATES.bookingCancelled, [cancelReason]);
     return replyOf(cancelled, await detailsOfOne(auth, cancelled));

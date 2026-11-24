@@ -209,6 +209,11 @@ export type UpdateClosedDate = {
     reason?: string | null;
 };
 
+export type LiveEvent = {
+    type: 'booking.changed' | 'payment.changed';
+    id: number;
+};
+
 export const FilePurpose = { PHOTO: 'PHOTO', RECEIPT: 'RECEIPT' } as const;
 
 export type FilePurpose = typeof FilePurpose[keyof typeof FilePurpose];
@@ -2149,3 +2154,28 @@ export type UpdatePaymentResponses = {
 };
 
 export type UpdatePaymentResponse = UpdatePaymentResponses[keyof UpdatePaymentResponses];
+
+export type ListEventsData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/v1/events';
+};
+
+export type ListEventsErrors = {
+    /**
+     * Error
+     */
+    default: ErrorReply;
+};
+
+export type ListEventsError = ListEventsErrors[keyof ListEventsErrors];
+
+export type ListEventsResponses = {
+    /**
+     * A stream of Server-Sent Events that stays open
+     */
+    200: LiveEvent;
+};
+
+export type ListEventsResponse = ListEventsResponses[keyof ListEventsResponses];

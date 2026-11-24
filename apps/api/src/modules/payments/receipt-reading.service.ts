@@ -3,6 +3,7 @@ import { todayIn, wallClockAt } from "../../lib/time";
 import { ports } from "../../ports";
 import * as bookingsService from "../bookings/bookings.service";
 import * as filesService from "../files/files.service";
+import * as eventsService from "../notifications/events.service";
 import * as venuesService from "../venues/venues.service";
 import * as paymentsRepository from "./payments.repository";
 
@@ -61,4 +62,5 @@ export async function read(tenantId: number, paymentId: number) {
     referenceNew: reference === null ? null : sameReference === undefined,
     duplicateOf: earliest(sameImage, sameReference)?.id ?? null,
   });
+  eventsService.publish(auth, "payment.changed", payment);
 }

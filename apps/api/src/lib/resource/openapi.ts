@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import type { AnyDefinition, Operation, SingletonDefinition } from "./types";
+import type { AnyDefinition, Operation, SingletonDefinition, StreamDefinition } from "./types";
 type JsonSchema = Record<string, unknown>;
 
 const ref = (schema: z.ZodType, what: string) => {
@@ -143,6 +143,26 @@ export function describeSingleton(def: SingletonDefinition<z.ZodType>) {
         operationId: `get${pascal(def.name)}`,
         security: [{ bearerAuth: [] }],
         responses: { 200: reply("Found", ref(def.schemas.item, `${def.name} item`)), ...ERRORS },
+      },
+    },
+  };
+}
+
+/** Each event's `data` is one item as JSON, not wrapped in the reply envelope. */
+export function describeStream(def: StreamDefinition<z.ZodType>) {
+  return {
+    [`/v1/${def.name}`]: {
+      get: {
+        tags: [def.name],
+        operationId: `list${pascal(def.name)}`,
+        security: [{ bearerAuth: [] }],
+        responses: {
+          200: {
+            description: "A stream of Server-Sent Events that stays open",
+            content: { "text/event-stream": { schema: ref(def.schemas.item, `${def.name} item`) } },
+          },
+          ...ERRORS,
+        },
       },
     },
   };

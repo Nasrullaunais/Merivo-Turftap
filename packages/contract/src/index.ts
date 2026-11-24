@@ -3,6 +3,7 @@ export * from "./bookings";
 export * from "./closed-dates";
 export * from "./common";
 export * from "./customers";
+export * from "./events";
 export * from "./files";
 export * from "./me";
 export * from "./payments";
