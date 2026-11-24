@@ -139,7 +139,17 @@ The handler uses the repository, not the service: the service imports the job to
 
 A job queued inside `transaction()` is saved with the data, so it never runs for a row that didn't save. Handlers must check the row's state when they run, because things may have moved on.
 
-A job gets a queue and a worker only if its file is loaded before `startJobs()`. `app.ts` loads most of them through the routes; a module with jobs but no routes, like `notifications`, is imported in `app.ts` directly.
+A job gets a queue and a worker only if its file is loaded before `startJobs()`. `app.ts` loads most of them through the routes; a jobs file no route loads, like `notifications.jobs.ts`, is imported in `app.ts` directly.
+
+## Live updates
+
+A service that changes a booking or payment tells open consoles, right after the repository call:
+
+```ts
+eventsService.publish(auth, "booking.changed", booking);   // notifications/events.service.ts
+```
+
+Inside `transaction()` the event goes out only once the transaction commits. A new kind of change adds its type to `LIVE_EVENT_TYPES` in `packages/contract/src/events.ts`, and to the read permission it needs in `events.service.ts`. Details: [api.md](api.md#live-updates-events).
 
 ## Ports and adapters
 

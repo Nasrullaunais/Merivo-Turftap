@@ -1,6 +1,6 @@
 # T14 Live updates (`events`)
 
-Status: todo · Stories: part of `BKG-05`, `PAY-07` · Depends on: T06 · Decision: **D-11**
+Status: done · Stories: part of `BKG-05`, `PAY-07` · Depends on: T06 · Decision: **D-11**
 
 ## Goal
 The Staff Console updates without refreshing when a booking or payment changes.

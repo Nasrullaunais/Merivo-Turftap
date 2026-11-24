@@ -100,14 +100,19 @@ type As = {
   customerPhone?: string;
 };
 
-/** Sends a request through the whole app, signed in with the fake auth provider. */
-export async function call(method: string, path: string, as: As = {}, body?: unknown) {
+function headersFor(as: As): Record<string, string> {
   const headers: Record<string, string> = {};
   if (as.phone) headers.Authorization = `Bearer ${fakeTokenFor(as.phone)}`;
   if (as.assistantKey) headers.Authorization = `Assistant ${as.assistantKey}`;
   if (as.tenantId !== undefined) headers["X-Tenant-Id"] = String(as.tenantId);
   if (as.tenantSlug) headers["X-Tenant-Slug"] = as.tenantSlug;
   if (as.customerPhone) headers["X-Customer-Phone"] = as.customerPhone;
+  return headers;
+}
+
+/** Sends a request through the whole app, signed in with the fake auth provider. */
+export async function call(method: string, path: string, as: As = {}, body?: unknown) {
+  const headers = headersFor(as);
   const isForm = body instanceof FormData;
   if (body !== undefined && !isForm) headers["Content-Type"] = "application/json";
   const response = await app.request(path, {
@@ -121,6 +126,36 @@ export async function call(method: string, path: string, as: As = {}, body?: unk
     // oxlint-disable-next-line typescript/no-explicit-any -- tests read whatever the reply holds
     body: (await response.json()) as any,
   };
+}
+
+const EVENT_WAIT_MS = 2_000;
+
+/**
+ * Opens GET /v1/events. `next()` gives the next event's data, skipping heartbeats, and fails if
+ * none comes soon. Call `close()` when done, as a browser leaving the page would.
+ */
+export async function openEvents(as: As) {
+  const response = await app.request("/v1/events", { headers: headersFor(as) });
+  const reader = response.body!.pipeThrough(new TextDecoderStream()).getReader();
+  let buffer = "";
+  async function next(): Promise<unknown> {
+    for (;;) {
+      const end = buffer.indexOf("\n\n");
+      if (end >= 0) {
+        const message = buffer.slice(0, end);
+        buffer = buffer.slice(end + 2);
+        const data = message.split("\n").find((line) => line.startsWith("data: "));
+        if (data) return JSON.parse(data.slice("data: ".length));
+        continue;
+      }
+      const timeout = Bun.sleep(EVENT_WAIT_MS).then(() => "timeout" as const);
+      const read = await Promise.race([reader.read(), timeout]);
+      if (read === "timeout") throw new Error(`No event within ${EVENT_WAIT_MS} ms`);
+      if (read.done) throw new Error("The event stream ended");
+      buffer += read.value;
+    }
+  }
+  return { status: response.status, response, next, close: () => reader.cancel() };
 }
 
 /** SIG-06: has the tenant's Owner limit this staff member to these venues. */

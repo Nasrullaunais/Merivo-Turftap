@@ -1,6 +1,7 @@
 import type { Money } from "@turftap/contract";
 
 import type { AuthContext } from "../../lib/auth/context";
+import * as eventsService from "../notifications/events.service";
 import * as paymentsRepository from "./payments.repository";
 
 /**
@@ -15,11 +16,11 @@ export async function paidFor(auth: AuthContext, bookingIds: number[]) {
 }
 
 /** BKG-04: a walk-in paid in cash at the desk. Called inside the transaction that saves it. */
-export function recordWalkInCash(
+export async function recordWalkInCash(
   auth: AuthContext,
   booking: { id: number; venueId: number; price: Money },
 ) {
-  return paymentsRepository.insert(auth.tenantId, {
+  const payment = await paymentsRepository.insert(auth.tenantId, {
     venueId: booking.venueId,
     bookingId: booking.id,
     kind: "CASH",
@@ -29,4 +30,5 @@ export function recordWalkInCash(
     note: null,
     createdBy: auth.userId ?? null,
   });
+  eventsService.publish(auth, "payment.changed", payment);
 }

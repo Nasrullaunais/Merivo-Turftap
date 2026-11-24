@@ -68,6 +68,9 @@ describe("SIG-01 sign in to the Staff Console", () => {
     expect(await signInHeading()).toBeInTheDocument();
     await router.navigate({ to: "/" });
     expect(await signInHeading()).toBeInTheDocument();
-    expect(fetch).toHaveBeenCalledTimes(1);
+    const meCalls = fetch.mock.calls.filter(([request]) =>
+      (request as Request).url.endsWith("/v1/me"),
+    );
+    expect(meCalls).toHaveLength(1);
   });
 });

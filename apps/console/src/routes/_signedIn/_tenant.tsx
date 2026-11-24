@@ -1,6 +1,7 @@
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 
 import { TopBar } from "../../layout/TopBar";
+import { useLiveUpdates } from "../../lib/live-updates/useLiveUpdates";
 import { chooseTenant, setActiveTenantId } from "../../lib/tenant/activeTenant";
 
 export const Route = createFileRoute("/_signedIn/_tenant")({
@@ -17,6 +18,7 @@ export const Route = createFileRoute("/_signedIn/_tenant")({
 
 function TenantLayout() {
   const { me, tenant } = Route.useRouteContext();
+  useLiveUpdates(tenant?.id);
   return (
     <>
       <TopBar tenant={tenant} canSwitchTenant={me.tenants.length > 1} />

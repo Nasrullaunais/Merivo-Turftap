@@ -76,3 +76,12 @@ export type AnyDefinition = ResourceDefinition<
   z.ZodObject,
   string
 >;
+
+export type StreamDefinition<Item extends z.ZodType> = {
+  name: string;
+  schemas: { item: Item };
+  /** Calls `send` for each item the caller may see, until the returned function is called. */
+  service: {
+    subscribe: (auth: AuthContext, send: (item: z.output<Item>) => void) => () => void;
+  };
+};

@@ -14,6 +14,7 @@ import { httpErrors } from "../../lib/errors";
 import { type ListQuery, statusChangedMeanwhile } from "../../lib/resource";
 import * as bookingsService from "../bookings/bookings.service";
 import * as filesService from "../files/files.service";
+import * as eventsService from "../notifications/events.service";
 import { paymentErrors } from "./payments.errors";
 import { readReceiptJob } from "./payments.jobs";
 import * as paymentsRepository from "./payments.repository";
@@ -107,6 +108,7 @@ function sendTransferReceipt(auth: AuthContext, { bookingId, fileId }: SendTrans
       fileId: file.id,
       createdBy: auth.userId ?? null,
     });
+    eventsService.publish(auth, "payment.changed", payment);
     await bookingsService.receiptSent(auth, booking.id);
     await readReceiptJob.queue({ tenantId: auth.tenantId, paymentId: payment.id });
     const [withUrl] = await withReceipts(auth, [payment]);
@@ -137,6 +139,7 @@ async function record(auth: AuthContext, input: RecordPayment) {
       note: input.note,
       createdBy: auth.userId ?? null,
     });
+    eventsService.publish(auth, "payment.changed", payment);
     const [withUrl] = await withReceipts(auth, [payment]);
     return withUrl!;
   });
@@ -159,6 +162,7 @@ export async function update(auth: AuthContext, id: number, input: UpdatePayment
       { rejectReason: rejectReason ?? null },
     );
     if (!checked) throw statusChangedMeanwhile();
+    eventsService.publish(auth, "payment.changed", checked);
     if (checked.bookingId !== null) {
       if (rejectReason === undefined)
         await bookingsService.receiptAccepted(auth, checked.bookingId);
