@@ -1,6 +1,6 @@
 # T22 Membership Plans (API + console)
 
-Status: todo · Stories: `MEM-01` · Depends on: none
+Status: done · Stories: `MEM-01` · Depends on: none
 
 ## Goal
 A Manager creates Membership Plans for a venue (name, length in days or months, price) and can turn one off. Existing memberships keep working.
@@ -12,7 +12,8 @@ A Manager creates Membership Plans for a venue (name, length in days or months, 
 ## Build
 - Module `apps/api/src/modules/memberships/` (area `mem`). Table `membership_plans`: `tenantId`, `venueId`, `name`, `lengthCount`, `lengthUnit` (`DAYS`, `MONTHS`), price (`priceColumns`), `active`. Unique name per venue among active plans.
 - Resource `membership-plans`: all five operations; delete turns it off. Public: list, get (only active plans for the public). Venue-scope test.
-- Console: plans list and add form on the venue page; turn off.
+- Console: a Membership Plans page under a new Memberships sidebar section (the first section with sub-pages), plans grouped by venue, add form, turn off. (Chosen with the user over "on the venue page", to match console-design.md §5.1.)
+- Length limits: 1–365 days or 1–24 months (`MAX_PLAN_LENGTH` in the contract).
 - Permissions from `api.md`.
 
 ## Done when

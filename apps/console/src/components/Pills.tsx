@@ -19,6 +19,8 @@ type ChoiceProps<T extends string> = {
   value: T;
   onChange: (value: T) => void;
   choices: Choice<T>[];
+  /** For a group whose name is already shown beside it, such as a length's unit. */
+  hideLabel?: boolean;
 };
 
 /** Pick one of a handful, all in view (console-design.md §9 "Form"). */
@@ -31,7 +33,7 @@ export function ChoicePills<T extends string>(props: ChoiceProps<T>) {
       onChange={(value) => props.onChange(value as T)}
       className="grid gap-2"
     >
-      <Label>{props.label}</Label>
+      <Label className={props.hideLabel ? "sr-only" : undefined}>{props.label}</Label>
       {props.description && <Description>{props.description}</Description>}
       <div className="flex flex-wrap gap-2">
         {props.choices.map(({ value, label, icon: Icon, isDisabled }) => (

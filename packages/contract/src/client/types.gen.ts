@@ -281,7 +281,11 @@ export const Permission = {
     PAYMENTS_READ: 'payments:read',
     PAYMENTS_CREATE: 'payments:create',
     PAYMENTS_UPDATE: 'payments:update',
-    PAYMENTS_DELETE: 'payments:delete'
+    PAYMENTS_DELETE: 'payments:delete',
+    MEMBERSHIP_PLANS_READ: 'membership-plans:read',
+    MEMBERSHIP_PLANS_CREATE: 'membership-plans:create',
+    MEMBERSHIP_PLANS_UPDATE: 'membership-plans:update',
+    MEMBERSHIP_PLANS_DELETE: 'membership-plans:delete'
 } as const;
 
 export type Permission = typeof Permission[keyof typeof Permission];
@@ -332,6 +336,37 @@ export type Me = {
     name: string | null;
     isPlatformAdmin: boolean;
     tenants: Array<MyTenant>;
+};
+
+export const PlanLengthUnit = { DAYS: 'DAYS', MONTHS: 'MONTHS' } as const;
+
+export type PlanLengthUnit = typeof PlanLengthUnit[keyof typeof PlanLengthUnit];
+
+export type MembershipPlan = {
+    id: number;
+    venueId: number;
+    name: string;
+    lengthCount: number;
+    lengthUnit: PlanLengthUnit;
+    price: Money;
+    active: boolean;
+    createdAt: string;
+    updatedAt: string;
+};
+
+export type CreateMembershipPlan = {
+    venueId: number;
+    name: string;
+    lengthCount: number;
+    lengthUnit: PlanLengthUnit;
+    price: PriceInput;
+};
+
+export type UpdateMembershipPlan = {
+    name?: string;
+    lengthCount?: number;
+    lengthUnit?: PlanLengthUnit;
+    price?: PriceInput;
 };
 
 export type ReceiptReading = {
@@ -2330,6 +2365,169 @@ export type UpdatePaymentResponses = {
 };
 
 export type UpdatePaymentResponse = UpdatePaymentResponses[keyof UpdatePaymentResponses];
+
+export type ListMembershipPlansData = {
+    body?: never;
+    path?: never;
+    query?: {
+        page?: number;
+        size?: number;
+        sort?: 'name,asc' | 'name,desc' | 'createdAt,asc' | 'createdAt,desc';
+        venueId?: number;
+        active?: 'true' | 'false';
+    };
+    url: '/v1/membership-plans';
+};
+
+export type ListMembershipPlansErrors = {
+    /**
+     * Error
+     */
+    default: ErrorReply;
+};
+
+export type ListMembershipPlansError = ListMembershipPlansErrors[keyof ListMembershipPlansErrors];
+
+export type ListMembershipPlansResponses = {
+    /**
+     * One page
+     */
+    200: {
+        status: number;
+        message: string;
+        data: {
+            content: Array<MembershipPlan>;
+            page: number;
+            size: number;
+            totalElements: number;
+            totalPages: number;
+        };
+    };
+};
+
+export type ListMembershipPlansResponse = ListMembershipPlansResponses[keyof ListMembershipPlansResponses];
+
+export type CreateMembershipPlanData = {
+    body: CreateMembershipPlan;
+    path?: never;
+    query?: never;
+    url: '/v1/membership-plans';
+};
+
+export type CreateMembershipPlanErrors = {
+    /**
+     * Error
+     */
+    default: ErrorReply;
+};
+
+export type CreateMembershipPlanError = CreateMembershipPlanErrors[keyof CreateMembershipPlanErrors];
+
+export type CreateMembershipPlanResponses = {
+    /**
+     * Created
+     */
+    201: {
+        status: number;
+        message: string;
+        data: MembershipPlan;
+    };
+};
+
+export type CreateMembershipPlanResponse = CreateMembershipPlanResponses[keyof CreateMembershipPlanResponses];
+
+export type DeleteMembershipPlanData = {
+    body?: never;
+    path: {
+        id: number;
+    };
+    query?: never;
+    url: '/v1/membership-plans/{id}';
+};
+
+export type DeleteMembershipPlanErrors = {
+    /**
+     * Error
+     */
+    default: ErrorReply;
+};
+
+export type DeleteMembershipPlanError = DeleteMembershipPlanErrors[keyof DeleteMembershipPlanErrors];
+
+export type DeleteMembershipPlanResponses = {
+    /**
+     * Deleted
+     */
+    200: {
+        status: number;
+        message: string;
+        data: null;
+    };
+};
+
+export type DeleteMembershipPlanResponse = DeleteMembershipPlanResponses[keyof DeleteMembershipPlanResponses];
+
+export type GetMembershipPlanData = {
+    body?: never;
+    path: {
+        id: number;
+    };
+    query?: never;
+    url: '/v1/membership-plans/{id}';
+};
+
+export type GetMembershipPlanErrors = {
+    /**
+     * Error
+     */
+    default: ErrorReply;
+};
+
+export type GetMembershipPlanError = GetMembershipPlanErrors[keyof GetMembershipPlanErrors];
+
+export type GetMembershipPlanResponses = {
+    /**
+     * Found
+     */
+    200: {
+        status: number;
+        message: string;
+        data: MembershipPlan;
+    };
+};
+
+export type GetMembershipPlanResponse = GetMembershipPlanResponses[keyof GetMembershipPlanResponses];
+
+export type UpdateMembershipPlanData = {
+    body: UpdateMembershipPlan;
+    path: {
+        id: number;
+    };
+    query?: never;
+    url: '/v1/membership-plans/{id}';
+};
+
+export type UpdateMembershipPlanErrors = {
+    /**
+     * Error
+     */
+    default: ErrorReply;
+};
+
+export type UpdateMembershipPlanError = UpdateMembershipPlanErrors[keyof UpdateMembershipPlanErrors];
+
+export type UpdateMembershipPlanResponses = {
+    /**
+     * Changed
+     */
+    200: {
+        status: number;
+        message: string;
+        data: MembershipPlan;
+    };
+};
+
+export type UpdateMembershipPlanResponse = UpdateMembershipPlanResponses[keyof UpdateMembershipPlanResponses];
 
 export type ListEventsData = {
     body?: never;

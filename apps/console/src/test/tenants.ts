@@ -51,6 +51,10 @@ const PERMISSIONS: Record<StaffRole, Permission[]> = {
     "payments:create",
     "payments:update",
     "payments:delete",
+    "membership-plans:read",
+    "membership-plans:create",
+    "membership-plans:update",
+    "membership-plans:delete",
   ],
   MANAGER: [
     "staff:read",
@@ -92,6 +96,10 @@ const PERMISSIONS: Record<StaffRole, Permission[]> = {
     "payments:create",
     "payments:update",
     "payments:delete",
+    "membership-plans:read",
+    "membership-plans:create",
+    "membership-plans:update",
+    "membership-plans:delete",
   ],
   FRONT_DESK: [
     "venues:read",
@@ -111,6 +119,7 @@ const PERMISSIONS: Record<StaffRole, Permission[]> = {
     "payments:read",
     "payments:create",
     "payments:update",
+    "membership-plans:read",
   ],
 };
 
