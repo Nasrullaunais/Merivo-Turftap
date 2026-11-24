@@ -1,6 +1,8 @@
 import type { Booking, Venue } from "@turftap/contract/client";
+import { Globe, LayoutGrid, MapPin } from "lucide-react";
 import { useState } from "react";
 
+import { EmptyState } from "../../components/EmptyState";
 import m from "../../i18n/en/calendar";
 import { addDays, type CalendarView, datesShown, layOut, onVenueClock } from "./calendarGrid";
 import { CalendarGrid, type SlotPress } from "./CalendarGrid";
@@ -21,7 +23,12 @@ export function BookingCalendar(props: Props) {
   const venue = venues?.find((each) => each.id === venueId) ?? venues?.[0];
 
   if (isPending) return <CalendarSkeleton label={m.loading} withToolbar />;
-  if (!venues || !venue) return <p className="text-muted">{m.noVenues}</p>;
+  if (!venues || !venue)
+    return (
+      <EmptyState hue="place" icon={MapPin}>
+        {m.noVenues}
+      </EmptyState>
+    );
   return (
     <VenueCalendar
       key={venue.id}
@@ -50,7 +57,7 @@ function VenueCalendar({
   const layout = layOut({ venue, dates, resources: resourcesShown, ...shown });
 
   return (
-    <div className="grid gap-4">
+    <div className="grid gap-5">
       <CalendarToolbar
         venues={venues}
         venue={venue}
@@ -63,13 +70,24 @@ function VenueCalendar({
         onMove={(steps) => setDate(addDays(date, steps * (view === "day" ? 1 : DAYS_PER_WEEK)))}
         onToday={() => setDate(today())}
       />
-      <div className="grid gap-1">
-        <h2 className="text-lg font-semibold">{m.heading(dates[0]!, dates.at(-1)!)}</h2>
-        <p className="text-sm text-muted">{m.timeZoneHint(venue.timeZone)}</p>
+      <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
+        <div className="grid gap-1">
+          <h2 className="text-3xl font-semibold tracking-tight tabular-nums">
+            {m.heading(dates[0]!, dates.at(-1)!)}
+          </h2>
+          <p className="inline-flex items-center gap-1.5 text-sm text-muted">
+            <Globe aria-hidden size={14} />
+            {m.timeZone(venue.timeZone)}
+          </p>
+        </div>
+        <StateLegend />
       </div>
-      <StateLegend />
       {isPending && <CalendarSkeleton label={m.loading} />}
-      {!isPending && resources.length === 0 && <p className="text-muted">{m.noResources}</p>}
+      {!isPending && resources.length === 0 && (
+        <EmptyState hue="place" icon={LayoutGrid}>
+          {m.noResources}
+        </EmptyState>
+      )}
       {!isPending && resources.length > 0 && (
         <CalendarGrid view={view} timeZone={venue.timeZone} {...layout} {...handlers} />
       )}

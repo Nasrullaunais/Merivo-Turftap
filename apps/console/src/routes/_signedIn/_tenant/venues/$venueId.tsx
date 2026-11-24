@@ -1,15 +1,18 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { Id } from "@turftap/contract";
 
+import { AddSlot } from "../../../../components/AddSlot";
+import { BackLink } from "../../../../components/BackLink";
 import { canOpen } from "../../../../config/routePermissions";
 import { ClosedDateList } from "../../../../features/closed-dates/ClosedDateList";
 import { CloseDateForm } from "../../../../features/closed-dates/CloseDateForm";
+import { PhotoGallery } from "../../../../features/photos/PhotoGallery";
 import { AddResourceForm } from "../../../../features/resources/AddResourceForm";
 import { ResourceList } from "../../../../features/resources/ResourceList";
 import { PaymentSettings } from "../../../../features/venues/PaymentSettings";
-import { VenueAddress, VenueName } from "../../../../features/venues/VenueHeading";
-import { PhotoGallery } from "../../../../features/photos/PhotoGallery";
-import { BackLink } from "../../../../components/BackLink";
+import { VenueHeader } from "../../../../features/venues/VenueHeading";
+import closedDates from "../../../../i18n/en/closedDates";
+import resources from "../../../../i18n/en/resources";
 import m from "../../../../i18n/en/venues";
 import { PageLayout } from "../../../../layout/PageLayout";
 import { can } from "../../../../lib/tenant/activeTenant";
@@ -31,21 +34,39 @@ function VenuePage() {
 
   return (
     <PageLayout
-      title={<VenueName venueId={venueId} />}
+      title={m.title}
       back={<BackLink to="/venues" label={m.backToVenues} />}
       width="form"
     >
-      <VenueAddress venueId={venueId} />
+      <VenueHeader venueId={venueId} />
+      <ResourceList
+        venueId={venueId}
+        canTurnOff={can(tenant, "resources:delete")}
+        addSlot={
+          can(tenant, "resources:create") && (
+            <AddSlot label={resources.addTitle}>
+              {(fold) => <AddResourceForm venueId={venueId} onAdded={fold} />}
+            </AddSlot>
+          )
+        }
+      />
       <PhotoGallery
         owner={{ venueId }}
         canAdd={can(tenant, "photos:create")}
         canMove={can(tenant, "photos:update")}
         canDelete={can(tenant, "photos:delete")}
       />
-      <ResourceList venueId={venueId} canTurnOff={can(tenant, "resources:delete")} />
-      {can(tenant, "resources:create") && <AddResourceForm venueId={venueId} />}
-      <ClosedDateList venueId={venueId} canReopen={can(tenant, "closed-dates:delete")} />
-      {can(tenant, "closed-dates:create") && <CloseDateForm venueId={venueId} />}
+      <ClosedDateList
+        venueId={venueId}
+        canReopen={can(tenant, "closed-dates:delete")}
+        addSlot={
+          can(tenant, "closed-dates:create") && (
+            <AddSlot label={closedDates.addTitle}>
+              {(fold) => <CloseDateForm venueId={venueId} onClosed={fold} />}
+            </AddSlot>
+          )
+        }
+      />
       <PaymentSettings venueId={venueId} canChange={can(tenant, "venues:update")} />
     </PageLayout>
   );

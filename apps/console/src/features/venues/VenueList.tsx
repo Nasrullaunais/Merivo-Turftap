@@ -1,32 +1,66 @@
-import { Chip } from "@heroui/react";
 import { Link } from "@tanstack/react-router";
+import { MapPin, Phone, PowerOff } from "lucide-react";
+import type { ReactNode } from "react";
 
+import { EmptyLine } from "../../components/Section";
+import { ROW_LINK, Row, Rows } from "../../components/Rows";
+import { useFirstIds } from "../../components/useFirstIds";
 import { SkeletonRows } from "../../components/SkeletonRows";
+import { StatePill } from "../../components/StatePill";
+import { TopicTile } from "../../components/TopicTile";
 import m from "../../i18n/en/venues";
 import { useVenues } from "./useVenues";
 
-export function VenueList() {
+/** The tenant's venues in one panel; `addSlot` is the add form at its foot, for Owners. */
+export function VenueList({ addSlot }: { addSlot?: ReactNode }) {
   const { data: venues, isPending } = useVenues();
 
-  if (isPending) return <SkeletonRows label={m.loading} />;
-  if (!venues?.length) return <p className="text-muted">{m.none}</p>;
-
   return (
-    <ul className="grid divide-y divide-separator">
-      {venues.map((venue) => (
-        <li key={venue.id} className="flex flex-wrap items-center gap-x-3 py-2">
-          <Link
-            to="/venues/$venueId"
-            params={{ venueId: venue.id }}
-            className="font-medium underline-offset-4 hover:underline"
-          >
-            {venue.name}
-          </Link>
-          <span className="text-muted">{venue.address}</span>
-          <span>{venue.phone}</span>
-          {!venue.active && <Chip size="sm">{m.turnedOff}</Chip>}
-        </li>
+    <div className="overflow-hidden tt-panel">
+      {isPending && (
+        <div className="p-3">
+          <SkeletonRows label={m.loading} />
+        </div>
+      )}
+      {venues?.length === 0 && <EmptyLine>{m.none}</EmptyLine>}
+      {!!venues?.length && <VenueRows venues={venues} />}
+      {addSlot}
+    </div>
+  );
+}
+
+function VenueRows({ venues }: { venues: NonNullable<ReturnType<typeof useVenues>["data"]> }) {
+  const isNew = useFirstIds(venues.map((venue) => venue.id));
+  return (
+    <Rows>
+      {venues.map((venue, index) => (
+        <Row
+          key={venue.id}
+          index={index}
+          landed={isNew(venue.id)}
+          lead={<TopicTile hue="place" icon={MapPin} size={36} />}
+          title={
+            <Link
+              to="/venues/$venueId"
+              params={{ venueId: venue.id }}
+              data-row-link
+              className={ROW_LINK}
+            >
+              {venue.name}
+            </Link>
+          }
+          detail={
+            <>
+              <span className="truncate">{venue.address}</span>
+              <span className="inline-flex items-center gap-1 tabular-nums">
+                <Phone aria-hidden size={13} />
+                {venue.phone}
+              </span>
+            </>
+          }
+          end={!venue.active && <StatePill tone="off" icon={PowerOff} label={m.turnedOff} />}
+        />
       ))}
-    </ul>
+    </Rows>
   );
 }

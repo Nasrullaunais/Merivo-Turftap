@@ -1,5 +1,6 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 
+import { CentredPanel } from "../components/CentredPanel";
 import { TestSignInForm } from "../features/sign-in/TestSignInForm";
 import { isSignedIn } from "../lib/auth/session";
 import m from "../i18n/en/signIn";
@@ -13,9 +14,8 @@ export const Route = createFileRoute("/sign-in")({
 
 function SignInPage() {
   return (
-    <main className="mx-auto grid max-w-sm gap-4 p-6">
-      <h1 className="text-2xl font-semibold">{m.title}</h1>
+    <CentredPanel title={m.title}>
       <TestSignInForm />
-    </main>
+    </CentredPanel>
   );
 }

@@ -1,13 +1,4 @@
-import {
-  Description,
-  FieldError,
-  Form,
-  Input,
-  Label,
-  Radio,
-  RadioGroup,
-  TextField,
-} from "@heroui/react";
+import { FieldError, Form, Input, Label, TextField } from "@heroui/react";
 import {
   DEFAULT_START_INTERVAL_MINUTES,
   RESOURCE_MINUTES,
@@ -18,15 +9,18 @@ import { lkr } from "@turftap/ui";
 import { type FormEvent, useState } from "react";
 
 import { LoadingButton } from "../../components/LoadingButton";
+import { ChoicePills } from "../../components/Pills";
 import { PriceField } from "../../components/PriceField";
 import m from "../../i18n/en/resources";
+import { TYPE_ICONS } from "./resourceLook";
 import { useAddResource } from "./useChangeResources";
 
 const DEFAULT_TYPE: ResourceType = "FUTSAL_COURT";
 type Minutes = (typeof RESOURCE_MINUTES)[number];
 const DEFAULT_SLOT_MINUTES: Minutes = 60;
 
-export function AddResourceForm({ venueId }: { venueId: number }) {
+/** VEN-04. `onAdded` folds the form away; the new resource lands in the list above it. */
+export function AddResourceForm({ venueId, onAdded }: { venueId: number; onAdded: () => void }) {
   const addResource = useAddResource();
   const [name, setName] = useState("");
   const [type, setType] = useState<ResourceType>(DEFAULT_TYPE);
@@ -53,37 +47,30 @@ export function AddResourceForm({ venueId }: { venueId: number }) {
         onSuccess: () => {
           setName("");
           setRupees("");
+          onAdded();
         },
       },
     );
   };
 
   return (
-    <Form className="grid gap-4" onSubmit={submit}>
-      <h2 className="text-lg font-semibold">{m.addTitle}</h2>
+    <Form className="grid gap-5" onSubmit={submit}>
       <TextField name="name" isRequired value={name} onChange={setName}>
         <Label>{m.nameLabel}</Label>
         <Input placeholder="Court 1" />
         <FieldError />
       </TextField>
-      <RadioGroup
+      <ChoicePills
         name="type"
-        orientation="horizontal"
+        label={m.typeLabel}
         value={type}
-        onChange={(value) => setType(value as ResourceType)}
-      >
-        <Label>{m.typeLabel}</Label>
-        {RESOURCE_TYPES.map((value) => (
-          <Radio key={value} value={value}>
-            <Radio.Control>
-              <Radio.Indicator />
-            </Radio.Control>
-            <Radio.Content>
-              <Label>{m.types[value]}</Label>
-            </Radio.Content>
-          </Radio>
-        ))}
-      </RadioGroup>
+        onChange={setType}
+        choices={RESOURCE_TYPES.map((value) => ({
+          value,
+          label: m.types[value],
+          icon: TYPE_ICONS[value],
+        }))}
+      />
       <MinutesChoice
         name="slotMinutes"
         label={m.slotLabel}
@@ -101,8 +88,10 @@ export function AddResourceForm({ venueId }: { venueId: number }) {
         onChange={setStartIntervalMinutes}
         longest={slotMinutes}
       />
-      <PriceField label={m.priceLabel} value={rupees} onChange={setRupees} />
-      <LoadingButton type="submit" isPending={addResource.isPending}>
+      <div className="sm:w-64">
+        <PriceField label={m.priceLabel} value={rupees} onChange={setRupees} />
+      </div>
+      <LoadingButton type="submit" isPending={addResource.isPending} className="justify-self-start">
         {m.submit}
       </LoadingButton>
     </Form>
@@ -125,28 +114,17 @@ function MinutesChoice({
   longest?: Minutes;
 }) {
   return (
-    <RadioGroup
+    <ChoicePills
       name={name}
-      orientation="horizontal"
+      label={label}
+      description={description}
       value={String(value)}
       onChange={(picked) => onChange(Number(picked) as Minutes)}
-    >
-      <Label>{label}</Label>
-      {description && <Description>{description}</Description>}
-      {RESOURCE_MINUTES.map((minutes) => (
-        <Radio
-          key={minutes}
-          value={String(minutes)}
-          isDisabled={longest !== undefined && minutes > longest}
-        >
-          <Radio.Control>
-            <Radio.Indicator />
-          </Radio.Control>
-          <Radio.Content>
-            <Label>{m.minutes(minutes)}</Label>
-          </Radio.Content>
-        </Radio>
-      ))}
-    </RadioGroup>
+      choices={RESOURCE_MINUTES.map((minutes) => ({
+        value: String(minutes),
+        label: m.minutes(minutes),
+        isDisabled: longest !== undefined && minutes > longest,
+      }))}
+    />
   );
 }

@@ -2,9 +2,9 @@
 
 How the Staff Console looks, moves and guides people, and how to build a screen that fits. Read it before touching anything under `apps/console/src`.
 
-Status: written 2026-11-24. The shell, tokens and loading parts are built; the colour map in §3 is waiting for the user's approval on the running console.
+Status: written 2026-11-24. The shell, tokens, shared parts and every screen built so far follow it; the colour map in §3 is waiting for the user's approval on the running console.
 
-The starting point is GenexoAI's gam-ui V2 (`genexoai/gam-ui`, branch `v2`, docs `design-language.md` and `v2-look-guide.md`). We take its sidebar, its neutral surfaces, its "hue says what, tone says how" colour rule and its motion vocabulary. We change the accent to teal, add colours for our own kinds of things, and stay light-only for now.
+The starting point is GenexoAI's gam-ui V2 (`genexoai/gam-ui`, branch `v2`, docs `design-language.md` and `v2-look-guide.md`). We take its sidebar, its neutral surfaces, its "hue says what, tone says how" colour rule and its motion vocabulary. The page's top row and the record header card come from gen-ui V2 (`genexoai/gen-ui`, `src/layout/Topbar.tsx`, `features/groups/page/GroupHeader.tsx`). We change the accent to teal, add colours for our own kinds of things, and stay light-only for now.
 
 ## 1. Principles
 
@@ -66,6 +66,8 @@ A hue sits on an **icon tile** (`TopicTile`): a small rounded square, tinted in 
 | Pink | `--tt-hue-people` | People | Customer, Staff | `Users` |
 | Slate | `--tt-hue-plain` | Everything else | Closed Date, Blocked Time, settings | `CalendarOff`, `Ban` |
 
+Within a kind, a few things have their own icon on the kind's hue: a Resource shows its type (`Goal` futsal court, `Table2` table tennis table, `CircleDot` pool table, in `features/resources/resourceLook.ts`), Photos use `Images`, prices use `Tag`.
+
 A new hue is the user's decision. Don't invent one; use slate until it is decided.
 
 ### 3.3 Tone says how it is doing
@@ -100,13 +102,13 @@ Each state has one tone and one icon, the same everywhere:
 Teal (`--accent`, `oklch(0.52 0.1 186)`, white text at 5:1) does two jobs only:
 
 - **Actions**: the one primary button in a view, links, the focus ring, selected controls.
-- **Where you are**: the current page in the sidebar (teal tint plus a teal bar on its edge) and the accent mark beside the page title.
+- **Where you are**: the current page in the sidebar (teal tint plus a teal bar on its edge). (The accent mark beside the page title was dropped for gen-ui V2's plain top row.)
 
 Teal is also the bookings hue, because bookings are the product's centre. Green (`good`) is a different, yellower green, and always comes with an icon.
 
 ## 4. Type, icons and numbers
 
-- **Font**: HeroUI's default system font stack. Sizes: page title `text-2xl font-semibold`, section heading `text-xs uppercase tracking-[.08em]` with the accent mark, body `text-sm`, small details `text-xs text-muted`.
+- **Font**: HeroUI's default system font stack. (Barlow was tried and turned down on 2026-11-24.) Sizes: page title in the top row `text-lg font-semibold`, record name in its header card `text-2xl font-semibold`, the calendar's date `text-3xl font-semibold`, section heading `text-lg font-semibold` in sentence case, body `text-sm`/`text-base`, small details `text-xs text-muted`. No uppercase labels anywhere.
 - **Numbers** that line up in columns (money, times, counts) use `tabular-nums`. Money is formatted only with `formatMoney`, times only in the venue's time zone (frontend.md).
 - **Icons** come from `lucide-react` only. Sizes: 16px inside buttons and pills, 18px in sidebar rows, 20px in the top row and the rail. Stroke width stays at the default 2. An icon that means a kind of thing or a state uses the icon from the tables in §3; don't pick a second icon for the same meaning.
 
@@ -116,7 +118,7 @@ The shell is built once, in `apps/console/src/layout/`, and wraps every page und
 
 ```
 ┌───────────┬──────────────────────────────────────────────┐
-│ ◆ TurfTap │ [≡]  ▌ Calendar                    [actions]  │
+│ ◆ TurfTap │ [≡] [←] Calendar                   [actions]  │
 │           │                                              │
 │ ▣ Calendar│   page content (rises in)                    │
 │ ▣ Receipts│                                              │
@@ -160,9 +162,10 @@ Nav map, built and planned:
 
 Every page uses `PageLayout` from `layout/`. It owns:
 
-- **The top row**: nav toggle, then the accent mark (a 4px teal bar) and the title, then the page's actions on the right. There is no separate top bar above it and no breadcrumb trail.
-- **`backTo`**: a detail page (a venue, a resource) shows an arrow before the title that goes one level up. There is never a second hop.
-- **Width**: `width="full"` (calendar, lists, queues: up to 1600px) or `width="form"` (forms and settings: a centred 768px column).
+- **The top row** (as gen-ui V2): nav toggle, an optional back arrow, then the title in `text-lg font-semibold`, then the page's actions on the right. No accent mark before the title, no separate top bar and no breadcrumb trail. It always spans the page, whatever the content width.
+- **`back`**: a detail page (a venue, a resource) shows an arrow before the title that goes one level up. There is never a second hop. The title then names the parent: "Venues" on a venue page, the venue's name on a resource page.
+- **Width**: `width="full"` (calendar, lists, queues: up to 1600px) or `width="form"` (forms and settings: a 768px column on the left, under the top row).
+- **Record header** (`RecordHeader`): a record page opens with a card holding the record's tile (solid, 56px) on a soft glow of its hue, its name and its details as icon + text pieces. Actions sit on its right.
 - **Arrival**: the content rises in once when the page opens (§6).
 
 ## 6. Motion
@@ -231,13 +234,13 @@ Answering an action:
 | Danger action | Red outline or soft red | Darker | 98% scale | Ring | Spinner | `tt-leave` on what it removed |
 | List row | Panel | `--tt-hover` | — | Ring around the row | — | Opens the record's page |
 | Sidebar row | Muted text | `--tt-hover`, text to full colour | — | Ring | — | Teal tint + bar |
-| Calendar free slot | Empty | Faint teal tint with a **+** and the time | — | Ring | — | Opens walk-in (T18) |
+| Calendar free slot | Empty | Teal tint with "+ 19:00" | — | Ring | — | Opens walk-in (T18) |
 | Calendar booking | Tone tint, icon, name | Slightly stronger tint | — | Ring | — | Opens booking details (T19) |
 | Field | `--tt-field` fill + hairline | `--tt-hover` | — | Stronger line + ring | — | `tt-saved` after saving |
 
 - **Everything pressable** has `cursor: pointer`, a hover tone, a pressed look and a visible focus ring. Nothing that can't be pressed looks pressable.
 - **The primary action stays enabled.** Pressed too early, it doesn't explain in a sentence: it moves the focus to the first missing field, marks it red and plays `tt-nudge`.
-- **Destructive actions ask first** in a dialog that names the thing with its tile, says what goes with it, and has **Keep it** as the cancel button. Undoable or unsaved things don't ask.
+- **Destructive actions ask first** in a dialog that names the thing, says what goes with it, and has **Keep it** (**Keep them** for a person) as the cancel button. Undoable or unsaved things don't ask.
 - **Success is shown where it happened**, not in a toast: the row lands, the value flashes green, the pill pops to its new state. Toasts are for failures (frontend.md) and for things that happen off-screen.
 - **Touch targets** are at least 40×40px, because desks often use tablets.
 - **Keyboard**: everything works without a mouse, in reading order. `Escape` closes the topmost layer.
@@ -246,11 +249,13 @@ Answering an action:
 
 These are the shapes to reuse. Build new screens from them before inventing a new one.
 
-- **List** (venues, staff, memberships): one table in a frame; first column is the record's tile and name; toolbar in one row (search, filters in their hue, then the create button at the far end). Row press opens the record's page. Empty: tile, one sentence, action.
+- **List** (venues, staff, memberships): one panel of rows (`Rows`, `Row`): the record's tile or avatar, its name with details under it, its own icon buttons at the end. The whole row opens the record's page (`ROW_LINK` on the name). The last line is a dashed **+ Add …** slot (`AddSlot`) that unfolds the form in place and folds again after saving; the new row lands (`tt-landed`). Empty: one short line (`EmptyLine`). A toolbar (search, filters, create button) arrives with the first list long enough to need it.
+- **Section** (`Section`): a panel on a record page with its tile, a sentence-case heading and a count, then rows, an empty line or a form, and its add slot last. Dates in rows are a small tear-off page (`DateStub`) that screen readers hear as the full date.
 - **Record page** (a venue, a resource, a booking): three layers. The header says *how it is doing* (tile, name, state pills, main action). The sections say *what it is* (read first, a pencil edits in place). The tabs or lists below say *what happened* or *what belongs to it*.
-- **Form**: one centred column of steps. Required steps open, optional ones folded to a one-line summary. Choices you can see (pills, cards) beat dropdowns when there are a handful. Fill in what can be worked out (a resource picked fills its venue), and flash what was filled.
+- **Form**: one column of fields, two side by side where they pair up (date and time, bank and branch). Choices you can see beat dropdowns when there are a handful: `ChoicePills` for one of a few (radio), `TogglePills` for any of a few (checkboxes, such as weekdays). Fill in what can be worked out (a resource picked fills its venue), and flash what was filled. The submit button sits on the left at the end; a saved note that says something the screen can't show (a WhatsApp message goes out, settings apply to new bookings) appears beside it with a green check.
+- **Pages outside the shell** (sign in, choose a tenant, no access): the brand mark, then one small centred panel (`CentredPanel`).
 - **Queue** (receipt checks): one item at a time, large, with the decision buttons in their tones (Accept green, Reject red). The next item slides in after a decision. The sidebar count drops with a pop.
-- **Calendar**: the grid is the page. States follow §3.3. Free slots invite a press on hover. A booking arriving live plays `tt-landed`.
+- **Calendar**: the grid is the page. The toolbar holds the venue picker on the left, then Day/Week as a segmented control and the previous/today/next buttons on the right. The date is the largest text on the page. A red line with a dot marks the current time across today's columns: the one loud element. States follow §3.3. Free slots show "+ time" on hover. A booking arriving live plays `tt-landed`.
 
 **Saving.** Fields of one record change only when the user presses Save; a change not yet saved shows an amber dot. Anything that is a record of its own (a payment, a Blocked Time, a photo) takes effect at once from its own button.
 
@@ -262,7 +267,7 @@ These are the shapes to reuse. Build new screens from them before inventing a ne
 | Brand accent shared with the portal | `packages/ui/src/theme.css` |
 | Sidebar (`Sidebar`), shell (`AppShell`), page frame (`PageLayout`) | `apps/console/src/layout/` |
 | Nav items, their hues and icons | `apps/console/src/config/nav.ts` |
-| `LoadingButton`, `SkeletonRows`, `SkeletonLine`, `TopicTile`, `StatePill`, `StateDot`, `BackLink`, `Collapse`; hue and tone names in `look.ts` | `apps/console/src/components/` |
+| `LoadingButton`, `IconAction`, `SkeletonRows`, `SkeletonLine`, `TopicTile`, `StatePill`, `StateDot`, `BackLink`, `Collapse`, `Section`, `EmptyLine`, `EmptyState`, `Rows`, `Row`, `AddSlot`, `DateStub`, `ChoicePills`, `TogglePills`, `RecordHeader`, `CentredPanel`, `BrandMark`; hue and tone names in `look.ts` | `apps/console/src/components/` |
 | Text | `apps/console/src/i18n/en/` |
 
 ## 11. A screen is done when

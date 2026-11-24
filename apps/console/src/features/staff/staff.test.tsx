@@ -36,6 +36,9 @@ const meAs = (role: StaffRole) => ({
 const created = (body: object) =>
   Response.json({ status: 201, message: "success", data: body }, { status: 201 });
 
+const openAddForm = async () =>
+  fireEvent.click(await screen.findByRole("button", { name: "Add staff" }));
+
 function addStaff(phone: string, role: string) {
   fireEvent.change(screen.getByLabelText(/Phone number/), { target: { value: phone } });
   fireEvent.click(screen.getByRole("radio", { name: role }));
@@ -58,6 +61,7 @@ describe("SIG-03 invite staff from the Staff Console", () => {
     });
     renderApp("/staff");
     expect(await screen.findByText("Demo Owner")).toBeInTheDocument();
+    await openAddForm();
     addStaff("077 000 1111", "Manager");
     expect(await screen.findByRole("status")).toHaveTextContent(
       "+94770001111 was added. They'll get a WhatsApp message with the console link.",
@@ -77,6 +81,7 @@ describe("SIG-03 invite staff from the Staff Console", () => {
     });
     renderApp("/staff");
     await screen.findByText("Demo Owner");
+    await openAddForm();
     addStaff(OWNER_PHONE, "Owner");
     expect(await screen.findByText("This person is already staff here")).toBeInTheDocument();
     expect(screen.queryByRole("status")).not.toBeInTheDocument();
@@ -87,6 +92,7 @@ describe("SIG-03 invite staff from the Staff Console", () => {
     const fetch = mockApi({ "GET /v1/me": meAs("OWNER"), "GET /v1/staff": page([owner]) });
     renderApp("/staff");
     await screen.findByText("Demo Owner");
+    await openAddForm();
     addStaff("hello", "Manager");
     expect(await screen.findByText("Enter a phone number like 077 123 4567")).toBeInTheDocument();
     const methods = fetch.mock.calls.map(([request]) => (request as Request).method);
@@ -148,8 +154,8 @@ describe("SIG-04 change or remove staff from the Staff Console", () => {
     renderApp("/staff");
 
     fireEvent.click(await screen.findByRole("button", { name: "Remove +94770001111" }));
-    fireEvent.click(await screen.findByRole("button", { name: "Cancel" }));
-    await waitFor(() => expect(screen.queryByRole("button", { name: "Cancel" })).toBeNull());
+    fireEvent.click(await screen.findByRole("button", { name: "Keep them" }));
+    await waitFor(() => expect(screen.queryByRole("button", { name: "Keep them" })).toBeNull());
     expect(deletes()).toHaveLength(0);
     expect(screen.getByText("+94770001111")).toBeInTheDocument();
 
@@ -262,6 +268,7 @@ describe("SIG-06 choose which venues staff work at", () => {
     });
     renderApp("/staff");
     await screen.findByText("Demo Owner");
+    await openAddForm();
     fireEvent.click(screen.getByRole("checkbox", { name: "All venues" }));
     fireEvent.click(await screen.findByRole("checkbox", { name: "Kandy Arena" }));
     addStaff("077 000 1111", "Manager");
@@ -281,6 +288,7 @@ describe("SIG-06 choose which venues staff work at", () => {
     });
     renderApp("/staff");
     await screen.findByText("Demo Owner");
+    await openAddForm();
     fireEvent.click(screen.getByRole("checkbox", { name: "All venues" }));
     addStaff("077 000 1111", "Manager");
     expect(await screen.findByText("Pick at least one venue")).toBeInTheDocument();
@@ -292,7 +300,8 @@ describe("SIG-06 choose which venues staff work at", () => {
     signInForTesting(OWNER_PHONE);
     mockApi({ "GET /v1/me": meAs("OWNER"), "GET /v1/staff": page([]), "GET /v1/venues": venues });
     renderApp("/staff");
-    fireEvent.click(await screen.findByRole("radio", { name: "Owner" }));
+    await openAddForm();
+    fireEvent.click(screen.getByRole("radio", { name: "Owner" }));
     expect(screen.queryByRole("checkbox", { name: "All venues" })).not.toBeInTheDocument();
   });
 

@@ -1,45 +1,80 @@
-import { Chip } from "@heroui/react";
 import { Link } from "@tanstack/react-router";
+import type { Resource } from "@turftap/contract/client";
 import { formatMoney } from "@turftap/ui";
+import { Clock, LayoutGrid, PowerOff } from "lucide-react";
+import type { ReactNode } from "react";
 
+import { ROW_LINK, Row, Rows } from "../../components/Rows";
+import { useFirstIds } from "../../components/useFirstIds";
+import { EmptyLine, Section } from "../../components/Section";
 import { SkeletonRows } from "../../components/SkeletonRows";
+import { StatePill } from "../../components/StatePill";
+import { TopicTile } from "../../components/TopicTile";
 import m from "../../i18n/en/resources";
+import { TYPE_ICONS } from "./resourceLook";
 import { TurnOffResource } from "./TurnOffResource";
 import { useResources } from "./useResources";
 
-type Props = { venueId: number; canTurnOff: boolean };
+type Props = { venueId: number; canTurnOff: boolean; addSlot?: ReactNode };
 
-export function ResourceList({ venueId, canTurnOff }: Props) {
+export function ResourceList({ venueId, canTurnOff, addSlot }: Props) {
   const { data: resources, isPending } = useResources(venueId);
 
-  if (isPending) return <SkeletonRows label={m.loading} />;
-  if (!resources?.length) return <p className="text-muted">{m.none}</p>;
-
   return (
-    <ul className="grid divide-y divide-separator">
-      {resources.map((resource) => (
-        <li key={resource.id} className="flex flex-wrap items-center gap-x-3 py-2">
-          <Link
-            to="/resources/$resourceId"
-            params={{ resourceId: resource.id }}
-            className="font-medium underline-offset-4 hover:underline"
-          >
-            {resource.name}
-          </Link>
-          <span className="text-muted">
-            {m.details(
-              m.types[resource.type],
-              resource.slotMinutes,
-              resource.startIntervalMinutes,
-              formatMoney(resource.price),
-            )}
-          </span>
-          <span className="ml-auto">
-            {!resource.active && <Chip size="sm">{m.turnedOff}</Chip>}
-            {resource.active && canTurnOff && <TurnOffResource resource={resource} />}
-          </span>
-        </li>
+    <Section hue="place" icon={LayoutGrid} title={m.title} count={resources?.length}>
+      {isPending && (
+        <div className="p-3">
+          <SkeletonRows label={m.loading} rows={2} />
+        </div>
+      )}
+      {resources?.length === 0 && <EmptyLine>{m.none}</EmptyLine>}
+      {!!resources?.length && <ResourceRows resources={resources} canTurnOff={canTurnOff} />}
+      {addSlot}
+    </Section>
+  );
+}
+
+function ResourceRows({ resources, canTurnOff }: { resources: Resource[]; canTurnOff: boolean }) {
+  const isNew = useFirstIds(resources.map((resource) => resource.id));
+  return (
+    <Rows>
+      {resources.map((resource, index) => (
+        <Row
+          key={resource.id}
+          index={index}
+          landed={isNew(resource.id)}
+          lead={<TopicTile hue="place" icon={TYPE_ICONS[resource.type]} size={36} />}
+          title={
+            <Link
+              to="/resources/$resourceId"
+              params={{ resourceId: resource.id }}
+              data-row-link
+              className={ROW_LINK}
+            >
+              {resource.name}
+            </Link>
+          }
+          detail={
+            <>
+              <span>{m.types[resource.type]}</span>
+              <span className="inline-flex items-center gap-1 tabular-nums">
+                <Clock aria-hidden size={13} />
+                {m.slotLength(resource.slotMinutes)}
+              </span>
+              <span className="font-medium text-foreground tabular-nums">
+                {formatMoney(resource.price)}
+              </span>
+            </>
+          }
+          end={
+            resource.active ? (
+              canTurnOff && <TurnOffResource resource={resource} />
+            ) : (
+              <StatePill tone="off" icon={PowerOff} label={m.turnedOff} />
+            )
+          }
+        />
       ))}
-    </ul>
+    </Rows>
   );
 }

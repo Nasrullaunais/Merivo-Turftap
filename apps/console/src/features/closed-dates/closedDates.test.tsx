@@ -109,8 +109,13 @@ function closeChristmasAs(holding: { status: string }[]) {
   return fetch;
 }
 
-const pickChristmas = async () => {
+const openCloseForm = async () => {
+  fireEvent.click(await screen.findByRole("button", { name: "Close the venue for a day" }));
   await screen.findByRole("button", { name: "Close this date" });
+};
+
+const pickChristmas = async () => {
+  await openCloseForm();
   fireEvent.change(screen.getByLabelText(/^Date/), { target: { value: "2026-12-25" } });
   fireEvent.click(screen.getByRole("button", { name: "Close this date" }));
 };
@@ -137,11 +142,8 @@ describe("VEN-02 close a venue for a day", () => {
 
   it("manager_closesADateWithNoBookingsStraightAway", async () => {
     const fetch = closeChristmasAs([]);
-    expect(
-      await screen.findByText(
-        "No upcoming Closed Dates. The venue follows its opening hours every day.",
-      ),
-    ).toBeInTheDocument();
+    expect(await screen.findByText("No upcoming Closed Dates.")).toBeInTheDocument();
+    await openCloseForm();
     fireEvent.change(screen.getByLabelText(/^Date/), { target: { value: "2026-12-25" } });
     fireEvent.change(screen.getByLabelText(/^Reason/), { target: { value: " Christmas " } });
     fireEvent.click(screen.getByRole("button", { name: "Close this date" }));

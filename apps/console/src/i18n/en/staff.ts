@@ -15,6 +15,7 @@ export default {
   removeTitle: (who: string) => `Remove ${who}?`,
   removeHint: "They lose access to this tenant within a few minutes.",
   cancel: "Cancel",
+  keep: "Keep them",
   save: "Save",
   allVenues: "All venues",
   venuesLabel: "Venues",

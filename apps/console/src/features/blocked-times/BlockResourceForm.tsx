@@ -1,5 +1,6 @@
 import { Alert, FieldError, Form, Input, Label, TextField } from "@heroui/react";
 import { ApiError, instantInZone } from "@turftap/ui";
+import { Globe } from "lucide-react";
 import { type FormEvent, useState } from "react";
 
 import { LoadingButton } from "../../components/LoadingButton";
@@ -7,12 +8,17 @@ import m from "../../i18n/en/blockedTimes";
 import { useVenueTimeZone } from "./useBlockedTimes";
 import { useBlockTime } from "./useChangeBlockedTimes";
 
-export function BlockResourceForm({ resourceId }: { resourceId: number }) {
+type Props = { resourceId: number; onBlocked: () => void };
+
+/** VEN-07. `onBlocked` folds the form away; the block lands in the list above it. */
+export function BlockResourceForm({ resourceId, onBlocked }: Props) {
   const timeZone = useVenueTimeZone(resourceId);
-  return timeZone ? <BlockForm resourceId={resourceId} timeZone={timeZone} /> : null;
+  return timeZone ? (
+    <BlockForm resourceId={resourceId} timeZone={timeZone} onBlocked={onBlocked} />
+  ) : null;
 }
 
-function BlockForm({ resourceId, timeZone }: { resourceId: number; timeZone: string }) {
+function BlockForm({ resourceId, timeZone, onBlocked }: Props & { timeZone: string }) {
   const blockTime = useBlockTime();
   const [startDate, setStartDate] = useState("");
   const [startTime, setStartTime] = useState("");
@@ -39,15 +45,18 @@ function BlockForm({ resourceId, timeZone }: { resourceId: number; timeZone: str
           setStartTime("");
           setEndTime("");
           setReason("");
+          onBlocked();
         },
       },
     );
   };
 
   return (
-    <Form className="grid gap-4" onSubmit={submit}>
-      <h2 className="text-lg font-semibold">{m.addTitle}</h2>
-      <p className="text-muted">{m.addHint(timeZone)}</p>
+    <Form className="grid gap-5" onSubmit={submit}>
+      <p className="inline-flex items-center gap-1.5 text-sm text-muted">
+        <Globe aria-hidden size={14} />
+        {m.timeZone(timeZone)}
+      </p>
       <div className="grid grid-cols-2 gap-3">
         <TextField
           name="startDate"
@@ -109,7 +118,7 @@ function BlockForm({ resourceId, timeZone }: { resourceId: number; timeZone: str
           </Alert.Content>
         </Alert>
       )}
-      <LoadingButton type="submit" isPending={blockTime.isPending}>
+      <LoadingButton type="submit" isPending={blockTime.isPending} className="justify-self-start">
         {m.submit}
       </LoadingButton>
     </Form>

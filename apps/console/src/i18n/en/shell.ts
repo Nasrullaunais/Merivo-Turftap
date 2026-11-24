@@ -1,7 +1,6 @@
 export default {
   title: "TurfTap Staff Console",
   brand: "TurfTap",
-  comingSoon: "Bookings, calendars and receipts will appear here.",
   switchTenant: "Switch tenant",
   signOut: "Sign out",
   platformAdmin: "Platform Admin",

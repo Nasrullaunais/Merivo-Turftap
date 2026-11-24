@@ -1,5 +1,6 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 
+import { AddSlot } from "../../../../components/AddSlot";
 import { canOpen } from "../../../../config/routePermissions";
 import { AddVenueForm } from "../../../../features/venues/AddVenueForm";
 import { VenueList } from "../../../../features/venues/VenueList";
@@ -19,8 +20,13 @@ function VenuesPage() {
 
   return (
     <PageLayout title={m.title} width="form">
-      <VenueList />
-      {can(tenant, "venues:create") && <AddVenueForm />}
+      <VenueList
+        addSlot={
+          can(tenant, "venues:create") && (
+            <AddSlot label={m.addTitle}>{(fold) => <AddVenueForm onAdded={fold} />}</AddSlot>
+          )
+        }
+      />
     </PageLayout>
   );
 }

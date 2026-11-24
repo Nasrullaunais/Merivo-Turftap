@@ -15,11 +15,11 @@ export function StateIcon({ state, decorative }: { state: CalendarState; decorat
 
 export function StateLegend() {
   return (
-    <ul aria-label={m.legend} className="flex flex-wrap gap-2 text-sm">
+    <ul aria-label={m.legend} className="flex flex-wrap gap-1.5 text-xs">
       {CALENDAR_STATES.map((state) => (
         <li
           key={state}
-          className={`flex items-center gap-1.5 rounded-md px-2 py-1 ${STATE_COLOURS[state]}`}
+          className={`flex items-center gap-1.5 rounded-md px-2 py-1 font-medium ${STATE_COLOURS[state]}`}
         >
           <StateIcon state={state} decorative />
           {m.states[state]}

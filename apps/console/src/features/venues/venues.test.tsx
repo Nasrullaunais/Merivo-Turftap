@@ -41,6 +41,8 @@ const arena = {
   updatedAt: "2026-11-22T04:00:00.000Z",
 };
 
+const openAddForm = async () =>
+  fireEvent.click(await screen.findByRole("button", { name: "Add a venue" }));
 function fillVenue(fields: { name: string; address: string; phone: string }) {
   fireEvent.change(screen.getByLabelText(/^Name/), { target: { value: fields.name } });
   fireEvent.change(screen.getByLabelText(/^Address/), { target: { value: fields.address } });
@@ -66,7 +68,7 @@ describe("VEN-01 add a venue from the Staff Console", () => {
       },
     });
     renderApp("/venues");
-    await screen.findByRole("heading", { name: "Add a venue" });
+    await openAddForm();
 
     fillVenue({ name: "City Arena", address: "12 Galle Road, Colombo", phone: "011 234 5678" });
     fireEvent.click(screen.getByRole("checkbox", { name: "Open on Sunday" }));
@@ -94,6 +96,7 @@ describe("VEN-01 add a venue from the Staff Console", () => {
     });
     renderApp("/venues");
     await screen.findByText("City Arena");
+    await openAddForm();
     fillVenue({ name: "city arena", address: "Somewhere", phone: "011 234 5678" });
     save();
     expect(await screen.findByText("Another venue already has this name")).toBeInTheDocument();
@@ -103,7 +106,7 @@ describe("VEN-01 add a venue from the Staff Console", () => {
     signInForTesting(PHONE);
     const fetch = mockApi({ "GET /v1/me": meAs("OWNER"), "GET /v1/venues": page([]) });
     renderApp("/venues");
-    await screen.findByRole("heading", { name: "Add a venue" });
+    await openAddForm();
     fillVenue({ name: "Night Court", address: "Kandy", phone: "011 234 5678" });
     fireEvent.change(screen.getByLabelText("Monday closes"), { target: { value: "05:00" } });
     save();

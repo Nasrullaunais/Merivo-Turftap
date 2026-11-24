@@ -1,5 +1,6 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 
+import { AddSlot } from "../../../components/AddSlot";
 import { canOpen } from "../../../config/routePermissions";
 import { AddStaffForm } from "../../../features/staff/AddStaffForm";
 import { StaffList } from "../../../features/staff/StaffList";
@@ -19,8 +20,14 @@ function StaffPage() {
 
   return (
     <PageLayout title={m.title} width="form">
-      {can(tenant, "staff:create") && <AddStaffForm />}
-      <StaffList canManage={can(tenant, "staff:update")} />
+      <StaffList
+        canManage={can(tenant, "staff:update")}
+        addSlot={
+          can(tenant, "staff:create") && (
+            <AddSlot label={m.addTitle}>{() => <AddStaffForm />}</AddSlot>
+          )
+        }
+      />
     </PageLayout>
   );
 }

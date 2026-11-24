@@ -1,7 +1,9 @@
 import { AlertDialog, Button, ListBox, Select } from "@heroui/react";
 import { STAFF_ROLES, type StaffRole } from "@turftap/contract";
 import type { Staff } from "@turftap/contract/client";
+import { UserX } from "lucide-react";
 
+import { IconAction } from "../../components/IconAction";
 import m from "../../i18n/en/staff";
 import tenants from "../../i18n/en/tenants";
 import { useChangeStaff, useRemoveStaff } from "./useManageStaff";
@@ -15,6 +17,7 @@ export function StaffActions({ person }: { person: Staff }) {
   return (
     <div className="flex items-center gap-2">
       <Select
+        className="w-36"
         aria-label={m.roleFor(who)}
         value={person.role}
         isDisabled={changeRole.isPending}
@@ -38,9 +41,13 @@ export function StaffActions({ person }: { person: Staff }) {
         </Select.Popover>
       </Select>
       <AlertDialog>
-        <Button variant="danger-soft" aria-label={m.removeFor(who)}>
-          {m.remove}
-        </Button>
+        <IconAction
+          danger
+          icon={UserX}
+          label={m.removeFor(who)}
+          hint={m.remove}
+          isPending={removeStaff.isPending}
+        />
         <AlertDialog.Backdrop>
           <AlertDialog.Container>
             <AlertDialog.Dialog>
@@ -51,7 +58,7 @@ export function StaffActions({ person }: { person: Staff }) {
               <AlertDialog.Body>{m.removeHint}</AlertDialog.Body>
               <AlertDialog.Footer>
                 <Button slot="close" variant="tertiary">
-                  {m.cancel}
+                  {m.keep}
                 </Button>
                 <Button slot="close" variant="danger" onPress={() => removeStaff.mutate({ path })}>
                   {m.remove}

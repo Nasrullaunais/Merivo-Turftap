@@ -26,8 +26,8 @@ const states = {
 export default {
   title: "Calendar",
   loading: "Loading the calendar",
-  noVenues: "No venues yet. Add a venue to see its calendar.",
-  noResources: "This venue has no resources yet.",
+  noVenues: "No venues yet.",
+  noResources: "No resources at this venue yet.",
   venueLabel: "Venue",
   resourceLabel: "Resource",
   viewLabel: "View",
@@ -40,7 +40,7 @@ export default {
   heading: (first: string, last: string) =>
     first === last ? fullDate(first) : `${dayAndMonth(first)} – ${dayMonthAndYear(last)}`,
   dayColumn: shortDate,
-  timeZoneHint: (timeZone: string) => `Times are in the venue's time zone (${timeZone}).`,
+  timeZone: (timeZone: string) => `Venue time (${timeZone})`,
   closed: "Closed",
   legend: "What the colours mean",
   states,
@@ -49,4 +49,6 @@ export default {
     `${clock(startsAt, timeZone)}–${clock(endsAt, timeZone)}`,
   /** "Free: Court 1, Fri 25 Dec, 19:00", where the column is "Fri 25 Dec". */
   freeSlot: (where: string, time: string) => `Free: ${where}, ${time}`,
+  /** Shown on a free slot under the pointer. */
+  freeSlotHint: (time: string) => `+ ${time}`,
 };

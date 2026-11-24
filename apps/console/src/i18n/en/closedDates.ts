@@ -16,7 +16,8 @@ const clock = (timeZone: string) =>
 export default {
   title: "Closed Dates",
   loading: "Loading Closed Dates",
-  none: "No upcoming Closed Dates. The venue follows its opening hours every day.",
+  none: "No upcoming Closed Dates.",
+  noReason: "Closed all day",
   /** "2026-12-25" as "Fri, 25 Dec 2026". */
   day: (date: string) => DATE_FORMAT.format(new Date(`${date}T00:00:00Z`)),
   reopen: "Reopen",

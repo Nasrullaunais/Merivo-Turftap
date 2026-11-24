@@ -1,8 +1,12 @@
 import type { PriceRule } from "@turftap/contract/client";
 import { formatMoney } from "@turftap/ui";
+import { Trash2 } from "lucide-react";
 
+import { IconAction } from "../../components/IconAction";
+import { Row, Rows } from "../../components/Rows";
+import { useFirstIds } from "../../components/useFirstIds";
+import { EmptyLine } from "../../components/Section";
 import { SkeletonRows } from "../../components/SkeletonRows";
-import { LoadingButton } from "../../components/LoadingButton";
 import m from "../../i18n/en/prices";
 import { useDeletePriceRule } from "./useChangePriceRules";
 import { usePriceRules } from "./usePriceRules";
@@ -12,35 +16,75 @@ type Props = { resourceId: number; canDelete: boolean };
 const describe = (rule: PriceRule) =>
   m.rule(rule.weekdays.map((day) => m.weekdays[day - 1]).join(", "), rule.startTime, rule.endTime);
 
+/** VEN-05: the resource's Price Rules, each as its days of the week, its hours and its price. */
 export function PriceRuleList({ resourceId, canDelete }: Props) {
   const { data: rules, isPending } = usePriceRules(resourceId);
-  const deleteRule = useDeletePriceRule();
 
+  if (isPending)
+    return (
+      <div className="p-3">
+        <SkeletonRows label={m.rulesLoading} rows={2} />
+      </div>
+    );
+  if (!rules?.length) return <EmptyLine>{m.noRules}</EmptyLine>;
+  return <RuleRows rules={rules} canDelete={canDelete} />;
+}
+
+function RuleRows({ rules, canDelete }: { rules: PriceRule[]; canDelete: boolean }) {
+  const deleteRule = useDeletePriceRule();
+  const isNew = useFirstIds(rules.map((rule) => rule.id));
   return (
-    <section className="grid gap-2">
-      <h2 className="text-lg font-semibold">{m.rulesTitle}</h2>
-      {isPending && <SkeletonRows label={m.rulesLoading} rows={2} tile={false} />}
-      {rules?.length === 0 && <p className="text-muted">{m.noRules}</p>}
-      <ul className="grid divide-y divide-separator">
-        {rules?.map((rule) => (
-          <li key={rule.id} className="flex flex-wrap items-center gap-x-3 py-2">
-            <span className="font-medium">{describe(rule)}</span>
-            <span className="text-muted">{m.perSlot(formatMoney(rule.price))}</span>
-            {canDelete && (
-              <LoadingButton
-                className="ml-auto"
-                size="sm"
-                variant="danger-soft"
-                aria-label={m.deleteRuleFor(describe(rule))}
-                isPending={deleteRule.isPending && deleteRule.variables?.path.id === rule.id}
-                onPress={() => deleteRule.mutate({ path: { id: rule.id } })}
-              >
-                {m.deleteRule}
-              </LoadingButton>
-            )}
-          </li>
-        ))}
-      </ul>
-    </section>
+    <Rows label={m.rulesTitle}>
+      {rules.map((rule, index) => (
+        <Row
+          key={rule.id}
+          index={index}
+          landed={isNew(rule.id)}
+          lead={<WeekStrip days={rule.weekdays} />}
+          title={
+            <>
+              <span aria-hidden className="tabular-nums">
+                {m.hours(rule.startTime, rule.endTime)}
+              </span>
+              <span className="sr-only">{describe(rule)}</span>
+            </>
+          }
+          end={
+            <>
+              <span className="pe-2 font-semibold tabular-nums">{formatMoney(rule.price)}</span>
+              {canDelete && (
+                <IconAction
+                  danger
+                  icon={Trash2}
+                  label={m.deleteRuleFor(describe(rule))}
+                  hint={m.deleteRule}
+                  isPending={deleteRule.isPending && deleteRule.variables?.path.id === rule.id}
+                  onPress={() => deleteRule.mutate({ path: { id: rule.id } })}
+                />
+              )}
+            </>
+          }
+        />
+      ))}
+    </Rows>
+  );
+}
+
+/** Monday to Sunday as seven letters; the rule's days are filled in. */
+function WeekStrip({ days }: { days: number[] }) {
+  return (
+    <span aria-hidden className="flex gap-0.5 tt-hue-money">
+      {m.weekdays.map((name, index) => {
+        const on = days.includes(index + 1);
+        return (
+          <span
+            key={name}
+            className={`grid size-6 place-items-center rounded-md text-xs font-semibold ${on ? "bg-[var(--tt-hue)] text-white" : "bg-[var(--tt-field)] text-muted"}`}
+          >
+            {name.charAt(0)}
+          </span>
+        );
+      })}
+    </span>
   );
 }

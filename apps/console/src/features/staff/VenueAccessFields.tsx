@@ -1,10 +1,11 @@
-import { Checkbox, CheckboxGroup, FieldError, Label } from "@heroui/react";
+import { Checkbox } from "react-aria-components";
 
+import { PILL, TogglePills } from "../../components/Pills";
 import m from "../../i18n/en/staff";
 import { useVenueChoices } from "./useVenueChoices";
 import type { VenueAccess } from "./venueAccess";
 
-/** SIG-06: "All venues", or a list of the tenant's venues to pick from. */
+/** SIG-06: "All venues", or the tenant's venues to pick from, as pills. */
 export function VenueAccessFields({
   value,
   onChange,
@@ -19,37 +20,19 @@ export function VenueAccessFields({
       <Checkbox
         isSelected={value.allVenues}
         onChange={(allVenues) => onChange({ allVenues, venueIds: [] })}
+        className={`${PILL} justify-self-start`}
       >
-        <Checkbox.Control>
-          <Checkbox.Indicator />
-        </Checkbox.Control>
-        <Checkbox.Content>
-          <Label>{m.allVenues}</Label>
-        </Checkbox.Content>
+        {m.allVenues}
       </Checkbox>
       {!value.allVenues && (
-        <CheckboxGroup
+        <TogglePills
           name="venueIds"
-          isRequired
+          label={m.venuesLabel}
           value={value.venueIds.map(String)}
           onChange={(ids) => onChange({ allVenues: false, venueIds: ids.map(Number) })}
-          validate={(ids) => (ids.length > 0 ? null : m.venuesMissing)}
-        >
-          <Label>{m.venuesLabel}</Label>
-          <div className="flex flex-wrap gap-4">
-            {venues?.map((venue) => (
-              <Checkbox key={venue.id} value={String(venue.id)}>
-                <Checkbox.Control>
-                  <Checkbox.Indicator />
-                </Checkbox.Control>
-                <Checkbox.Content>
-                  <Label>{venue.name}</Label>
-                </Checkbox.Content>
-              </Checkbox>
-            ))}
-          </div>
-          <FieldError />
-        </CheckboxGroup>
+          required={m.venuesMissing}
+          choices={(venues ?? []).map((venue) => ({ value: String(venue.id), label: venue.name }))}
+        />
       )}
     </div>
   );

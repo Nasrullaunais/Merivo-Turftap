@@ -17,7 +17,7 @@ export default {
   opensOn: (day: string) => `${day} opens`,
   closesOn: (day: string) => `${day} closes`,
   closesBeforeOpens: "Must close after it opens",
+  closedDay: "Closed",
   submit: "Add venue",
-  added: (name: string) => `${name} was added.`,
   weekdays: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
 };

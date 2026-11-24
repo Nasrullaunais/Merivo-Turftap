@@ -26,6 +26,12 @@
   --tt-tone-bad: oklch(0.56 0.2 27);
   --tt-tone-off: oklch(0.55 0.02 260);
 
+  /* HeroUI fields: a grey fill and a hairline, no shadow (§8). */
+  --field-background: var(--tt-field);
+  --field-border: var(--tt-line);
+  --field-border-width: 1px;
+  --field-shadow: none;
+
   --tooltip-delay: 300ms;
   --tooltip-close-delay: 0ms;
 }

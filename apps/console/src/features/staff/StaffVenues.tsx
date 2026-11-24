@@ -1,7 +1,9 @@
 import { Button, Form } from "@heroui/react";
 import type { Staff } from "@turftap/contract/client";
+import { MapPin, Pencil } from "lucide-react";
 import { type FormEvent, useState } from "react";
 
+import { IconAction } from "../../components/IconAction";
 import { LoadingButton } from "../../components/LoadingButton";
 import m from "../../i18n/en/staff";
 import { useChangeStaff } from "./useManageStaff";
@@ -15,26 +17,37 @@ export function StaffVenues({ person, canManage }: { person: Staff; canManage: b
   const [editing, setEditing] = useState(false);
   const names = new Map(venues?.map((venue) => [venue.id, venue.name]));
   const who = person.name ?? person.phone;
-  const summary = person.allVenues
-    ? m.allVenues
-    : person.venueIds.map((id) => names.get(id) ?? m.unknownVenue(id)).join(", ");
+  const venueNames = person.allVenues
+    ? [m.allVenues]
+    : person.venueIds.map((id) => names.get(id) ?? m.unknownVenue(id));
 
-  if (editing) return <ChangeVenuesForm person={person} onDone={() => setEditing(false)} />;
+  if (editing)
+    return (
+      <div className="basis-full pt-2 text-foreground">
+        <ChangeVenuesForm person={person} onDone={() => setEditing(false)} />
+      </div>
+    );
 
   return (
-    <div className="flex items-center gap-3 text-sm text-muted">
-      <span>{summary}</span>
-      {canManage && person.role !== "OWNER" && (
-        <Button
-          size="sm"
-          variant="ghost"
-          aria-label={m.changeVenuesFor(who)}
-          onPress={() => setEditing(true)}
+    <span className="relative z-10 inline-flex flex-wrap items-center gap-1">
+      {venueNames.map((name) => (
+        <span
+          key={name}
+          className="inline-flex items-center gap-1 rounded-md bg-[var(--tt-field)] px-1.5 py-0.5 text-xs tt-hue-place"
         >
-          {m.changeVenues}
-        </Button>
+          <MapPin aria-hidden size={11} className="text-[var(--tt-hue)]" />
+          {name}
+        </span>
+      ))}
+      {canManage && person.role !== "OWNER" && (
+        <IconAction
+          icon={Pencil}
+          label={m.changeVenuesFor(who)}
+          hint={m.changeVenues}
+          onPress={() => setEditing(true)}
+        />
       )}
-    </div>
+    </span>
   );
 }
 

@@ -1,5 +1,6 @@
-import { Button, Label, ListBox, Select } from "@heroui/react";
+import { Button, ListBox, Select, Tooltip } from "@heroui/react";
 import type { Resource, Venue } from "@turftap/contract/client";
+import { ChevronLeft, ChevronRight, type LucideIcon } from "lucide-react";
 
 import m from "../../i18n/en/calendar";
 import type { CalendarView } from "./calendarGrid";
@@ -18,8 +19,12 @@ function Picker({
   onChange: (id: number) => void;
 }) {
   return (
-    <Select className="w-48" value={String(value)} onChange={(id) => onChange(Number(id))}>
-      <Label>{label}</Label>
+    <Select
+      aria-label={label}
+      className="w-52"
+      value={String(value)}
+      onChange={(id) => onChange(Number(id))}
+    >
       <Select.Trigger>
         <Select.Value />
         <Select.Indicator />
@@ -54,7 +59,7 @@ type Props = {
 export function CalendarToolbar(props: Props) {
   const { view } = props;
   return (
-    <div className="flex flex-wrap items-end gap-3">
+    <div className="flex flex-wrap items-center gap-2">
       <Picker
         label={m.venueLabel}
         choices={props.venues}
@@ -69,30 +74,49 @@ export function CalendarToolbar(props: Props) {
           onChange={props.onResourceChange}
         />
       )}
-      <div role="group" aria-label={m.viewLabel} className="flex gap-1">
+      <div
+        role="group"
+        aria-label={m.viewLabel}
+        className="ms-auto flex rounded-full bg-[var(--tt-field)] p-0.5"
+      >
         {(["day", "week"] as const).map((choice) => (
-          <Button
+          <button
             key={choice}
-            size="sm"
-            variant={view === choice ? "primary" : "tertiary"}
+            type="button"
             aria-pressed={view === choice}
-            onPress={() => props.onViewChange(choice)}
+            onClick={() => props.onViewChange(choice)}
+            className="h-8 cursor-pointer rounded-full px-4 text-sm font-medium text-muted outline-none tt-t1 hover:text-foreground focus-visible:ring-2 focus-visible:ring-focus aria-pressed:bg-[var(--tt-panel)] aria-pressed:text-foreground aria-pressed:shadow-sm"
           >
             {m[choice]}
-          </Button>
+          </button>
         ))}
       </div>
-      <div className="flex gap-1">
-        <Button size="sm" variant="tertiary" onPress={() => props.onMove(-1)}>
-          {m.previous[view]}
-        </Button>
+      <div className="flex items-center gap-1">
+        <StepButton label={m.previous[view]} icon={ChevronLeft} onPress={() => props.onMove(-1)} />
         <Button size="sm" variant="tertiary" onPress={props.onToday}>
           {m.today}
         </Button>
-        <Button size="sm" variant="tertiary" onPress={() => props.onMove(1)}>
-          {m.next[view]}
-        </Button>
+        <StepButton label={m.next[view]} icon={ChevronRight} onPress={() => props.onMove(1)} />
       </div>
     </div>
+  );
+}
+
+function StepButton({
+  label,
+  icon: Icon,
+  onPress,
+}: {
+  label: string;
+  icon: LucideIcon;
+  onPress: () => void;
+}) {
+  return (
+    <Tooltip>
+      <Button isIconOnly size="sm" variant="ghost" aria-label={label} onPress={onPress}>
+        <Icon aria-hidden size={18} />
+      </Button>
+      <Tooltip.Content placement="bottom">{label}</Tooltip.Content>
+    </Tooltip>
   );
 }
