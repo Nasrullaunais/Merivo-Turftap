@@ -152,7 +152,7 @@ describe("VEN-06 venue photos", () => {
   it("manager_isToldWhenThePhotoCannotBeOpened", async () => {
     vi.mocked(shrinkPhoto).mockRejectedValueOnce(new DOMException("bad", "InvalidStateError"));
     const fetch = venuePageAs("MANAGER", []);
-    await screen.findByText(/^No photos yet/);
+    await screen.findByLabelText("Add a photo (JPG or PNG)");
     pickFile(file("?", "photo.heic", "image/heic"));
     expect(
       await screen.findByText("This photo couldn't be opened. Pick a JPG or PNG."),
@@ -176,7 +176,10 @@ describe("VEN-06 venue photos", () => {
     const fetch = venuePageAs("MANAGER", [photo(21, 1), photo(22, 2)]);
     fireEvent.click(await screen.findByRole("button", { name: "Delete Cover photo" }));
     await waitFor(() => expect(screen.queryByAltText("Photo 2")).not.toBeInTheDocument());
-    expect(screen.getByAltText("Cover photo")).toHaveAttribute("src", photo(22, 1).url);
+    // The deleted photo fades out first, so wait until it has gone.
+    await waitFor(() =>
+      expect(screen.getByAltText("Cover photo")).toHaveAttribute("src", photo(22, 1).url),
+    );
     expect(requestsOf(fetch, "DELETE", "/v1/photos/21")).toHaveLength(1);
   });
 });
@@ -197,7 +200,7 @@ describe("VEN-06 resource photos", () => {
     });
     signInForTesting(PHONE);
     renderApp("/resources/11");
-    await screen.findByText(/^No photos yet/);
+    await screen.findByLabelText("Add a photo (JPG or PNG)");
     const list = requestsOf(fetch, "GET", "/v1/photos")[0]!;
     expect(new URL(list.url).searchParams.get("resourceId")).toBe("11");
     pickFile(file("png", "table.png", "image/png"));

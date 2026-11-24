@@ -1,7 +1,13 @@
 export default {
   title: "Venues",
   loading: "Loading venues",
+  loadingOne: "Loading the venue",
+  backToVenues: "Back to venues",
   none: "No venues yet.",
+  count: (count: number) => (count === 1 ? "1 venue" : `${count} venues`),
+  /** "Today 06:00–23:00" on the venue's clock. */
+  todayHours: (opens: string, closes: string) => `Today ${opens}–${closes}`,
+  closedToday: "Closed today",
   turnedOff: "Turned off",
   addTitle: "Add a venue",
   nameLabel: "Name",
@@ -15,7 +21,7 @@ export default {
   opensOn: (day: string) => `${day} opens`,
   closesOn: (day: string) => `${day} closes`,
   closesBeforeOpens: "Must close after it opens",
+  closedDay: "Closed",
   submit: "Add venue",
-  added: (name: string) => `${name} was added.`,
   weekdays: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
 };

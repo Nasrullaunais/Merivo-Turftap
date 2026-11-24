@@ -30,5 +30,6 @@ globalThis.Request = class extends NodeRequest {
 afterEach(() => {
   cleanup();
   sessionStorage.clear();
+  localStorage.clear();
   vi.unstubAllGlobals();
 });

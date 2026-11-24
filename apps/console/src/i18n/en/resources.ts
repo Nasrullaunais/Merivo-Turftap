@@ -1,15 +1,18 @@
 export default {
+  title: "Resources",
   loading: "Loading resources",
+  loadingOne: "Loading the resource",
   backToVenue: "Back to the venue",
   none: "No resources yet.",
+  count: (count: number) => (count === 1 ? "1 resource" : `${count} resources`),
   turnedOff: "Turned off",
   types: {
     FUTSAL_COURT: "Futsal court",
     TABLE_TENNIS_TABLE: "Table tennis table",
     POOL_TABLE: "Pool table",
   },
-  details: (type: string, minutes: number, intervalMinutes: number, price: string) =>
-    `${type} · ${minutes} min slots, starting every ${intervalMinutes} min · ${price} per slot`,
+  slotLength: (minutes: number) => `${minutes} min slots`,
+  startsEvery: (minutes: number) => `Starts every ${minutes} min`,
   priceLabel: "Price per slot (LKR)",
   addTitle: "Add a resource",
   nameLabel: "Name",
@@ -23,5 +26,5 @@ export default {
   turnOffFor: (name: string) => `Turn off ${name}`,
   turnOffTitle: (name: string) => `Turn off ${name}?`,
   turnOffHint: "Customers can no longer book it. Its past bookings stay.",
-  cancel: "Cancel",
+  keep: "Keep it",
 };

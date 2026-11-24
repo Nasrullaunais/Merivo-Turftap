@@ -88,6 +88,12 @@ const requestsOf = (fetch: ReturnType<typeof mockApi>, method: string) =>
 const type = (label: RegExp, value: string) =>
   fireEvent.change(screen.getByLabelText(label), { target: { value } });
 
+/** Opens the form and waits for it: it shows once the venue's time zone is known. */
+async function openBlockForm() {
+  fireEvent.click(await screen.findByRole("button", { name: "Block this resource" }));
+  await screen.findByText("Venue time (Asia/Colombo)");
+}
+
 describe("VEN-07 block a resource", () => {
   it("frontDesk_seesUpcomingBlocksInTheVenuesTime", async () => {
     const fetch = resourcePageAs("FRONT_DESK", [repainting]);
@@ -109,9 +115,7 @@ describe("VEN-07 block a resource", () => {
 
   it("manager_blocksATimeTypedInTheVenuesTime", async () => {
     const fetch = resourcePageAs("MANAGER", []);
-    expect(
-      await screen.findByText("Times are in the venue's time zone (Asia/Colombo)."),
-    ).toBeInTheDocument();
+    await openBlockForm();
     type(/^From date/, "2026-12-25");
     type(/^From time/, "10:00");
     type(/^To time/, "12:00");
@@ -128,7 +132,7 @@ describe("VEN-07 block a resource", () => {
 
   it("manager_isToldWhenTheEndIsBeforeTheStart", async () => {
     const fetch = resourcePageAs("MANAGER", []);
-    await screen.findByRole("button", { name: "Block" });
+    await openBlockForm();
     type(/^From date/, "2026-12-25");
     type(/^From time/, "12:00");
     type(/^To time/, "10:00");
@@ -149,7 +153,7 @@ describe("VEN-07 block a resource", () => {
       "POST /v1/blocked-times": () => apiError(409, "tt_ven_014", clash),
     });
     renderApp("/resources/11");
-    await screen.findByRole("button", { name: "Block" });
+    await openBlockForm();
     type(/^From date/, "2026-12-25");
     type(/^From time/, "09:00");
     type(/^To time/, "12:00");

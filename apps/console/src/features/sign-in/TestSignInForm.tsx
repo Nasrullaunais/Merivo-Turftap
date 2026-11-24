@@ -1,5 +1,6 @@
 import { Button, FieldError, Form, Input, Label, TextField } from "@heroui/react";
 import { PhoneInput } from "@turftap/contract";
+import { FlaskConical } from "lucide-react";
 import type { FormEvent } from "react";
 
 import m from "../../i18n/en/signIn";
@@ -19,7 +20,10 @@ export function TestSignInForm() {
 
   return (
     <Form className="grid gap-4" onSubmit={submit}>
-      <p className="text-muted">{m.testOnly}</p>
+      <p className="flex gap-2 rounded-lg bg-[color-mix(in_oklab,var(--tt-tone)_12%,transparent)] p-3 text-sm tt-tone-watch tt-tone-text">
+        <FlaskConical aria-hidden size={16} className="mt-0.5 shrink-0" />
+        {m.testOnly}
+      </p>
       <TextField
         name={PHONE_FIELD}
         type="tel"
@@ -30,7 +34,9 @@ export function TestSignInForm() {
         <Input placeholder="077 123 4567" />
         <FieldError />
       </TextField>
-      <Button type="submit">{m.submit}</Button>
+      <Button type="submit" fullWidth>
+        {m.submit}
+      </Button>
     </Form>
   );
 }

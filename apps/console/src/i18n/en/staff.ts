@@ -1,6 +1,15 @@
 export default {
   title: "Staff",
   loading: "Loading staff",
+  none: "No staff yet.",
+  noMatches: "No one matches.",
+  byRole: "Staff by role",
+  everyone: "Everyone",
+  rolePlural: { OWNER: "Owners", MANAGER: "Managers", FRONT_DESK: "Front Desk" },
+  search: "Search",
+  /** "3 of 5 people" while a filter or search is on, "5 people" otherwise. */
+  count: (shown: number, all: number) =>
+    shown === all ? `${all} ${all === 1 ? "person" : "people"}` : `${shown} of ${all} people`,
   addTitle: "Add staff",
   phoneLabel: "Phone number",
   phoneInvalid: "Enter a phone number like 077 123 4567",
@@ -15,6 +24,7 @@ export default {
   removeTitle: (who: string) => `Remove ${who}?`,
   removeHint: "They lose access to this tenant within a few minutes.",
   cancel: "Cancel",
+  keep: "Keep them",
   save: "Save",
   allVenues: "All venues",
   venuesLabel: "Venues",

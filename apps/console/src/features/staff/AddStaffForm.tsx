@@ -1,16 +1,10 @@
-import {
-  Button,
-  FieldError,
-  Form,
-  Input,
-  Label,
-  Radio,
-  RadioGroup,
-  TextField,
-} from "@heroui/react";
+import { FieldError, Form, Input, Label, TextField } from "@heroui/react";
 import { PhoneInput, STAFF_ROLES, type StaffRole } from "@turftap/contract";
+import { CircleCheck } from "lucide-react";
 import { type FormEvent, useState } from "react";
 
+import { LoadingButton } from "../../components/LoadingButton";
+import { ChoicePills } from "../../components/Pills";
 import m from "../../i18n/en/staff";
 import tenants from "../../i18n/en/tenants";
 import { useAddStaff } from "./useAddStaff";
@@ -19,6 +13,7 @@ import { VenueAccessFields } from "./VenueAccessFields";
 
 const DEFAULT_ROLE: StaffRole = "FRONT_DESK";
 
+/** SIG-03. It stays open after adding, so the note about the WhatsApp message stays in view. */
 export function AddStaffForm() {
   const addStaff = useAddStaff();
   const [phone, setPhone] = useState("");
@@ -41,9 +36,9 @@ export function AddStaffForm() {
   };
 
   return (
-    <Form className="grid gap-4" onSubmit={submit}>
-      <h2 className="text-lg font-semibold">{m.addTitle}</h2>
+    <Form className="grid gap-5" onSubmit={submit}>
       <TextField
+        className="sm:w-72"
         name="phone"
         type="tel"
         isRequired
@@ -55,29 +50,25 @@ export function AddStaffForm() {
         <Input placeholder="077 123 4567" />
         <FieldError />
       </TextField>
-      <RadioGroup
+      <ChoicePills
         name="role"
-        orientation="horizontal"
+        label={m.roleLabel}
         value={role}
-        onChange={(value) => setRole(value as StaffRole)}
-      >
-        <Label>{m.roleLabel}</Label>
-        {STAFF_ROLES.map((value) => (
-          <Radio key={value} value={value}>
-            <Radio.Control>
-              <Radio.Indicator />
-            </Radio.Control>
-            <Radio.Content>
-              <Label>{tenants.roles[value]}</Label>
-            </Radio.Content>
-          </Radio>
-        ))}
-      </RadioGroup>
+        onChange={setRole}
+        choices={STAFF_ROLES.map((value) => ({ value, label: tenants.roles[value] }))}
+      />
       {!isOwner && <VenueAccessFields value={access} onChange={setAccess} />}
-      <Button type="submit" isPending={addStaff.isPending}>
-        {m.submit}
-      </Button>
-      {addStaff.isSuccess && <p role="status">{m.added(addStaff.data.data.phone)}</p>}
+      <div className="flex flex-wrap items-center gap-3">
+        <LoadingButton type="submit" isPending={addStaff.isPending}>
+          {m.submit}
+        </LoadingButton>
+        {addStaff.isSuccess && (
+          <p role="status" className="inline-flex animate-tt-pop items-center gap-1.5 text-sm">
+            <CircleCheck aria-hidden size={16} className="tt-tone-good tt-tone-text" />
+            {m.added(addStaff.data.data.phone)}
+          </p>
+        )}
+      </div>
     </Form>
   );
 }

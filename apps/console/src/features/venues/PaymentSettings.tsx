@@ -1,18 +1,12 @@
-import {
-  Button,
-  FieldError,
-  Form,
-  Input,
-  Label,
-  Radio,
-  RadioGroup,
-  Switch,
-  TextField,
-} from "@heroui/react";
+import { FieldError, Form, Input, Label, Switch, TextField } from "@heroui/react";
 import { BankAccountInput, CreateVenue, FULL_AMOUNT_PERCENT } from "@turftap/contract";
 import type { Venue } from "@turftap/contract/client";
+import { CircleCheck, Landmark, Wallet } from "lucide-react";
 import { type FormEvent, useState } from "react";
 
+import { LoadingButton } from "../../components/LoadingButton";
+import { ChoicePills } from "../../components/Pills";
+import { Section } from "../../components/Section";
 import m from "../../i18n/en/paymentSettings";
 import { useChangeVenue } from "./useChangeVenue";
 import { useVenue } from "./useVenue";
@@ -24,10 +18,15 @@ export function PaymentSettings({ venueId, canChange }: Props) {
   const { data: venue } = useVenue(venueId);
   if (!venue) return null;
   return (
-    <section className="grid gap-3">
-      <h2 className="text-lg font-semibold">{m.title}</h2>
-      {canChange ? <PaymentSettingsForm venue={venue} /> : <PaymentSettingsSummary venue={venue} />}
-    </section>
+    <Section hue="money" icon={Wallet} title={m.title}>
+      <div className="p-4">
+        {canChange ? (
+          <PaymentSettingsForm venue={venue} />
+        ) : (
+          <PaymentSettingsSummary venue={venue} />
+        )}
+      </div>
+    </Section>
   );
 }
 
@@ -114,7 +113,7 @@ function PaymentSettingsForm({ venue }: { venue: Venue }) {
   };
 
   return (
-    <Form className="grid gap-4" onSubmit={submit}>
+    <Form className="grid gap-5" onSubmit={submit}>
       <Switch isSelected={payAtVenue} onChange={setPayAtVenue}>
         <Switch.Content>
           <Switch.Control>
@@ -127,8 +126,11 @@ function PaymentSettingsForm({ venue }: { venue: Venue }) {
         <p className="text-muted">{m.paysAtVenue}</p>
       ) : (
         <>
-          <h3 className="font-medium">{m.bankTitle}</h3>
-          <div className="grid grid-cols-2 gap-3">
+          <fieldset className="grid gap-3 sm:grid-cols-2">
+            <legend className="mb-3 inline-flex items-center gap-2 font-medium">
+              <Landmark aria-hidden size={16} className="text-muted" />
+              {m.bankTitle}
+            </legend>
             <TextField name="bankName" isRequired value={bankName} onChange={setBankName}>
               <Label>{m.bankNameLabel}</Label>
               <Input placeholder="Bank of Ceylon" />
@@ -151,28 +153,20 @@ function PaymentSettingsForm({ venue }: { venue: Venue }) {
               validate={(value) => (isAccountNumber(value) ? null : m.accountNumberInvalid)}
             >
               <Label>{m.accountNumberLabel}</Label>
-              <Input inputMode="numeric" />
+              <Input inputMode="numeric" className="tabular-nums" />
               <FieldError />
             </TextField>
-          </div>
-          <RadioGroup
+          </fieldset>
+          <ChoicePills
             name="amount"
-            orientation="horizontal"
+            label={m.amountLabel}
             value={amount}
-            onChange={(value) => setAmount(value as Amount)}
-          >
-            <Label>{m.amountLabel}</Label>
-            {(["FULL", "ADVANCE"] as const).map((value) => (
-              <Radio key={value} value={value}>
-                <Radio.Control>
-                  <Radio.Indicator />
-                </Radio.Control>
-                <Radio.Content>
-                  <Label>{value === "FULL" ? m.fullAmount : m.advance}</Label>
-                </Radio.Content>
-              </Radio>
-            ))}
-          </RadioGroup>
+            onChange={setAmount}
+            choices={[
+              { value: "FULL", label: m.fullAmount },
+              { value: "ADVANCE", label: m.advance },
+            ]}
+          />
           {amount === "ADVANCE" && (
             <TextField
               name="advancePercent"
@@ -187,13 +181,13 @@ function PaymentSettingsForm({ venue }: { venue: Venue }) {
               }
             >
               <Label>{m.advancePercentLabel}</Label>
-              <Input min={1} max={FULL_AMOUNT_PERCENT - 1} step={1} />
+              <Input min={1} max={FULL_AMOUNT_PERCENT - 1} step={1} className="sm:w-40" />
               <FieldError />
             </TextField>
           )}
         </>
       )}
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid gap-3 sm:grid-cols-2">
         {!payAtVenue && (
           <TextField
             name="paymentTimeLimitMinutes"
@@ -239,10 +233,17 @@ function PaymentSettingsForm({ venue }: { venue: Venue }) {
           </TextField>
         )}
       </div>
-      <Button type="submit" isPending={changeVenue.isPending}>
-        {m.save}
-      </Button>
-      {changeVenue.isSuccess && <p role="status">{m.saved}</p>}
+      <div className="flex flex-wrap items-center gap-3 border-t border-[var(--tt-line)] pt-4">
+        <LoadingButton type="submit" isPending={changeVenue.isPending}>
+          {m.save}
+        </LoadingButton>
+        {changeVenue.isSuccess && (
+          <p role="status" className="inline-flex animate-tt-pop items-center gap-1.5 text-sm">
+            <CircleCheck aria-hidden size={16} className="tt-tone-good tt-tone-text" />
+            {m.saved}
+          </p>
+        )}
+      </div>
     </Form>
   );
 }

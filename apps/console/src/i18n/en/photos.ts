@@ -1,7 +1,7 @@
 export default {
   title: "Photos",
   loading: "Loading photos",
-  none: "No photos yet. The first photo is the cover customers see.",
+  none: "No photos yet.",
   photoAlt: (position: number) => (position === 1 ? "Cover photo" : `Photo ${position}`),
   cover: "Cover",
   moveEarlier: "Move earlier",
@@ -11,6 +11,9 @@ export default {
   remove: "Delete",
   removeFor: (alt: string) => `Delete ${alt}`,
   addLabel: "Add a photo (JPG or PNG)",
+  add: "Add photo",
+  addFirst: "Add the cover photo",
+  fileKinds: "JPG or PNG",
   adding: "Adding photo",
   unreadable: "This photo couldn't be opened. Pick a JPG or PNG.",
 };

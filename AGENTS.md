@@ -10,6 +10,7 @@ Bun workspace: `apps/api` (Bun + Hono + Drizzle + Postgres), `apps/portal` and `
 - **What to build**: [docs/spec/](docs/spec/README.md). Stories have IDs (`BKG-06`); reference them in tests and pull requests.
 - **Why things are the way they are**: [docs/adr/](docs/adr/README.md). Work that goes against an ADR says so openly in the pull request.
 - **How it fits together**: [docs/architecture/](docs/architecture/README.md). Open the page for the area you're touching: tenancy, API, adapters, frontend, Assistant, payments, testing, deployment.
+- **How the Staff Console looks and behaves**: [docs/architecture/console-design.md](docs/architecture/console-design.md). Every console screen follows it.
 - **How to write backend code**: [docs/architecture/backend.md](docs/architecture/backend.md). The `venues` module is the working example to copy.
 
 ## Commands

@@ -3,6 +3,7 @@ import { createFileRoute, redirect } from "@tanstack/react-router";
 import { canOpen } from "../../../config/routePermissions";
 import { BookingCalendar } from "../../../features/calendar/BookingCalendar";
 import m from "../../../i18n/en/calendar";
+import { PageLayout } from "../../../layout/PageLayout";
 
 export const Route = createFileRoute("/_signedIn/_tenant/calendar")({
   beforeLoad: ({ context }) => {
@@ -13,9 +14,8 @@ export const Route = createFileRoute("/_signedIn/_tenant/calendar")({
 
 function CalendarPage() {
   return (
-    <main className="grid gap-6 p-6">
-      <h1 className="text-2xl font-semibold">{m.title}</h1>
+    <PageLayout title={m.title} width="fill">
       <BookingCalendar />
-    </main>
+    </PageLayout>
   );
 }

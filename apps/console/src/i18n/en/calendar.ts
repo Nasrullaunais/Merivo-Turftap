@@ -11,6 +11,8 @@ const clock = (instant: string, timeZone: string) =>
     hourCycle: "h23",
   }).format(new Date(instant));
 
+const weekdayShort = onDate({ weekday: "short" });
+const dayNumber = onDate({ day: "numeric" });
 const fullDate = onDate({ weekday: "short", day: "numeric", month: "short", year: "numeric" });
 const shortDate = onDate({ weekday: "short", day: "numeric", month: "short" });
 const dayAndMonth = onDate({ day: "numeric", month: "short" });
@@ -26,8 +28,8 @@ const states = {
 export default {
   title: "Calendar",
   loading: "Loading the calendar",
-  noVenues: "No venues yet. Add a venue to see its calendar.",
-  noResources: "This venue has no resources yet.",
+  noVenues: "No venues yet.",
+  noResources: "No resources at this venue yet.",
   venueLabel: "Venue",
   resourceLabel: "Resource",
   viewLabel: "View",
@@ -40,13 +42,32 @@ export default {
   heading: (first: string, last: string) =>
     first === last ? fullDate(first) : `${dayAndMonth(first)} – ${dayMonthAndYear(last)}`,
   dayColumn: shortDate,
-  timeZoneHint: (timeZone: string) => `Times are in the venue's time zone (${timeZone}).`,
+  timeZone: (timeZone: string) => `Venue time (${timeZone})`,
   closed: "Closed",
-  legend: "What the colours mean",
+  byState: "Bookings by state",
+  allBookings: "Bookings",
+  /** "62% booked": how much of the open time shown is taken. */
+  booked: (percent: number) => `${percent}% booked`,
+  pickDate: "Pick a date",
+  weekStrip: "Days of this week",
+  weekday: weekdayShort,
+  dayNumber,
+  /** "Mon 21 Dec, 3 bookings", for a day in the strip. */
+  stripDay: (date: string, bookings: number, isClosed: boolean) =>
+    `${shortDate(date)}, ${isClosed ? "closed" : bookings === 1 ? "1 booking" : `${bookings} bookings`}`,
+  keys: { previous: "←", next: "→", today: "T", day: "D", week: "W" },
+  sources: { ONLINE: "Online", WALK_IN: "Walk-in" },
+  price: "Price",
+  paid: "Paid",
+  balance: "Balance",
+  /** The current time on the venue's clock, beside the red line. */
+  now: "Now",
   states,
   /** "19:00–20:00" on the venue's clock. */
   window: (startsAt: string, endsAt: string, timeZone: string) =>
     `${clock(startsAt, timeZone)}–${clock(endsAt, timeZone)}`,
   /** "Free: Court 1, Fri 25 Dec, 19:00", where the column is "Fri 25 Dec". */
   freeSlot: (where: string, time: string) => `Free: ${where}, ${time}`,
+  /** Shown on a free slot under the pointer. */
+  freeSlotHint: (time: string) => `+ ${time}`,
 };

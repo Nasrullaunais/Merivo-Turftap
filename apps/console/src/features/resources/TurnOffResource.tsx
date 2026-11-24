@@ -1,6 +1,8 @@
 import { AlertDialog, Button } from "@heroui/react";
 import type { Resource } from "@turftap/contract/client";
+import { Power } from "lucide-react";
 
+import { IconAction } from "../../components/IconAction";
 import m from "../../i18n/en/resources";
 import { useTurnOffResource } from "./useChangeResources";
 
@@ -9,9 +11,13 @@ export function TurnOffResource({ resource }: { resource: Resource }) {
 
   return (
     <AlertDialog>
-      <Button size="sm" variant="danger-soft" aria-label={m.turnOffFor(resource.name)}>
-        {m.turnOff}
-      </Button>
+      <IconAction
+        danger
+        icon={Power}
+        label={m.turnOffFor(resource.name)}
+        hint={m.turnOff}
+        isPending={turnOff.isPending}
+      />
       <AlertDialog.Backdrop>
         <AlertDialog.Container>
           <AlertDialog.Dialog>
@@ -22,7 +28,7 @@ export function TurnOffResource({ resource }: { resource: Resource }) {
             <AlertDialog.Body>{m.turnOffHint}</AlertDialog.Body>
             <AlertDialog.Footer>
               <Button slot="close" variant="tertiary">
-                {m.cancel}
+                {m.keep}
               </Button>
               <Button
                 slot="close"

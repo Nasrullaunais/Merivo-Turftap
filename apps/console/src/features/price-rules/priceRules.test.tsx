@@ -1,4 +1,4 @@
-import { fireEvent, screen, waitFor } from "@testing-library/react";
+import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import type { StaffRole } from "@turftap/contract";
 import { describe, expect, it } from "vitest";
 
@@ -53,6 +53,9 @@ const bodiesOf = (fetch: ReturnType<typeof mockApi>, method: string) =>
       .map((request) => request.clone().json()),
   );
 
+const openAddForm = async () =>
+  fireEvent.click(await screen.findByRole("button", { name: "Add a Price Rule" }));
+
 describe("VEN-05 set prices", () => {
   it("resourcePage_showsTheDefaultPriceAndPriceRules", async () => {
     signInForTesting(PHONE);
@@ -63,11 +66,9 @@ describe("VEN-05 set prices", () => {
     });
     renderApp("/resources/11");
     expect(await screen.findByRole("heading", { name: "Court 1" })).toBeInTheDocument();
-    expect(
-      screen.getByText("Futsal court · 60 min slots, starting every 30 min · LKR 4,500 per slot"),
-    ).toBeInTheDocument();
-    expect(await screen.findByText("Sat, Sun · 18:00–22:00")).toBeInTheDocument();
-    expect(screen.getByText("LKR 6,000 per slot")).toBeInTheDocument();
+    expect(await screen.findByText("LKR 4,500")).toBeInTheDocument();
+    const rule = (await screen.findByText("Sat, Sun 18:00–22:00")).closest("li")!;
+    expect(within(rule).getByText("LKR 6,000")).toBeInTheDocument();
     expect(screen.queryByRole("heading", { name: "Add a Price Rule" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Save price" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /^Delete/ })).not.toBeInTheDocument();
@@ -91,11 +92,7 @@ describe("VEN-05 set prices", () => {
     fireEvent.change(field, { target: { value: "5000" } });
     fireEvent.click(screen.getByRole("button", { name: "Save price" }));
 
-    expect(
-      await screen.findByText(
-        "Futsal court · 60 min slots, starting every 30 min · LKR 5,000 per slot",
-      ),
-    ).toBeInTheDocument();
+    expect(await screen.findByText("Saved")).toBeInTheDocument();
     expect(await bodiesOf(fetch, "PATCH")).toEqual([
       { price: { amount: 500_000, currency: "LKR" } },
     ]);
@@ -115,12 +112,13 @@ describe("VEN-05 set prices", () => {
     });
     renderApp("/resources/11");
     await screen.findByText("No Price Rules yet. Every slot costs the default price.");
+    await openAddForm();
     fireEvent.click(screen.getByRole("checkbox", { name: "Sun" }));
     fireEvent.click(screen.getByRole("checkbox", { name: "Sat" }));
     fireEvent.change(screen.getByLabelText(/^Price per slot/), { target: { value: "6000" } });
     fireEvent.click(screen.getByRole("button", { name: "Add Price Rule" }));
 
-    expect(await screen.findByText("Sat, Sun · 18:00–22:00")).toBeInTheDocument();
+    expect(await screen.findByText("Sat, Sun 18:00–22:00")).toBeInTheDocument();
     expect(await bodiesOf(fetch, "POST")).toEqual([
       {
         resourceId: 11,
@@ -140,7 +138,7 @@ describe("VEN-05 set prices", () => {
       "GET /v1/price-rules": page([]),
     });
     renderApp("/resources/11");
-    await screen.findByRole("heading", { name: "Add a Price Rule" });
+    await openAddForm();
     fireEvent.click(screen.getByRole("button", { name: /To$/ }));
     fireEvent.click(await screen.findByRole("option", { name: "17:00" }));
     fireEvent.change(screen.getByLabelText(/^Price per slot/), { target: { value: "99.5" } });
@@ -161,7 +159,7 @@ describe("VEN-05 set prices", () => {
       "GET /v1/price-rules": page([]),
     });
     renderApp("/resources/11");
-    await screen.findByRole("heading", { name: "Add a Price Rule" });
+    await openAddForm();
     fireEvent.click(screen.getByRole("button", { name: /From$/ }));
     const starts = (await screen.findAllByRole("option")).map((option) => option.textContent);
     expect(starts).toHaveLength(24);
@@ -179,7 +177,8 @@ describe("VEN-05 set prices", () => {
         apiError(409, "tt_ven_006", "This overlaps the Price Rule for Sat, Sun 18:00–22:00"),
     });
     renderApp("/resources/11");
-    await screen.findByText("Sat, Sun · 18:00–22:00");
+    await screen.findByText("Sat, Sun 18:00–22:00");
+    await openAddForm();
     fireEvent.click(screen.getByRole("checkbox", { name: "Sat" }));
     fireEvent.change(screen.getByLabelText(/^Price per slot/), { target: { value: "7000" } });
     fireEvent.click(screen.getByRole("button", { name: "Add Price Rule" }));
@@ -203,9 +202,9 @@ describe("VEN-05 set prices", () => {
     renderApp("/resources/11");
     fireEvent.click(
       await screen.findByRole("button", {
-        name: "Delete the Price Rule for Sat, Sun · 18:00–22:00",
+        name: "Delete the Price Rule for Sat, Sun 18:00–22:00",
       }),
     );
-    await waitFor(() => expect(screen.queryByText("Sat, Sun · 18:00–22:00")).toBeNull());
+    await waitFor(() => expect(screen.queryByText("Sat, Sun 18:00–22:00")).toBeNull());
   });
 });

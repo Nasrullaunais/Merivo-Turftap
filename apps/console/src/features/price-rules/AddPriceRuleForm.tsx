@@ -1,17 +1,10 @@
-import {
-  Button,
-  Checkbox,
-  CheckboxGroup,
-  FieldError,
-  Form,
-  Label,
-  ListBox,
-  Select,
-} from "@heroui/react";
+import { FieldError, Form, Label, ListBox, Select } from "@heroui/react";
 import { localTimeAt } from "@turftap/contract";
 import { lkr } from "@turftap/ui";
 import { type FormEvent, useState } from "react";
 
+import { LoadingButton } from "../../components/LoadingButton";
+import { TogglePills } from "../../components/Pills";
 import { PriceField } from "../../components/PriceField";
 import m from "../../i18n/en/prices";
 import { useAddPriceRule } from "./useChangePriceRules";
@@ -27,20 +20,21 @@ const timesEvery = (intervalMinutes: number, first: number, last: number) =>
     localTimeAt(first + index * intervalMinutes),
   );
 
-export function AddPriceRuleForm({ resourceId }: { resourceId: number }) {
+type Props = { resourceId: number; onAdded: () => void };
+
+/** VEN-05. `onAdded` folds the form away; the new rule lands in the list above it. */
+export function AddPriceRuleForm({ resourceId, onAdded }: Props) {
   const intervalMinutes = useStartInterval(resourceId);
   return intervalMinutes ? (
-    <PriceRuleForm resourceId={resourceId} intervalMinutes={intervalMinutes} />
+    <PriceRuleForm resourceId={resourceId} intervalMinutes={intervalMinutes} onAdded={onAdded} />
   ) : null;
 }
 
 function PriceRuleForm({
   resourceId,
   intervalMinutes,
-}: {
-  resourceId: number;
-  intervalMinutes: number;
-}) {
+  onAdded,
+}: Props & { intervalMinutes: number }) {
   const addRule = useAddPriceRule();
   const [weekdays, setWeekdays] = useState<string[]>([]);
   const [startTime, setStartTime] = useState(DEFAULT_START);
@@ -63,37 +57,23 @@ function PriceRuleForm({
         onSuccess: () => {
           setWeekdays([]);
           setRupees("");
+          onAdded();
         },
       },
     );
   };
 
   return (
-    <Form className="grid gap-4" onSubmit={submit}>
-      <h2 className="text-lg font-semibold">{m.addRuleTitle}</h2>
-      <CheckboxGroup
+    <Form className="grid gap-5" onSubmit={submit}>
+      <TogglePills
         name="weekdays"
-        isRequired
+        label={m.weekdaysLabel}
         value={weekdays}
         onChange={setWeekdays}
-        validate={(days) => (days.length > 0 ? null : m.weekdaysMissing)}
-      >
-        <Label>{m.weekdaysLabel}</Label>
-        <div className="flex flex-wrap gap-4">
-          {m.weekdays.map((name, index) => (
-            <Checkbox key={name} value={String(index + 1)}>
-              <Checkbox.Control>
-                <Checkbox.Indicator />
-              </Checkbox.Control>
-              <Checkbox.Content>
-                <Label>{name}</Label>
-              </Checkbox.Content>
-            </Checkbox>
-          ))}
-        </div>
-        <FieldError />
-      </CheckboxGroup>
-      <div className="grid grid-cols-2 gap-3">
+        required={m.weekdaysMissing}
+        choices={m.weekdays.map((name, index) => ({ value: String(index + 1), label: name }))}
+      />
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
         <TimeSelect
           label={m.startLabel}
           times={timesEvery(intervalMinutes, 0, MINUTES_PER_DAY - intervalMinutes)}
@@ -107,11 +87,13 @@ function PriceRuleForm({
           onChange={setEndTime}
           validate={(end) => (end > startTime ? null : m.endBeforeStart)}
         />
+        <div className="col-span-2 sm:col-span-1">
+          <PriceField label={m.rulePriceLabel} value={rupees} onChange={setRupees} />
+        </div>
       </div>
-      <PriceField label={m.rulePriceLabel} value={rupees} onChange={setRupees} />
-      <Button type="submit" isPending={addRule.isPending}>
+      <LoadingButton type="submit" isPending={addRule.isPending} className="justify-self-start">
         {m.addRule}
-      </Button>
+      </LoadingButton>
     </Form>
   );
 }

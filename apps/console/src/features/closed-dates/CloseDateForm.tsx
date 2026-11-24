@@ -1,16 +1,20 @@
 import { Alert, Button, FieldError, Form, Input, Label, TextField } from "@heroui/react";
 import { type FormEvent, useState } from "react";
 
+import { LoadingButton } from "../../components/LoadingButton";
 import m from "../../i18n/en/closedDates";
 import { type AffectedBooking, useCloseDate } from "./useChangeClosedDates";
 import { today, useResourceNames, useVenueTimeZone } from "./useClosedDates";
 
-export function CloseDateForm({ venueId }: { venueId: number }) {
+type Props = { venueId: number; onClosed: () => void };
+
+/** VEN-02. `onClosed` folds the form away; the date lands in the list above it. */
+export function CloseDateForm({ venueId, onClosed }: Props) {
   const timeZone = useVenueTimeZone(venueId);
-  return timeZone ? <CloseForm venueId={venueId} timeZone={timeZone} /> : null;
+  return timeZone ? <CloseForm venueId={venueId} timeZone={timeZone} onClosed={onClosed} /> : null;
 }
 
-function CloseForm({ venueId, timeZone }: { venueId: number; timeZone: string }) {
+function CloseForm({ venueId, timeZone, onClosed }: Props & { timeZone: string }) {
   const closeDate = useCloseDate();
   const [date, setDate] = useState("");
   const [reason, setReason] = useState("");
@@ -25,6 +29,7 @@ function CloseForm({ venueId, timeZone }: { venueId: number; timeZone: string })
           if (!result.closed) return;
           setDate("");
           setReason("");
+          onClosed();
         },
       },
     );
@@ -40,17 +45,18 @@ function CloseForm({ venueId, timeZone }: { venueId: number; timeZone: string })
   };
 
   return (
-    <Form className="grid gap-4" onSubmit={submit}>
-      <h2 className="text-lg font-semibold">{m.addTitle}</h2>
-      <TextField name="date" type="date" isRequired value={date} onChange={edit(setDate)}>
-        <Label>{m.dateLabel}</Label>
-        <Input min={today()} />
-        <FieldError />
-      </TextField>
-      <TextField name="reason" value={reason} onChange={edit(setReason)}>
-        <Label>{m.reasonLabel}</Label>
-        <Input placeholder="Vesak Poya" />
-      </TextField>
+    <Form className="grid gap-5" onSubmit={submit}>
+      <div className="grid gap-4 sm:grid-cols-[12rem_1fr]">
+        <TextField name="date" type="date" isRequired value={date} onChange={edit(setDate)}>
+          <Label>{m.dateLabel}</Label>
+          <Input min={today()} />
+          <FieldError />
+        </TextField>
+        <TextField name="reason" value={reason} onChange={edit(setReason)}>
+          <Label>{m.reasonLabel}</Label>
+          <Input placeholder="Vesak Poya" />
+        </TextField>
+      </div>
       {affected.length > 0 ? (
         <AffectedBookings
           venueId={venueId}
@@ -62,9 +68,9 @@ function CloseForm({ venueId, timeZone }: { venueId: number; timeZone: string })
           onBack={() => setAffected([])}
         />
       ) : (
-        <Button type="submit" isPending={closeDate.isPending}>
+        <LoadingButton type="submit" isPending={closeDate.isPending} className="justify-self-start">
           {m.submit}
-        </Button>
+        </LoadingButton>
       )}
     </Form>
   );
@@ -103,9 +109,9 @@ function AffectedBookings(props: AffectedBookingsProps) {
           ))}
         </ul>
         <div className="flex gap-2">
-          <Button variant="danger" isPending={props.isClosing} onPress={props.onConfirm}>
+          <LoadingButton variant="danger" isPending={props.isClosing} onPress={props.onConfirm}>
             {m.closeAnyway}
-          </Button>
+          </LoadingButton>
           <Button variant="secondary" onPress={props.onBack}>
             {m.goBack}
           </Button>

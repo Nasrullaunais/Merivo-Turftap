@@ -35,7 +35,7 @@ describe("SIG-01 sign in to the Staff Console", () => {
     renderApp("/sign-in");
     await signInHeading();
     typePhoneAndSubmit("077 123 4567");
-    expect(await screen.findByText(/Demo Sports/)).toBeInTheDocument();
+    expect(await screen.findByRole("button", { name: "Demo Sports · Owner" })).toBeInTheDocument();
     const request = fetch.mock.calls[0]![0] as Request;
     expect(request.headers.get("Authorization")).toBe("Bearer fake:+94771234567");
   });
@@ -64,7 +64,8 @@ describe("SIG-01 sign in to the Staff Console", () => {
     signInForTesting("+94771234567");
     const fetch = mockApi({ "GET /v1/me": owner });
     const { router } = renderApp("/");
-    fireEvent.click(await screen.findByRole("button", { name: "Sign out" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Demo Sports · Owner" }));
+    fireEvent.click(await screen.findByRole("menuitem", { name: "Sign out" }));
     expect(await signInHeading()).toBeInTheDocument();
     await router.navigate({ to: "/" });
     expect(await signInHeading()).toBeInTheDocument();

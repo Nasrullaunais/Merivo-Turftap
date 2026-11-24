@@ -41,6 +41,8 @@ const arena = {
   updatedAt: "2026-11-22T04:00:00.000Z",
 };
 
+const openAddForm = async () =>
+  fireEvent.click(await screen.findByRole("button", { name: "Add a venue" }));
 function fillVenue(fields: { name: string; address: string; phone: string }) {
   fireEvent.change(screen.getByLabelText(/^Name/), { target: { value: fields.name } });
   fireEvent.change(screen.getByLabelText(/^Address/), { target: { value: fields.address } });
@@ -66,7 +68,7 @@ describe("VEN-01 add a venue from the Staff Console", () => {
       },
     });
     renderApp("/venues");
-    await screen.findByRole("heading", { name: "Add a venue" });
+    await openAddForm();
 
     fillVenue({ name: "City Arena", address: "12 Galle Road, Colombo", phone: "011 234 5678" });
     fireEvent.click(screen.getByRole("checkbox", { name: "Open on Sunday" }));
@@ -94,6 +96,7 @@ describe("VEN-01 add a venue from the Staff Console", () => {
     });
     renderApp("/venues");
     await screen.findByText("City Arena");
+    await openAddForm();
     fillVenue({ name: "city arena", address: "Somewhere", phone: "011 234 5678" });
     save();
     expect(await screen.findByText("Another venue already has this name")).toBeInTheDocument();
@@ -103,7 +106,7 @@ describe("VEN-01 add a venue from the Staff Console", () => {
     signInForTesting(PHONE);
     const fetch = mockApi({ "GET /v1/me": meAs("OWNER"), "GET /v1/venues": page([]) });
     renderApp("/venues");
-    await screen.findByRole("heading", { name: "Add a venue" });
+    await openAddForm();
     fillVenue({ name: "Night Court", address: "Kandy", phone: "011 234 5678" });
     fireEvent.change(screen.getByLabelText("Monday closes"), { target: { value: "05:00" } });
     save();
@@ -119,12 +122,27 @@ describe("VEN-01 add a venue from the Staff Console", () => {
     expect(screen.queryByRole("heading", { name: "Add a venue" })).not.toBeInTheDocument();
   });
 
+  it("venueList_showsLoadingRowsUntilTheVenuesArrive", async () => {
+    signInForTesting(PHONE);
+    let answer: (reply: Response) => void = () => {};
+    mockApi({
+      "GET /v1/me": meAs("FRONT_DESK"),
+      "GET /v1/venues": () =>
+        new Promise<Response>((resolve) => (answer = resolve)) as unknown as Response,
+    });
+    renderApp("/venues");
+    expect(await screen.findByRole("status", { name: "Loading venues" })).toBeInTheDocument();
+    answer(Response.json({ status: 200, message: "success", data: page([arena]) }));
+    expect(await screen.findByText("City Arena")).toBeInTheDocument();
+    expect(screen.queryByRole("status", { name: "Loading venues" })).not.toBeInTheDocument();
+  });
+
   it("everyStaffRole_seesTheVenuesLink", async () => {
     signInForTesting(PHONE);
     mockApi({ "GET /v1/me": meAs("FRONT_DESK"), "GET /v1/venues": page([]) });
     renderApp("/");
-    const banner = await screen.findByRole("banner");
-    fireEvent.click(within(banner).getByRole("link", { name: "Venues" }));
+    const nav = await screen.findByRole("navigation", { name: "Main" });
+    fireEvent.click(within(nav).getByRole("link", { name: "Venues" }));
     await waitFor(() =>
       expect(screen.getByRole("heading", { name: "Venues" })).toBeInTheDocument(),
     );

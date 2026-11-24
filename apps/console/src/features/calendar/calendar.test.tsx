@@ -164,8 +164,9 @@ describe("BKG-05 booking calendar", () => {
     const asked = fetch.mock.calls
       .map(([request]) => new URL((request as Request).url))
       .find((url) => url.pathname === "/v1/bookings")!;
-    expect(asked.searchParams.get("from")).toBe("2026-12-24T18:30:00.000Z");
-    expect(asked.searchParams.get("to")).toBe("2026-12-25T18:30:00.000Z");
+    // The day's whole week (Monday to Sunday) loads at once, from midnight on the venue's clock.
+    expect(asked.searchParams.get("from")).toBe("2026-12-20T18:30:00.000Z");
+    expect(asked.searchParams.get("to")).toBe("2026-12-27T18:30:00.000Z");
   });
 
   it("dayView_showsBookingsFromEveryPage", async () => {
@@ -271,5 +272,73 @@ describe("BKG-05 booking calendar", () => {
       resourceId: 12,
       startsAt: "2026-12-25T13:30:00.000Z",
     });
+  });
+});
+
+describe("BKG-05 finding a day on the calendar", () => {
+  const onWednesday = {
+    customerName: "Sunil Silva",
+    startsAt: "2026-12-23T13:30:00.000Z",
+    endsAt: "2026-12-23T14:30:00.000Z",
+  };
+
+  it("weekStrip_countsEachDaysBookingsAndOpensTheDayPressed", async () => {
+    mockVenueApi({
+      bookings: [booking(1, {}), booking(2, onWednesday)],
+      closedDates: [{ id: 5, venueId: 3, date: "2026-12-24", reason: "Repairs", ...times }],
+    });
+    renderApp("/calendar");
+    await screen.findByText("Nimal Perera");
+
+    const strip = screen.getByRole("list", { name: "Days of this week" });
+    expect(within(strip).getByRole("button", { name: "Fri 25 Dec, 1 booking" })).toBeVisible();
+    expect(within(strip).getByRole("button", { name: "Thu 24 Dec, closed" })).toBeVisible();
+    expect(within(strip).getByRole("button", { name: "Sun 27 Dec, closed" })).toBeVisible();
+    fireEvent.click(within(strip).getByRole("button", { name: "Wed 23 Dec, 1 booking" }));
+
+    expect(await screen.findByRole("heading", { name: "Wed, 23 Dec 2026" })).toBeInTheDocument();
+    expect(await screen.findByText("Sunil Silva")).toBeInTheDocument();
+    await vi.waitFor(() => expect(screen.queryByText("Nimal Perera")).toBeNull());
+  });
+
+  it("arrowKeysAndT_moveBetweenDaysAndBackToToday", async () => {
+    mockVenueApi({ bookings: [] });
+    renderApp("/calendar");
+    await screen.findByRole("heading", { name: "Fri, 25 Dec 2026" });
+
+    fireEvent.keyDown(window, { key: "ArrowRight" });
+    expect(await screen.findByRole("heading", { name: "Sat, 26 Dec 2026" })).toBeInTheDocument();
+    fireEvent.keyDown(window, { key: "ArrowLeft" });
+    fireEvent.keyDown(window, { key: "ArrowLeft" });
+    expect(await screen.findByRole("heading", { name: "Thu, 24 Dec 2026" })).toBeInTheDocument();
+    fireEvent.keyDown(window, { key: "t" });
+    expect(await screen.findByRole("heading", { name: "Fri, 25 Dec 2026" })).toBeInTheDocument();
+  });
+
+  it("stateTiles_countTheDaysBookingsInEachState", async () => {
+    mockVenueApi({
+      bookings: [
+        booking(1, {}),
+        booking(2, { resourceId: 12 }),
+        booking(3, {
+          status: "AWAITING_PAYMENT",
+          startsAt: "2026-12-25T04:30:00.000Z",
+          endsAt: "2026-12-25T05:30:00.000Z",
+        }),
+        booking(4, onWednesday),
+      ],
+    });
+    renderApp("/calendar");
+    await screen.findByText("10:00–11:00");
+
+    const tiles = screen.getByRole("group", { name: "Bookings by state" });
+    const tile = (name: string) => within(tiles).getByRole("button", { name: new RegExp(name) });
+    expect(tile("^Bookings")).toHaveTextContent("3");
+    expect(tile("Waiting for payment")).toHaveTextContent("1");
+    expect(tile("Waiting for receipt check")).toHaveTextContent("0");
+    expect(tile("Confirmed")).toHaveTextContent("2");
+
+    fireEvent.click(tile("Confirmed"));
+    expect(tile("Confirmed")).toHaveAttribute("aria-pressed", "true");
   });
 });

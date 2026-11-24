@@ -17,15 +17,17 @@ const meWith = (tenants: object[], isPlatformAdmin = false) => ({
   tenants,
 });
 
-const topBar = () => screen.findByRole("banner");
+/** The sidebar's bottom button names the tenant and role; it opens the account menu. */
+const accountButton = (name: string) => screen.findByRole("button", { name });
 
 describe("SIG-02 pick a tenant in the Staff Console", () => {
   it("oneTenant_opensStraightAway", async () => {
     signInForTesting("+94771234567");
     mockApi({ "GET /v1/me": meWith([demoSports]) });
     renderApp("/");
-    expect(await topBar()).toHaveTextContent("Demo Sports · Owner");
-    expect(screen.queryByRole("button", { name: "Switch tenant" })).not.toBeInTheDocument();
+    fireEvent.click(await accountButton("Demo Sports · Owner"));
+    expect(await screen.findByRole("menuitem", { name: "Sign out" })).toBeInTheDocument();
+    expect(screen.queryByRole("menuitem", { name: "Switch tenant" })).not.toBeInTheDocument();
   });
 
   it("severalTenants_askWhichOneAndOpenTheChosenOne", async () => {
@@ -34,7 +36,7 @@ describe("SIG-02 pick a tenant in the Staff Console", () => {
     renderApp("/");
     expect(await screen.findByRole("heading", { name: "Choose a tenant" })).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: /Kick Off Arena/ }));
-    expect(await topBar()).toHaveTextContent("Kick Off Arena · Front Desk");
+    expect(await accountButton("Kick Off Arena · Front Desk")).toBeInTheDocument();
   });
 
   it("severalTenants_canSwitchFromTheTopBar", async () => {
@@ -42,10 +44,10 @@ describe("SIG-02 pick a tenant in the Staff Console", () => {
     setActiveTenantId(kickOff.id);
     mockApi({ "GET /v1/me": meWith([demoSports, kickOff]) });
     renderApp("/");
-    expect(await topBar()).toHaveTextContent("Kick Off Arena");
-    fireEvent.click(screen.getByRole("button", { name: "Switch tenant" }));
+    fireEvent.click(await accountButton("Kick Off Arena · Front Desk"));
+    fireEvent.click(await screen.findByRole("menuitem", { name: "Switch tenant" }));
     fireEvent.click(await screen.findByRole("button", { name: /Demo Sports/ }));
-    expect(await topBar()).toHaveTextContent("Demo Sports · Owner");
+    expect(await accountButton("Demo Sports · Owner")).toBeInTheDocument();
   });
 
   it("removedFromTheChosenTenant_opensTheOneTheyStillHave", async () => {
@@ -53,7 +55,7 @@ describe("SIG-02 pick a tenant in the Staff Console", () => {
     setActiveTenantId(kickOff.id);
     const fetch = mockApi({ "GET /v1/me": meWith([demoSports]) });
     renderApp("/");
-    expect(await topBar()).toHaveTextContent("Demo Sports");
+    expect(await accountButton("Demo Sports · Owner")).toBeInTheDocument();
     const request = fetch.mock.calls[0]![0] as Request;
     expect(request.headers.get("X-Tenant-Id")).toBeNull();
   });
@@ -71,6 +73,6 @@ describe("SIG-02 pick a tenant in the Staff Console", () => {
     signInForTesting("+94771234567");
     mockApi({ "GET /v1/me": meWith([], true) });
     renderApp("/");
-    expect(await topBar()).toHaveTextContent("TurfTap Staff Console");
+    expect(await accountButton("TurfTap · Platform Admin")).toBeInTheDocument();
   });
 });

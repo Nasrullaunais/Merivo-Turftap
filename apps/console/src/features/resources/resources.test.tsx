@@ -65,6 +65,8 @@ const table = {
 const choiceIn = (group: string) => (name: string) =>
   within(screen.getByRole("radiogroup", { name: group })).getByRole("radio", { name });
 const slotChoice = choiceIn("Slot length");
+const openAddForm = async () =>
+  fireEvent.click(await screen.findByRole("button", { name: "Add a resource" }));
 const intervalChoice = choiceIn("Bookings start every");
 
 describe("VEN-04 add resources to a venue", () => {
@@ -79,10 +81,10 @@ describe("VEN-04 add resources to a venue", () => {
     renderApp("/venues");
     fireEvent.click(await screen.findByRole("link", { name: "City Arena" }));
     expect(await screen.findByRole("heading", { name: "City Arena" })).toBeInTheDocument();
-    expect(await screen.findByText("Court 1")).toBeInTheDocument();
-    expect(
-      screen.getByText("Futsal court · 60 min slots, starting every 30 min · LKR 4,500 per slot"),
-    ).toBeInTheDocument();
+    const row = (await screen.findByRole("link", { name: "Court 1" })).closest("li")!;
+    expect(within(row).getByText("Futsal court")).toBeInTheDocument();
+    expect(within(row).getByText("60 min slots")).toBeInTheDocument();
+    expect(within(row).getByText("LKR 4,500")).toBeInTheDocument();
   });
 
   it("manager_addsAPoolTableWithHalfHourSlots", async () => {
@@ -101,6 +103,7 @@ describe("VEN-04 add resources to a venue", () => {
     });
     renderApp("/venues/3");
     await screen.findByText("Court 1");
+    await openAddForm();
     fireEvent.change(screen.getByLabelText(/^Name/), { target: { value: "Pool Table 3" } });
     fireEvent.click(screen.getByRole("radio", { name: "Pool table" }));
     fireEvent.click(slotChoice("30 minutes"));
@@ -133,7 +136,7 @@ describe("VEN-04 add resources to a venue", () => {
       "GET /v1/resources": page([]),
     });
     renderApp("/venues/3");
-    await screen.findByRole("heading", { name: "Add a resource" });
+    await openAddForm();
     expect(slotChoice("60 minutes")).toBeChecked();
     expect(intervalChoice("30 minutes")).toBeChecked();
 
@@ -154,6 +157,7 @@ describe("VEN-04 add resources to a venue", () => {
     });
     renderApp("/venues/3");
     await screen.findByText("Court 1");
+    await openAddForm();
     fireEvent.change(screen.getByLabelText(/^Name/), { target: { value: "court 1" } });
     fireEvent.change(screen.getByLabelText(/^Price per slot/), { target: { value: "4500" } });
     fireEvent.click(screen.getByRole("button", { name: "Add resource" }));
@@ -179,8 +183,8 @@ describe("VEN-04 add resources to a venue", () => {
     renderApp("/venues/3");
 
     fireEvent.click(await screen.findByRole("button", { name: "Turn off Court 1" }));
-    fireEvent.click(await screen.findByRole("button", { name: "Cancel" }));
-    await waitFor(() => expect(screen.queryByRole("button", { name: "Cancel" })).toBeNull());
+    fireEvent.click(await screen.findByRole("button", { name: "Keep it" }));
+    await waitFor(() => expect(screen.queryByRole("button", { name: "Keep it" })).toBeNull());
     expect(deletes()).toHaveLength(0);
 
     fireEvent.click(screen.getByRole("button", { name: "Turn off Court 1" }));
