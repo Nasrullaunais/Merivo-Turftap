@@ -23,6 +23,8 @@ import * as receiptReadingService from "../payments/receipt-reading.service";
 const TIME_ZONE = "Asia/Colombo";
 const MINUTES_PER_HOUR = 60;
 const FIRST_HOUR = 6;
+/** Later than any walk-in or online booking these tests make. */
+const SERIES_HOUR = 22;
 const openAllWeek = [1, 2, 3, 4, 5, 6, 7].map((weekday) => ({
   weekday,
   opens: "06:00",
@@ -191,6 +193,39 @@ describe("BKG-05, PAY-07 live updates", () => {
       { type: "booking.changed", id: unpaid },
       { type: "booking.changed", id: walkInId },
     ]);
+  });
+
+  it("events_sendBookingChangedForEachBookingARepeatSeriesMakesOrCancels", async () => {
+    const stream = await listen(asStaff(tenant));
+    const startsAt = instantAt(
+      addDays(todayIn(TIME_ZONE), 3),
+      SERIES_HOUR * MINUTES_PER_HOUR,
+      TIME_ZONE,
+    );
+    const series = (
+      await call("POST", "/v1/repeat-series", asStaff(tenant), {
+        resourceId: resourceA,
+        startsAt,
+        weeks: 2,
+        customerName: "Kasun",
+        customerPhone: uniquePhone(),
+      })
+    ).body.data;
+    const made = [await stream.next(), await stream.next()];
+    await call("PATCH", `/v1/repeat-series/${series.id}`, asStaff(tenant), {
+      status: "CANCELLED",
+      cancelReason: "Rain",
+    });
+
+    const bookings = await call("GET", `/v1/bookings?repeatSeriesId=${series.id}`, asStaff(tenant));
+    const byId = (a: number, b: number) => a - b;
+    const ids = bookings.body.data.content.map((booking: { id: number }) => booking.id).sort(byId);
+    const changed = (events: unknown[]) =>
+      (events as { type: string; id: number }[])
+        .map((event) => (event.type === "booking.changed" ? event.id : -1))
+        .sort(byId);
+    expect(changed(made)).toEqual(ids);
+    expect(changed([await stream.next(), await stream.next()])).toEqual(ids);
   });
 
   it("events_sendBookingAndPaymentChangesForAWalkInPaidInCash", async () => {

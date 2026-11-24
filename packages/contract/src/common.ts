@@ -80,6 +80,8 @@ export const ErrorReply = z
     message: z.string(),
     traceId: z.string(),
     errors: z.array(FieldError).optional(),
+    /** D-10: the venue's dates that aren't free, when a Repeat Series clashes (tt_bkg_009). */
+    clashingDates: z.array(LocalDate).optional(),
   })
   .meta({ id: "ErrorReply" });
 export type ErrorReply = z.infer<typeof ErrorReply>;

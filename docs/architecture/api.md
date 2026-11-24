@@ -140,6 +140,7 @@ Every reply uses one envelope:
 - Typed errors (`BadRequest`, `Unauthorized`, `Forbidden`, `NotFound`, `Conflict`) take a code and an English message. Business code throws them and never catches them.
 - One central handler (`app.onError`) turns every error into the envelope. This is the only place an error becomes a reply.
 - Codes are `tt_<area>_<nnn>`, and each module keeps its codes and English messages in `<module>.errors.ts`. Areas: `plt`, `stf`, `ven`, `cus`, `bkg`, `pay`, `mem`, `ntf`, `fil`; plus `htt` for generic HTTP errors (bad input, sign-in, routing), `dat` for database rules and `sts` for status changes, all three in `lib/`.
+- One error carries an extra field. A Repeat Series with weeks that aren't free replies 409 `tt_bkg_009` with `clashingDates: ["2026-12-05", …]`, the venue's dates that clash. Sending them back in `skipDates` books the other weeks ([tickets D-10, D-26](../../tickets/README.md#open-decisions)).
 - Database errors are translated once, centrally: a duplicate becomes 409 "already exists" (`tt_dat_001`), a still-referenced row becomes 409 "still in use" (`tt_dat_002`), and overlapping times become 409 "that time is already booked" (`tt_dat_003`). A module can give one constraint its own error with `constraintErrors()`.
 - Unknown errors reply 500 with a plain message and the `traceId`. The full error goes to the log only.
 

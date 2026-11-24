@@ -44,6 +44,7 @@ Each booking shows **paid** (its `ACCEPTED` payments added up, refunds included)
 - Rules that compare with what was paid (cash up to the balance, refunds up to what was paid) lock the booking first with `bookingsService.get(auth, id, "update")`, so two payments saved together can't both fit.
 - Each payment keeps its booking's `venueId`, so staff limited to some venues are filtered in the SQL, the same way as bookings.
 - A walk-in paid in cash (`BKG-04`) gets its `CASH` payment for the full price in the same transaction that saves the booking. Staff send `walkIn` in `POST /v1/bookings`; customers and the Assistant never do.
+- A Repeat Series (`BKG-09`) creates all its bookings `CONFIRMED` in one transaction, with nothing due now, like a walk-in paid later. Each booking has the series' `repeatSeriesId`. The series keeps a copy of the venue's series payment days and Advance, for asking for each payment later (T47). Cancelling the series cancels its bookings that haven't started; the customer gets one `series_cancelled` message.
 - Refunds are for Owners and Managers only. Front Desk holds `payments:create` for cash, so the service refuses their refunds with 403 (`tt_pay_007`).
 
 **Sending a Transfer Receipt** (`PAY-02`) takes two calls: `POST /v1/files` with purpose `RECEIPT`, then `POST /v1/payments { kind: "TRANSFER", bookingId, fileId }` by the customer, the Assistant or staff.

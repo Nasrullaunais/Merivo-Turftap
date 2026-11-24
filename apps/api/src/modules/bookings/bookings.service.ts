@@ -286,7 +286,7 @@ const isPastCancellationCutOff = (booking: StoredBooking, now: Date) =>
   booking.startsAt.getTime() - now.getTime() <= booking.cancellationCutOffHours * MS_PER_HOUR;
 
 /** A WhatsApp message about the booking: its venue, resource and start time, then `more`. */
-async function tellCustomer(
+export async function tellCustomer(
   auth: AuthContext,
   booking: StoredBooking,
   template: WhatsAppTemplate,
