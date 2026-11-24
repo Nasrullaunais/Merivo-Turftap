@@ -113,6 +113,8 @@ export const AvailabilityFilters = z.object({
   resourceId: z.coerce.number().pipe(Id),
   /** The venue's local date. */
   date: LocalDate,
+  /** BKG-04: price and check this many back-to-back slots from each start. One if missing. */
+  slots: z.coerce.number().pipe(z.number().int().min(1).max(MAX_SLOTS_PER_BOOKING)).optional(),
 });
 
 export const AVAILABILITY_SORT_FIELDS = ["startsAt"] as const;

@@ -71,6 +71,19 @@ describe("BKG-01 availability routes", () => {
     }
   });
 
+  it("list_withSlots_quotesThatManyBackToBack_andRefusesABadCount", async () => {
+    const as = { tenantSlug: tenant.slug };
+    const reply = await call("GET", path({ resourceId, date, slots: 2 }), as);
+    expect(reply.body.data.content[0]).toMatchObject({
+      startsAt: `${date}T12:30:00.000Z`,
+      endsAt: `${date}T14:30:00.000Z`,
+      price: { amount: 500_000, currency: "LKR" },
+    });
+    for (const slots of [0, 1.5, "two"]) {
+      expect((await call("GET", path({ resourceId, date, slots }), as)).status).toBe(400);
+    }
+  });
+
   it("list_repliesNotFoundForAResourceThatDoesNotExist", async () => {
     const reply = await call("GET", path({ resourceId: 999_999_999, date }), {
       tenantSlug: tenant.slug,

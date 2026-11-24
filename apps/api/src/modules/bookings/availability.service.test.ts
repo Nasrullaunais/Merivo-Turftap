@@ -72,9 +72,18 @@ describe("BKG-01 free slots", () => {
     return { venueId: venue.id, resourceId: resource.id };
   }
 
-  const slotsOn = async (resourceId: number, date: string, auth: AuthContext = tenant.publicAuth) =>
-    (await availabilityService.list(auth, { filters: { resourceId, date }, page: WHOLE_DAY }))
-      .content;
+  const slotsOn = async (
+    resourceId: number,
+    date: string,
+    auth: AuthContext = tenant.publicAuth,
+    slots?: number,
+  ) =>
+    (
+      await availabilityService.list(auth, {
+        filters: { resourceId, date, slots },
+        page: WHOLE_DAY,
+      })
+    ).content;
   const startTimes = (slots: Slot[]) => slots.map((slot) => clock.format(slot.startsAt));
   const freeTimes = (slots: Slot[]) => startTimes(slots.filter((slot) => slot.free));
   const priceAt = (slots: Slot[], time: string) =>
@@ -270,6 +279,32 @@ describe("BKG-01 free slots", () => {
       const slots = await slotsOn(resourceId, inDays(2));
       expect(priceAt(slots, "17:30")).toEqual(rupees(1_001)); // 1,000.50
       expect(priceAt(slots, "17:45")).toEqual(rupees(1_000)); // 1,000.25
+    });
+  });
+
+  describe("BKG-04 several back-to-back slots", () => {
+    it("slots_pricesAndChecksTheWholeLengthFromEachStart", async () => {
+      const { resourceId } = await setUp({ opens: "16:00", closes: "20:00" });
+      const date = inDays(2);
+      await priceRulesService.create(
+        owner(),
+        priceRuleInput(resourceId, {
+          weekdays: ALL_WEEKDAYS,
+          startTime: "18:00",
+          endTime: "20:00",
+          price: rupees(3_000),
+        }),
+      );
+      await book(resourceId, at(date, "19:00"), at(date, "20:00"), "CONFIRMED");
+
+      const slots = await slotsOn(resourceId, date, tenant.publicAuth, 2);
+
+      expect(startTimes(slots)).toEqual(["16:00", "16:30", "17:00", "17:30", "18:00"]);
+      expect(slots[0]!.endsAt).toEqual(at(date, "18:00"));
+      expect(freeTimes(slots)).toEqual(["16:00", "16:30", "17:00"]);
+      expect(priceAt(slots, "16:00")).toEqual(rupees(4_000));
+      expect(priceAt(slots, "17:00")).toEqual(rupees(5_000));
+      expect(priceAt(slots, "17:30")).toEqual(rupees(5_500));
     });
   });
 

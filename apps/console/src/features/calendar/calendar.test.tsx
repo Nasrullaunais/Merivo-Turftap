@@ -269,8 +269,9 @@ describe("BKG-05 booking calendar", () => {
     );
 
     expect(onSlotPress).toHaveBeenCalledWith({
-      resourceId: 12,
+      resource: court2,
       startsAt: "2026-12-25T13:30:00.000Z",
+      timeZone: "Asia/Colombo",
     });
   });
 });
