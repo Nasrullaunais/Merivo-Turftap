@@ -1,6 +1,6 @@
 # T19 Booking details: cancel, cash, refund
 
-Status: todo · Stories: `BKG-07`, `PAY-08`, `BKG-08` · Depends on: T17
+Status: done · Stories: `BKG-07`, `PAY-08`, `BKG-08` · Depends on: T17
 
 ## Goal
 Clicking a booking in the calendar opens its details: customer, times, price, paid and balance, payments list. From there staff cancel with a reason, record cash for the balance, or (Manager) record a refund on a cancelled booking.

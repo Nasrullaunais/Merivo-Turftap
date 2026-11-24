@@ -26,6 +26,11 @@ const STAGGER_MS = 25;
 const MAX_STAGGER = 12;
 
 export type SlotPress = (slot: { resource: Resource; startsAt: string; timeZone: string }) => void;
+export type BookingPress = (pressed: {
+  booking: Booking;
+  resource: Resource;
+  timeZone: string;
+}) => void;
 
 type Props = {
   view: CalendarView;
@@ -36,7 +41,7 @@ type Props = {
   /** Only this state stands out; the others fade back. */
   filter?: CalendarState;
   onSlotPress?: SlotPress;
-  onBookingPress?: (booking: Booking) => void;
+  onBookingPress?: BookingPress;
 };
 
 type Now = { date: string; minute: number };
@@ -215,11 +220,13 @@ function EntryCard({
   present,
   order,
   timeZone,
+  columns,
   filter,
   onBookingPress,
 }: Props & { present: Present<Entry>; order: number }) {
   const { item: entry, isNew, isLeaving } = present;
   const { booking } = entry;
+  const { resource } = columns[entry.column]!;
   const who = booking?.customerName ?? entry.reason ?? m.states.BLOCKED;
   const isTall = entry.last - entry.first + 1 >= ROWS_FOR_PHONE;
   const isDimmed = filter !== undefined && filter !== entry.state;
@@ -265,7 +272,7 @@ function EntryCard({
           className={className}
           style={style}
           inert={isLeaving}
-          onClick={() => onBookingPress?.(booking)}
+          onClick={() => onBookingPress?.({ booking, resource, timeZone })}
         >
           {card}
         </button>
