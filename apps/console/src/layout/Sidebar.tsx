@@ -6,6 +6,7 @@ import { Fragment } from "react";
 import { Focusable } from "react-aria-components";
 
 import { BrandMark } from "../components/BrandMark";
+import { HUE_CLASS, type Hue } from "../components/look";
 import { TopicTile } from "../components/TopicTile";
 import { type NavSection, NAV_GROUPS } from "../config/nav";
 import { canOpen } from "../config/routePermissions";
@@ -86,6 +87,7 @@ function SectionLink({ section, pathname }: { section: NavSection; pathname: str
     >
       <TopicTile hue={section.hue} icon={section.icon} size={28} on={isIn} />
       <span className="flex-1 truncate">{section.label}</span>
+      {section.useCount && <CountBadge useCount={section.useCount} hue={section.hue} />}
     </Link>
   );
 }
@@ -102,12 +104,36 @@ function RailLink({ section, pathname }: { section: NavSection; pathname: string
           className={`${rowBase} size-10 justify-center ${isIn ? rowCurrent : ""}`}
         >
           <TopicTile hue={section.hue} icon={section.icon} size={30} on={isIn} />
+          {section.useCount && (
+            <CountBadge
+              useCount={section.useCount}
+              hue={section.hue}
+              className="absolute -end-1 -top-1 h-4 min-w-4 px-1 text-[10px]"
+            />
+          )}
         </Link>
       </Focusable>
       <Tooltip.Content placement="end" offset={10}>
         {section.label}
       </Tooltip.Content>
     </Tooltip>
+  );
+}
+
+type BadgeProps = { useCount: () => number | undefined; hue: Hue; className?: string };
+
+/** Shown only while someone must act; the number pops when it changes (§5.1). */
+function CountBadge({ useCount, hue, className = "h-5 min-w-5 px-1.5 text-xs" }: BadgeProps) {
+  const count = useCount();
+  if (!count) return null;
+  return (
+    <span
+      key={count}
+      aria-label={m.waitingCount(count)}
+      className={`grid animate-tt-pop place-items-center rounded-full bg-[var(--tt-hue)] font-semibold text-white tabular-nums ${HUE_CLASS[hue]} ${className}`}
+    >
+      {count}
+    </span>
   );
 }
 

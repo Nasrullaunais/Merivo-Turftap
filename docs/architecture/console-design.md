@@ -138,7 +138,7 @@ The shell is built once, in `apps/console/src/layout/`, and wraps every page und
 - **Width** 256px open, 64px as an icon **rail**. The toggle sits at the start of the page's top row. The choice is remembered in `localStorage`. The width animates over `--tt-dur-3`.
 - **Logo row** is 56px high, the same height as the page's top row, so the two line up across the seam.
 - **Groups** (desk work, selling, setting up) are separated by space and a hairline, without headings (§2).
-- **A section row**: its hue tile, its name, then on the right an optional count badge, an optional **+** action (e.g. "New walk-in booking") and a chevron when it has sub-pages. Link, **+** and chevron are separate buttons, never nested. Badges and **+** actions arrive with the screens that need them (T18, T20).
+- **A section row**: its hue tile, its name, then on the right an optional count badge, an optional **+** action (e.g. "New walk-in booking") and a chevron when it has sub-pages. Link, **+** and chevron are separate buttons, never nested. A section declares its badge with `useCount` in `config/nav.ts`; Receipt checks is the first (T20).
 - **Two "you are here" marks that nest**: the section you are in turns its tile solid (white icon on the hue); the page you are on gets the teal tint fill.
 - **Count badges** appear only when someone must act (receipts waiting for a check). A zero shows nothing. The number pops in when it changes.
 - **Rail mode**: tiles only, centred. Hover or focus shows the name as a tooltip on the right after 150ms. A count shows as a small dot-badge on the tile's corner.
@@ -152,7 +152,7 @@ Nav map, built and planned:
 | Group | Section | Hue | Page | Ticket |
 |---|---|---|---|---|
 | Desk | Calendar, **+** walk-in | booking | `/calendar` | T17, T18 |
-| Desk | Receipt Checks, with count badge | money | `/receipt-checks` | T20 |
+| Desk | Receipt checks, with count badge | money | `/receipt-checks` | built (T20) |
 | Desk | Check-ins | membership | `/check-ins` | T25 |
 | Sell | Memberships (Memberships, Membership Plans) | membership | `/memberships`, `/membership-plans` | T22, T24 |
 | Sell | Repeat Series | booking | `/repeat-series` | T21 |
@@ -264,7 +264,7 @@ These are the shapes to reuse. Build new screens from them before inventing a ne
 - **Record page** (a venue, a resource, a booking): three layers. The header says *how it is doing* (tile, name, state pills, main action). The sections say *what it is* (read first, a pencil edits in place). The tabs or lists below say *what happened* or *what belongs to it*. On wide screens the short sections sit in a column beside the rest (`TwoColumns`).
 - **Form**: one column of fields, two side by side where they pair up (date and time, bank and branch). Choices you can see beat dropdowns when there are a handful: `ChoicePills` for one of a few (radio), `TogglePills` for any of a few (checkboxes, such as weekdays). Fill in what can be worked out (a resource picked fills its venue), and flash what was filled. The submit button sits on the left at the end; a saved note that says something the screen can't show (a WhatsApp message goes out, settings apply to new bookings) appears beside it with a green check.
 - **Pages outside the shell** (sign in, choose a tenant, no access): the brand mark, then one small centred panel (`CentredPanel`).
-- **Queue** (receipt checks): one item at a time, large, with the decision buttons in their tones (Accept green, Reject red). The next item slides in after a decision. The sidebar count drops with a pop.
+- **Queue** (receipt checks, T20): from `xl` up, a 360px section of the waiting items (oldest first, each with how long it has waited) beside the one being checked, large; below `xl` they stack. The oldest opens first; pressing a row opens that one instead. The check shows, from the top: the customer, the resource and time and the booking's state pill; the receipt (image, or a PDF in the page) beside the amount due against the amount read, what the AI read and a pill per flag (green when fine, amber for amount and date, red for a reference used before); "Couldn't read this receipt" when unreadable; a red warning with **Open the earlier booking** for a reused receipt, which opens that booking's details in a window. Below them, in the same column so they need no scrolling, the decision buttons in their tones: **Accept** green (`tt-accept`), **Reject** red, which unfolds a required reason first. The decided item fades out of the list, the next one slides in, and the sidebar count drops with a pop. If someone else checked it meanwhile, the API's message stays above the next item.
 - **Calendar**: the grid is the page, and it fills the screen down to the bottom edge. From the top:
   - **Toolbar**: the venue picker; in the week view, one chip per resource with its type icon; Day/Week as a segmented control whose white thumb slides.
   - **Date row**: the date as the largest text on the page. Pressing it opens a month to jump to. On the right, the **week strip**: seven day buttons with the weekday, the day number and a bar showing how full that day is; today has a dot, closed days are striped. Pressing a day opens it. Previous and next arrows sit at the strip's ends, and **Today** beside it.

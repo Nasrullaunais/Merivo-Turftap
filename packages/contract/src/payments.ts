@@ -9,7 +9,7 @@ export const PAYMENT_STATUSES = ["PENDING_CHECK", "ACCEPTED", "REJECTED"] as con
 export const REFUND_ROLES: readonly StaffRole[] = ["OWNER", "MANAGER"];
 
 const MAX_NOTE_LENGTH = 200;
-const MAX_REJECT_REASON_LENGTH = 200;
+export const MAX_REJECT_REASON_LENGTH = 200;
 
 /**
  * PAY-03, PAY-06: what the AI read from a Transfer Receipt, for staff to check against. A field it

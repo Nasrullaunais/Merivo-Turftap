@@ -1,6 +1,6 @@
 # T20 Receipt check queue and screen
 
-Status: todo · Stories: `PAY-03`, `PAY-04`, `PAY-05`, `PAY-06`, `PAY-07` · Depends on: T13, T14
+Status: done · Stories: `PAY-03`, `PAY-04`, `PAY-05`, `PAY-06`, `PAY-07` · Depends on: T13, T14
 
 ## Goal
 One list of receipts waiting for a check, oldest first, with the count in the sidebar. Opening one shows the image, the AI summary, any reused-receipt warning, and accept or reject buttons.

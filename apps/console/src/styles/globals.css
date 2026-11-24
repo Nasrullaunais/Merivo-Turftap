@@ -295,3 +295,12 @@ body {
     color-mix(in oklab, var(--tt-tone) 14%, transparent) 6px 12px
   );
 }
+
+/* Accept in a Receipt Check: the one green button (§9 Queue). */
+@utility tt-accept {
+  color: white;
+  background: color-mix(in oklab, var(--tt-tone-good) 85%, black);
+  &:hover {
+    background: color-mix(in oklab, var(--tt-tone-good) 72%, black);
+  }
+}
