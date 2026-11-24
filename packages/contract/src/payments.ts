@@ -1,9 +1,12 @@
 import { z } from "zod";
 
 import { Id, LocalDate, Money, Timestamp } from "./common";
+import type { StaffRole } from "./staff";
 
 export const PAYMENT_KINDS = ["TRANSFER", "CASH", "REFUND"] as const;
 export const PAYMENT_STATUSES = ["PENDING_CHECK", "ACCEPTED", "REJECTED"] as const;
+/** BKG-08: Front Desk takes cash but doesn't record refunds. */
+export const REFUND_ROLES: readonly StaffRole[] = ["OWNER", "MANAGER"];
 
 const MAX_NOTE_LENGTH = 200;
 const MAX_REJECT_REASON_LENGTH = 200;

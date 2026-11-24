@@ -1,4 +1,4 @@
-import type { Booking, Venue } from "@turftap/contract/client";
+import type { Venue } from "@turftap/contract/client";
 import { CalendarDays, LayoutGrid, MapPin } from "lucide-react";
 import { useState } from "react";
 
@@ -15,7 +15,7 @@ import {
   layOut,
   onVenueClock,
 } from "./calendarGrid";
-import { CalendarGrid, type SlotPress } from "./CalendarGrid";
+import { type BookingPress, CalendarGrid, type SlotPress } from "./CalendarGrid";
 import { CalendarSkeleton } from "./CalendarSkeleton";
 import { type CalendarState, STATE_ICONS, STATE_TONES } from "./calendarStates";
 import { CalendarToolbar } from "./CalendarToolbar";
@@ -36,7 +36,7 @@ const ARRIVAL: Record<Motion, string> = {
 };
 
 /** T18 and T19 open the walk-in form and the booking details from these. */
-type Props = { onSlotPress?: SlotPress; onBookingPress?: (booking: Booking) => void };
+type Props = { onSlotPress?: SlotPress; onBookingPress?: BookingPress };
 
 /** BKG-05: a day or week of one venue's bookings, kept fresh by live updates. */
 export function BookingCalendar(props: Props) {

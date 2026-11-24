@@ -4,9 +4,9 @@ import type {
   PaymentFilters,
   RecordPayment,
   SendTransferReceipt,
-  StaffRole,
   UpdatePayment,
 } from "@turftap/contract";
+import { REFUND_ROLES } from "@turftap/contract";
 
 import type { AuthContext } from "../../lib/auth/context";
 import { transaction } from "../../lib/db";
@@ -22,9 +22,6 @@ import { paymentTransitions } from "./payments.transitions";
 
 type PaymentSort = "createdAt";
 type StoredPayment = Awaited<ReturnType<typeof paymentsRepository.insert>>;
-
-/** BKG-08: Front Desk takes cash but doesn't record refunds. */
-const MAY_REFUND: readonly StaffRole[] = ["OWNER", "MANAGER"];
 
 const isCustomerSide = (auth: AuthContext) =>
   auth.actor === "customer" || auth.actor === "assistant";
@@ -121,7 +118,7 @@ function sendTransferReceipt(auth: AuthContext, { bookingId, fileId }: SendTrans
  * insert, so two payments recorded at once can't both fit in the same balance.
  */
 async function record(auth: AuthContext, input: RecordPayment) {
-  if (input.kind === "REFUND" && !(auth.role && MAY_REFUND.includes(auth.role)))
+  if (input.kind === "REFUND" && !(auth.role && REFUND_ROLES.includes(auth.role)))
     throw paymentErrors.refundNeedsManager();
   return transaction(async () => {
     const booking = await bookingsService.get(auth, input.bookingId, "update");
