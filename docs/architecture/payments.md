@@ -106,7 +106,7 @@ sequenceDiagram
 | Job | When | Does |
 |---|---|---|
 | Expire booking | At the time limit | `AWAITING_PAYMENT` past its `expiresAt` → `EXPIRED`, notify |
-| Booking reminder | 3 hours before start | WhatsApp reminder |
+| Booking reminder | 3 hours before start; queued when a booking becomes `CONFIRMED`, unless that time has passed | WhatsApp `booking_reminder` if still `CONFIRMED` |
 | End memberships | Daily, 00:05 Colombo time | `ACTIVE` past end date → `ENDED` |
 | Ask for series payment | The venue's series payment days before each repeat series booking | WhatsApp with bank details and the Advance |
 | Membership reminder | Daily | WhatsApp 3 days before end |

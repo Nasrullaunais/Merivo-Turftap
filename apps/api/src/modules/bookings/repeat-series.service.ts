@@ -17,7 +17,7 @@ import * as venuesService from "../venues/venues.service";
 import * as availabilityService from "./availability.service";
 import { bookingErrors } from "./bookings.errors";
 import * as bookingsRepository from "./bookings.repository";
-import { tellCustomer } from "./bookings.service";
+import { queueReminder, tellCustomer } from "./bookings.service";
 import { repeatSeriesTransitions } from "./bookings.transitions";
 import * as repeatSeriesRepository from "./repeat-series.repository";
 
@@ -121,6 +121,7 @@ export function create(auth: AuthContext, input: CreateRepeatSeries) {
         cancellationCutOffHours: venue.cancellationCutOffHours,
       });
       eventsService.publish(auth, "booking.changed", booking);
+      await queueReminder(auth, booking);
     }
     return withContact(auth.tenantId, series);
   });

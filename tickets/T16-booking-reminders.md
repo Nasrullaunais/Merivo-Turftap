@@ -1,6 +1,6 @@
 # T16 Booking reminders
 
-Status: todo · Stories: `BKG-10` · Depends on: T10, T13
+Status: done · Stories: `BKG-10` · Depends on: T10, T13
 
 ## Goal
 A customer gets a WhatsApp reminder 3 hours before a confirmed booking.

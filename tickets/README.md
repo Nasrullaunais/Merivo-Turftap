@@ -40,7 +40,7 @@ Status: `todo`, `doing`, `done`, `blocked` (waiting on a decision or an outside 
 | [T13](T13-accept-reject-receipts.md) | Accept or reject a receipt | PAY-04, PAY-05 | T12 | done |
 | [T14](T14-live-updates-events.md) | Live updates (`events`) | BKG-05, PAY-07 (part) | T06 | done |
 | [T15](T15-repeat-series-api.md) | Repeat series API | BKG-09 | T10 | done |
-| [T16](T16-booking-reminders.md) | Booking reminders | BKG-10 | T10, T13 | todo |
+| [T16](T16-booking-reminders.md) | Booking reminders | BKG-10 | T10, T13 | done |
 | [T47](T47-series-payment-collection.md) | Ask for series payments before each booking | BKG-09 | T15, T13, T46 | blocked (OQ-01) |
 | **D. Bookings and payments (Staff Console)** |||||
 | [T17](T17-console-booking-calendar.md) | Booking calendar | BKG-05 | T14 | todo |
