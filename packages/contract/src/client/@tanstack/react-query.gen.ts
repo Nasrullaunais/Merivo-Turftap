@@ -3,8 +3,8 @@
 import { type InfiniteData, infiniteQueryOptions, queryOptions, type UseMutationOptions } from '@tanstack/react-query';
 
 import { client } from '../client.gen';
-import { createBlockedTime, createBooking, createClosedDate, createCustomer, createMembership, createMembershipPlan, createPayment, createPhoto, createPriceRule, createRepeatSeries, createResource, createStaff, createUploadedFile, createVenue, deleteBlockedTime, deleteClosedDate, deleteMembershipPlan, deletePhoto, deletePriceRule, deleteResource, deleteStaff, deleteVenue, getBlockedTime, getBooking, getClosedDate, getCustomer, getMe, getMembership, getMembershipPlan, getPayment, getPhoto, getPriceRule, getRepeatSeries, getResource, getStaff, getVenue, listAvailability, listBlockedTimes, listBookings, listClosedDates, listCustomers, listMembershipPlans, listMemberships, listPayments, listPhotos, listPriceRules, listRepeatSeries, listResources, listStaff, listVenues, listWhatsappNumbers, type Options, updateBlockedTime, updateBooking, updateClosedDate, updateCustomer, updateMembership, updateMembershipPlan, updatePayment, updatePhoto, updatePriceRule, updateRepeatSeries, updateResource, updateStaff, updateVenue } from '../sdk.gen';
-import type { CreateBlockedTimeData, CreateBlockedTimeError, CreateBlockedTimeResponse, CreateBookingData, CreateBookingError, CreateBookingResponse, CreateClosedDateData, CreateClosedDateError, CreateClosedDateResponse, CreateCustomerData, CreateCustomerError, CreateCustomerResponse, CreateMembershipData, CreateMembershipError, CreateMembershipPlanData, CreateMembershipPlanError, CreateMembershipPlanResponse, CreateMembershipResponse, CreatePaymentData, CreatePaymentError, CreatePaymentResponse, CreatePhotoData, CreatePhotoError, CreatePhotoResponse, CreatePriceRuleData, CreatePriceRuleError, CreatePriceRuleResponse, CreateRepeatSeriesData, CreateRepeatSeriesError, CreateRepeatSeriesResponse, CreateResourceData, CreateResourceError, CreateResourceResponse, CreateStaffData, CreateStaffError, CreateStaffResponse, CreateUploadedFileData, CreateUploadedFileError, CreateUploadedFileResponse, CreateVenueData, CreateVenueError, CreateVenueResponse, DeleteBlockedTimeData, DeleteBlockedTimeError, DeleteBlockedTimeResponse, DeleteClosedDateData, DeleteClosedDateError, DeleteClosedDateResponse, DeleteMembershipPlanData, DeleteMembershipPlanError, DeleteMembershipPlanResponse, DeletePhotoData, DeletePhotoError, DeletePhotoResponse, DeletePriceRuleData, DeletePriceRuleError, DeletePriceRuleResponse, DeleteResourceData, DeleteResourceError, DeleteResourceResponse, DeleteStaffData, DeleteStaffError, DeleteStaffResponse, DeleteVenueData, DeleteVenueError, DeleteVenueResponse, GetBlockedTimeData, GetBlockedTimeError, GetBlockedTimeResponse, GetBookingData, GetBookingError, GetBookingResponse, GetClosedDateData, GetClosedDateError, GetClosedDateResponse, GetCustomerData, GetCustomerError, GetCustomerResponse, GetMeData, GetMeError, GetMembershipData, GetMembershipError, GetMembershipPlanData, GetMembershipPlanError, GetMembershipPlanResponse, GetMembershipResponse, GetMeResponse, GetPaymentData, GetPaymentError, GetPaymentResponse, GetPhotoData, GetPhotoError, GetPhotoResponse, GetPriceRuleData, GetPriceRuleError, GetPriceRuleResponse, GetRepeatSeriesData, GetRepeatSeriesError, GetRepeatSeriesResponse, GetResourceData, GetResourceError, GetResourceResponse, GetStaffData, GetStaffError, GetStaffResponse, GetVenueData, GetVenueError, GetVenueResponse, ListAvailabilityData, ListAvailabilityError, ListAvailabilityResponse, ListBlockedTimesData, ListBlockedTimesError, ListBlockedTimesResponse, ListBookingsData, ListBookingsError, ListBookingsResponse, ListClosedDatesData, ListClosedDatesError, ListClosedDatesResponse, ListCustomersData, ListCustomersError, ListCustomersResponse, ListMembershipPlansData, ListMembershipPlansError, ListMembershipPlansResponse, ListMembershipsData, ListMembershipsError, ListMembershipsResponse, ListPaymentsData, ListPaymentsError, ListPaymentsResponse, ListPhotosData, ListPhotosError, ListPhotosResponse, ListPriceRulesData, ListPriceRulesError, ListPriceRulesResponse, ListRepeatSeriesData, ListRepeatSeriesError, ListRepeatSeriesResponse, ListResourcesData, ListResourcesError, ListResourcesResponse, ListStaffData, ListStaffError, ListStaffResponse, ListVenuesData, ListVenuesError, ListVenuesResponse, ListWhatsappNumbersData, ListWhatsappNumbersError, ListWhatsappNumbersResponse, UpdateBlockedTimeData, UpdateBlockedTimeError, UpdateBlockedTimeResponse, UpdateBookingData, UpdateBookingError, UpdateBookingResponse, UpdateClosedDateData, UpdateClosedDateError, UpdateClosedDateResponse, UpdateCustomerData, UpdateCustomerError, UpdateCustomerResponse, UpdateMembershipData, UpdateMembershipError, UpdateMembershipPlanData, UpdateMembershipPlanError, UpdateMembershipPlanResponse, UpdateMembershipResponse, UpdatePaymentData, UpdatePaymentError, UpdatePaymentResponse, UpdatePhotoData, UpdatePhotoError, UpdatePhotoResponse, UpdatePriceRuleData, UpdatePriceRuleError, UpdatePriceRuleResponse, UpdateRepeatSeriesData, UpdateRepeatSeriesError, UpdateRepeatSeriesResponse, UpdateResourceData, UpdateResourceError, UpdateResourceResponse, UpdateStaffData, UpdateStaffError, UpdateStaffResponse, UpdateVenueData, UpdateVenueError, UpdateVenueResponse } from '../types.gen';
+import { createBlockedTime, createBooking, createCheckIn, createClosedDate, createCustomer, createMembership, createMembershipPlan, createPayment, createPhoto, createPriceRule, createRepeatSeries, createResource, createStaff, createUploadedFile, createVenue, deleteBlockedTime, deleteCheckIn, deleteClosedDate, deleteMembershipPlan, deletePhoto, deletePriceRule, deleteResource, deleteStaff, deleteVenue, getBlockedTime, getBooking, getCheckIn, getClosedDate, getCustomer, getMe, getMembership, getMembershipPlan, getPayment, getPhoto, getPriceRule, getRepeatSeries, getResource, getStaff, getVenue, listAvailability, listBlockedTimes, listBookings, listCheckIns, listClosedDates, listCustomers, listMembershipPlans, listMemberships, listPayments, listPhotos, listPriceRules, listRepeatSeries, listResources, listStaff, listVenues, listWhatsappNumbers, type Options, updateBlockedTime, updateBooking, updateClosedDate, updateCustomer, updateMembership, updateMembershipPlan, updatePayment, updatePhoto, updatePriceRule, updateRepeatSeries, updateResource, updateStaff, updateVenue } from '../sdk.gen';
+import type { CreateBlockedTimeData, CreateBlockedTimeError, CreateBlockedTimeResponse, CreateBookingData, CreateBookingError, CreateBookingResponse, CreateCheckInData, CreateCheckInError, CreateCheckInResponse, CreateClosedDateData, CreateClosedDateError, CreateClosedDateResponse, CreateCustomerData, CreateCustomerError, CreateCustomerResponse, CreateMembershipData, CreateMembershipError, CreateMembershipPlanData, CreateMembershipPlanError, CreateMembershipPlanResponse, CreateMembershipResponse, CreatePaymentData, CreatePaymentError, CreatePaymentResponse, CreatePhotoData, CreatePhotoError, CreatePhotoResponse, CreatePriceRuleData, CreatePriceRuleError, CreatePriceRuleResponse, CreateRepeatSeriesData, CreateRepeatSeriesError, CreateRepeatSeriesResponse, CreateResourceData, CreateResourceError, CreateResourceResponse, CreateStaffData, CreateStaffError, CreateStaffResponse, CreateUploadedFileData, CreateUploadedFileError, CreateUploadedFileResponse, CreateVenueData, CreateVenueError, CreateVenueResponse, DeleteBlockedTimeData, DeleteBlockedTimeError, DeleteBlockedTimeResponse, DeleteCheckInData, DeleteCheckInError, DeleteCheckInResponse, DeleteClosedDateData, DeleteClosedDateError, DeleteClosedDateResponse, DeleteMembershipPlanData, DeleteMembershipPlanError, DeleteMembershipPlanResponse, DeletePhotoData, DeletePhotoError, DeletePhotoResponse, DeletePriceRuleData, DeletePriceRuleError, DeletePriceRuleResponse, DeleteResourceData, DeleteResourceError, DeleteResourceResponse, DeleteStaffData, DeleteStaffError, DeleteStaffResponse, DeleteVenueData, DeleteVenueError, DeleteVenueResponse, GetBlockedTimeData, GetBlockedTimeError, GetBlockedTimeResponse, GetBookingData, GetBookingError, GetBookingResponse, GetCheckInData, GetCheckInError, GetCheckInResponse, GetClosedDateData, GetClosedDateError, GetClosedDateResponse, GetCustomerData, GetCustomerError, GetCustomerResponse, GetMeData, GetMeError, GetMembershipData, GetMembershipError, GetMembershipPlanData, GetMembershipPlanError, GetMembershipPlanResponse, GetMembershipResponse, GetMeResponse, GetPaymentData, GetPaymentError, GetPaymentResponse, GetPhotoData, GetPhotoError, GetPhotoResponse, GetPriceRuleData, GetPriceRuleError, GetPriceRuleResponse, GetRepeatSeriesData, GetRepeatSeriesError, GetRepeatSeriesResponse, GetResourceData, GetResourceError, GetResourceResponse, GetStaffData, GetStaffError, GetStaffResponse, GetVenueData, GetVenueError, GetVenueResponse, ListAvailabilityData, ListAvailabilityError, ListAvailabilityResponse, ListBlockedTimesData, ListBlockedTimesError, ListBlockedTimesResponse, ListBookingsData, ListBookingsError, ListBookingsResponse, ListCheckInsData, ListCheckInsError, ListCheckInsResponse, ListClosedDatesData, ListClosedDatesError, ListClosedDatesResponse, ListCustomersData, ListCustomersError, ListCustomersResponse, ListMembershipPlansData, ListMembershipPlansError, ListMembershipPlansResponse, ListMembershipsData, ListMembershipsError, ListMembershipsResponse, ListPaymentsData, ListPaymentsError, ListPaymentsResponse, ListPhotosData, ListPhotosError, ListPhotosResponse, ListPriceRulesData, ListPriceRulesError, ListPriceRulesResponse, ListRepeatSeriesData, ListRepeatSeriesError, ListRepeatSeriesResponse, ListResourcesData, ListResourcesError, ListResourcesResponse, ListStaffData, ListStaffError, ListStaffResponse, ListVenuesData, ListVenuesError, ListVenuesResponse, ListWhatsappNumbersData, ListWhatsappNumbersError, ListWhatsappNumbersResponse, UpdateBlockedTimeData, UpdateBlockedTimeError, UpdateBlockedTimeResponse, UpdateBookingData, UpdateBookingError, UpdateBookingResponse, UpdateClosedDateData, UpdateClosedDateError, UpdateClosedDateResponse, UpdateCustomerData, UpdateCustomerError, UpdateCustomerResponse, UpdateMembershipData, UpdateMembershipError, UpdateMembershipPlanData, UpdateMembershipPlanError, UpdateMembershipPlanResponse, UpdateMembershipResponse, UpdatePaymentData, UpdatePaymentError, UpdatePaymentResponse, UpdatePhotoData, UpdatePhotoError, UpdatePhotoResponse, UpdatePriceRuleData, UpdatePriceRuleError, UpdatePriceRuleResponse, UpdateRepeatSeriesData, UpdateRepeatSeriesError, UpdateRepeatSeriesResponse, UpdateResourceData, UpdateResourceError, UpdateResourceResponse, UpdateStaffData, UpdateStaffError, UpdateStaffResponse, UpdateVenueData, UpdateVenueError, UpdateVenueResponse } from '../types.gen';
 
 export type QueryKey<TOptions extends Options> = [
     Pick<TOptions, 'baseUrl' | 'body' | 'headers' | 'path' | 'query'> & {
@@ -1397,3 +1397,88 @@ export const updateMembershipMutation = (options?: Partial<Options<UpdateMembers
     };
     return mutationOptions;
 };
+
+export const listCheckInsQueryKey = (options?: Options<ListCheckInsData>) => createQueryKey('listCheckIns', options);
+
+export const listCheckInsOptions = (options?: Options<ListCheckInsData>) => queryOptions<ListCheckInsResponse, ListCheckInsError, ListCheckInsResponse, ReturnType<typeof listCheckInsQueryKey>>({
+    queryFn: async ({ queryKey, signal }) => {
+        const { data } = await listCheckIns({
+            ...options,
+            ...queryKey[0],
+            signal,
+            throwOnError: true
+        });
+        return data;
+    },
+    queryKey: listCheckInsQueryKey(options)
+});
+
+export const listCheckInsInfiniteQueryKey = (options?: Options<ListCheckInsData>): QueryKey<Options<ListCheckInsData>> => createQueryKey('listCheckIns', options, true);
+
+export const listCheckInsInfiniteOptions = (options?: Options<ListCheckInsData>) => {
+    const opts = infiniteQueryOptions<ListCheckInsResponse, ListCheckInsError, InfiniteData<ListCheckInsResponse>, QueryKey<Options<ListCheckInsData>>, number | Pick<QueryKey<Options<ListCheckInsData>>[0], 'body' | 'headers' | 'path' | 'query'>>(
+    // @ts-ignore
+    {
+        queryFn: async ({ pageParam, queryKey, signal }) => {
+            // @ts-ignore
+            const page: Pick<QueryKey<Options<ListCheckInsData>>[0], 'body' | 'headers' | 'path' | 'query'> = typeof pageParam === 'object' ? pageParam : {
+                query: {
+                    page: pageParam
+                }
+            };
+            const params = createInfiniteParams(queryKey, page);
+            const { data } = await listCheckIns({
+                ...options,
+                ...params,
+                signal,
+                throwOnError: true
+            });
+            return data;
+        },
+        queryKey: listCheckInsInfiniteQueryKey(options)
+    });
+    return opts as Omit<typeof opts, 'initialData'>;
+};
+
+export const createCheckInMutation = (options?: Partial<Options<CreateCheckInData>>): UseMutationOptions<CreateCheckInResponse, CreateCheckInError, Options<CreateCheckInData>> => {
+    const mutationOptions: UseMutationOptions<CreateCheckInResponse, CreateCheckInError, Options<CreateCheckInData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await createCheckIn({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+export const deleteCheckInMutation = (options?: Partial<Options<DeleteCheckInData>>): UseMutationOptions<DeleteCheckInResponse, DeleteCheckInError, Options<DeleteCheckInData>> => {
+    const mutationOptions: UseMutationOptions<DeleteCheckInResponse, DeleteCheckInError, Options<DeleteCheckInData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await deleteCheckIn({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+export const getCheckInQueryKey = (options: Options<GetCheckInData>) => createQueryKey('getCheckIn', options);
+
+export const getCheckInOptions = (options: Options<GetCheckInData>) => queryOptions<GetCheckInResponse, GetCheckInError, GetCheckInResponse, ReturnType<typeof getCheckInQueryKey>>({
+    queryFn: async ({ queryKey, signal }) => {
+        const { data } = await getCheckIn({
+            ...options,
+            ...queryKey[0],
+            signal,
+            throwOnError: true
+        });
+        return data;
+    },
+    queryKey: getCheckInQueryKey(options)
+});

@@ -1,4 +1,8 @@
 import {
+  CHECK_IN_SORT_FIELDS,
+  CheckIn,
+  CheckInFilters,
+  CreateCheckIn,
   CreateMembership,
   CreateMembershipPlan,
   Membership,
@@ -12,6 +16,7 @@ import {
 } from "@turftap/contract";
 
 import { defineResource } from "../../lib/resource";
+import * as checkInsService from "./check-ins.service";
 import * as membershipPlansService from "./membership-plans.service";
 import * as membershipsService from "./memberships.service";
 
@@ -41,4 +46,12 @@ export const membershipsResource = defineResource({
   },
   sort: { fields: MEMBERSHIP_SORT_FIELDS, default: "startsOn,desc" },
   service: membershipsService,
+});
+
+export const checkInsResource = defineResource({
+  name: "check-ins",
+  operations: ["list", "get", "create", "delete"],
+  schemas: { item: CheckIn, create: CreateCheckIn, filters: CheckInFilters },
+  sort: { fields: CHECK_IN_SORT_FIELDS, default: "checkedInAt,desc" },
+  service: checkInsService,
 });

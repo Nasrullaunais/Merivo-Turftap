@@ -78,3 +78,12 @@ export const describeDate = (date: string) =>
     month: "short",
     year: "numeric",
   }).format(midnightUtc(date));
+
+/** "07:05", the time of day on the venue's clock. */
+export const describeClock = (instant: Date, timeZone: string) =>
+  new Intl.DateTimeFormat("en-GB", {
+    timeZone,
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  }).format(instant);

@@ -86,3 +86,30 @@ export const memberships = pgTable(
 
 export type MembershipRow = typeof memberships.$inferSelect;
 export type NewMembership = Omit<typeof memberships.$inferInsert, "id" | "tenantId">;
+
+/** MEM-05: a customer with a usable membership came in. */
+export const checkIns = pgTable(
+  "check_ins",
+  {
+    id: idColumn(),
+    tenantId: tenantIdColumn(),
+    /** The membership's venue, so staff limited to some venues can be filtered directly. */
+    venueId: bigint("venue_id", { mode: "number" })
+      .notNull()
+      .references(() => venues.id),
+    membershipId: bigint("membership_id", { mode: "number" })
+      .notNull()
+      .references(() => memberships.id),
+    /** The day on the venue's clock, so "today's check-ins" needs no time zone sums. */
+    checkedInOn: date("checked_in_on", { mode: "string" }).notNull(),
+    checkedInAt: timestamp("checked_in_at", { withTimezone: true }).notNull().defaultNow(),
+    createdBy: bigint("created_by", { mode: "number" }).references(() => users.id),
+  },
+  (table) => [
+    index("check_ins_tenant_idx").on(table.tenantId),
+    index("check_ins_venue_day_idx").on(table.venueId, table.checkedInOn),
+    index("check_ins_membership_day_idx").on(table.membershipId, table.checkedInOn),
+  ],
+);
+
+export type CheckInRow = typeof checkIns.$inferSelect;

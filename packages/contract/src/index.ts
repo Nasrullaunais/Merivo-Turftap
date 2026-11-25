@@ -1,5 +1,6 @@
 export * from "./blocked-times";
 export * from "./bookings";
+export * from "./check-ins";
 export * from "./closed-dates";
 export * from "./common";
 export * from "./customers";

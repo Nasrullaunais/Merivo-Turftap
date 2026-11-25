@@ -109,6 +109,7 @@ export type Venue = {
     cancellationCutOffHours: number;
     payAtVenue: boolean;
     seriesPaymentDaysBefore: number;
+    repeatCheckIns: boolean;
     active: boolean;
     createdAt: string;
     updatedAt: string;
@@ -126,6 +127,7 @@ export type CreateVenue = {
     cancellationCutOffHours?: number;
     payAtVenue?: boolean;
     seriesPaymentDaysBefore?: number;
+    repeatCheckIns?: boolean;
 };
 
 export type UpdateVenue = {
@@ -140,6 +142,7 @@ export type UpdateVenue = {
     cancellationCutOffHours?: number;
     payAtVenue?: boolean;
     seriesPaymentDaysBefore?: number;
+    repeatCheckIns?: boolean;
 };
 
 export type Booking = {
@@ -191,6 +194,23 @@ export type Slot = {
     free: boolean;
 };
 
+export type CheckIn = {
+    id: number;
+    venueId: number;
+    membershipId: number;
+    planName: string;
+    customerId: number;
+    customerName: string;
+    customerPhone: string;
+    checkedInOn: string;
+    checkedInAt: string;
+    createdBy: number | null;
+};
+
+export type CreateCheckIn = {
+    membershipId: number;
+};
+
 export type ClosedDate = {
     id: number;
     venueId: number;
@@ -212,7 +232,7 @@ export type UpdateClosedDate = {
 };
 
 export type LiveEvent = {
-    type: 'booking.changed' | 'payment.changed' | 'membership.changed';
+    type: 'booking.changed' | 'payment.changed' | 'membership.changed' | 'check-in.changed';
     id: number;
 };
 
@@ -289,7 +309,11 @@ export const Permission = {
     MEMBERSHIPS_READ: 'memberships:read',
     MEMBERSHIPS_CREATE: 'memberships:create',
     MEMBERSHIPS_UPDATE: 'memberships:update',
-    MEMBERSHIPS_DELETE: 'memberships:delete'
+    MEMBERSHIPS_DELETE: 'memberships:delete',
+    CHECK_INS_READ: 'check-ins:read',
+    CHECK_INS_CREATE: 'check-ins:create',
+    CHECK_INS_UPDATE: 'check-ins:update',
+    CHECK_INS_DELETE: 'check-ins:delete'
 } as const;
 
 export type Permission = typeof Permission[keyof typeof Permission];
@@ -2704,6 +2728,139 @@ export type UpdateMembershipResponses = {
 };
 
 export type UpdateMembershipResponse = UpdateMembershipResponses[keyof UpdateMembershipResponses];
+
+export type ListCheckInsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        page?: number;
+        size?: number;
+        sort?: 'checkedInAt,asc' | 'checkedInAt,desc';
+        venueId?: number;
+        membershipId?: number;
+        on?: string;
+    };
+    url: '/v1/check-ins';
+};
+
+export type ListCheckInsErrors = {
+    /**
+     * Error
+     */
+    default: ErrorReply;
+};
+
+export type ListCheckInsError = ListCheckInsErrors[keyof ListCheckInsErrors];
+
+export type ListCheckInsResponses = {
+    /**
+     * One page
+     */
+    200: {
+        status: number;
+        message: string;
+        data: {
+            content: Array<CheckIn>;
+            page: number;
+            size: number;
+            totalElements: number;
+            totalPages: number;
+        };
+    };
+};
+
+export type ListCheckInsResponse = ListCheckInsResponses[keyof ListCheckInsResponses];
+
+export type CreateCheckInData = {
+    body: CreateCheckIn;
+    path?: never;
+    query?: never;
+    url: '/v1/check-ins';
+};
+
+export type CreateCheckInErrors = {
+    /**
+     * Error
+     */
+    default: ErrorReply;
+};
+
+export type CreateCheckInError = CreateCheckInErrors[keyof CreateCheckInErrors];
+
+export type CreateCheckInResponses = {
+    /**
+     * Created
+     */
+    201: {
+        status: number;
+        message: string;
+        data: CheckIn;
+    };
+};
+
+export type CreateCheckInResponse = CreateCheckInResponses[keyof CreateCheckInResponses];
+
+export type DeleteCheckInData = {
+    body?: never;
+    path: {
+        id: number;
+    };
+    query?: never;
+    url: '/v1/check-ins/{id}';
+};
+
+export type DeleteCheckInErrors = {
+    /**
+     * Error
+     */
+    default: ErrorReply;
+};
+
+export type DeleteCheckInError = DeleteCheckInErrors[keyof DeleteCheckInErrors];
+
+export type DeleteCheckInResponses = {
+    /**
+     * Deleted
+     */
+    200: {
+        status: number;
+        message: string;
+        data: null;
+    };
+};
+
+export type DeleteCheckInResponse = DeleteCheckInResponses[keyof DeleteCheckInResponses];
+
+export type GetCheckInData = {
+    body?: never;
+    path: {
+        id: number;
+    };
+    query?: never;
+    url: '/v1/check-ins/{id}';
+};
+
+export type GetCheckInErrors = {
+    /**
+     * Error
+     */
+    default: ErrorReply;
+};
+
+export type GetCheckInError = GetCheckInErrors[keyof GetCheckInErrors];
+
+export type GetCheckInResponses = {
+    /**
+     * Found
+     */
+    200: {
+        status: number;
+        message: string;
+        data: CheckIn;
+    };
+};
+
+export type GetCheckInResponse = GetCheckInResponses[keyof GetCheckInResponses];
 
 export type ListEventsData = {
     body?: never;

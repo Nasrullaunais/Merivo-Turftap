@@ -12,6 +12,7 @@ import { CloseDateForm } from "../../../../features/closed-dates/CloseDateForm";
 import { PhotoGallery } from "../../../../features/photos/PhotoGallery";
 import { AddResourceForm } from "../../../../features/resources/AddResourceForm";
 import { ResourceList } from "../../../../features/resources/ResourceList";
+import { CheckInSettings } from "../../../../features/venues/CheckInSettings";
 import { OpeningHoursCard } from "../../../../features/venues/OpeningHoursCard";
 import { PaymentSettings } from "../../../../features/venues/PaymentSettings";
 import { VenueHeader } from "../../../../features/venues/VenueHeading";
@@ -61,6 +62,7 @@ function VenuePage() {
         side={
           <>
             <OpeningHoursCard venueId={venueId} />
+            <CheckInSettings venueId={venueId} canChange={can(tenant, "venues:update")} />
             <ClosedDateList
               venueId={venueId}
               canReopen={can(tenant, "closed-dates:delete")}

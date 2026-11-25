@@ -1,6 +1,7 @@
 import {
   BadgeCheck,
   CalendarDays,
+  DoorOpen,
   type LucideIcon,
   MapPin,
   ReceiptText,
@@ -50,6 +51,13 @@ export const NAV_GROUPS: NavSection[][] = [
       to: "/receipt-checks",
       isIn: under("/receipt-checks"),
       useCount: () => useWaitingCount().data,
+    },
+    {
+      label: m.nav.checkIns,
+      icon: DoorOpen,
+      hue: "membership",
+      to: "/check-ins",
+      isIn: under("/check-ins"),
     },
   ],
   [

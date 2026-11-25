@@ -28,6 +28,21 @@ export const membershipErrors = {
     new BadRequest("tt_mem_010", "Please give a reason for cancelling", [
       { field: "cancelReason", message: "Required when staff cancel a membership" },
     ]),
+  notPaid: () => new Conflict("tt_mem_011", "This membership isn't paid yet"),
+  balanceOwed: () =>
+    new Conflict(
+      "tt_mem_012",
+      "This membership still has a Balance to pay. Take it in cash before checking in",
+    ),
+  notStarted: (startsOn: string) =>
+    new Conflict("tt_mem_013", `This membership starts on ${startsOn}`),
+  ended: (endsOn: string) => new Conflict("tt_mem_014", `This membership ended on ${endsOn}`),
+  cancelled: () => new Conflict("tt_mem_015", "This membership was cancelled"),
+  alreadyCheckedIn: (at: string) =>
+    new Conflict("tt_mem_016", `Already checked in today at ${at}. This venue allows one a day`),
+  checkInNotFound: (id: number) => new NotFound("tt_mem_017", `Check-in ${id} was not found`),
+  tooLateToUndo: (minutes: number) =>
+    new Conflict("tt_mem_018", `A check-in can only be undone within ${minutes} minutes`),
 };
 
 constraintErrors({

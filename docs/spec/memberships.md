@@ -28,6 +28,9 @@ As a **Customer**, I want to renew before my membership ends, so that there's no
 ## MEM-05 Check-in
 As **Front Desk**, I want to search a customer by phone number and tap "check in", so that we know who used the gym.
 - Given the membership has expired or isn't paid yet, when I check them in, then I'm stopped and shown why.
+- Only an active membership, between its first and last day (venue's date), with no Balance left, lets them in. Each refusal says why: not paid yet, Balance owed (I can take the cash right there and then check them in), not started yet (with the start date), ended (with the end date), cancelled.
+- Each venue decides whether a membership can be checked in more than once a day (on by default). When it can't, a second check-in that day is refused with the time of the first.
+- A check-in made by mistake can be undone for 5 minutes. After that it stays.
 
 ## MEM-06 Expiry reminder
 As a **Customer**, I want a WhatsApp message 3 days before my membership ends, so that I can renew in time.

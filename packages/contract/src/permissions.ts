@@ -19,6 +19,7 @@ export const STAFF_RESOURCES = [
   "payments",
   "membership-plans",
   "memberships",
+  "check-ins",
 ] as const;
 export type StaffResource = (typeof STAFF_RESOURCES)[number];
 

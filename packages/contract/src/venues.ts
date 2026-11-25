@@ -73,6 +73,8 @@ export const Venue = z
     payAtVenue: z.boolean(),
     /** How many days before each Repeat Series booking its Advance is asked for. */
     seriesPaymentDaysBefore: z.number().int(),
+    /** MEM-05: a membership may be checked in more than once a day. */
+    repeatCheckIns: z.boolean(),
     active: z.boolean(),
     createdAt: Timestamp,
     updatedAt: Timestamp,
@@ -99,6 +101,7 @@ const venueFields = {
     .int()
     .min(MIN_SERIES_PAYMENT_DAYS_BEFORE)
     .max(MAX_SERIES_PAYMENT_DAYS_BEFORE),
+  repeatCheckIns: z.boolean(),
 };
 
 export const CreateVenue = z
@@ -117,6 +120,7 @@ export const CreateVenue = z
     seriesPaymentDaysBefore: venueFields.seriesPaymentDaysBefore.default(
       DEFAULT_SERIES_PAYMENT_DAYS_BEFORE,
     ),
+    repeatCheckIns: venueFields.repeatCheckIns.default(true),
   })
   .meta({ id: "CreateVenue" });
 

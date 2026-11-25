@@ -176,6 +176,13 @@
       "when": 1795552722743,
       "tag": "0024_memberships",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1795600012842,
+      "tag": "0025_check_ins",
+      "breakpoints": true
     }
   ]
 }

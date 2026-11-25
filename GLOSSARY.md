@@ -103,7 +103,7 @@ One customer's purchase of a membership plan, with a start and end date. It has 
 _Avoid_: Subscription, pass. Never use "membership" for a staff member's link to a tenant.
 
 **Check-in**:
-A record that a customer with an active membership entered the venue.
+A record that a customer with an active, fully paid membership entered the venue. It can be undone only in the first few minutes.
 _Avoid_: Visit, attendance
 
 ## Channels
