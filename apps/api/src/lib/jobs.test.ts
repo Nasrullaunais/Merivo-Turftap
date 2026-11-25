@@ -2,9 +2,14 @@ import { beforeAll, describe, expect, it } from "bun:test";
 import { sql } from "drizzle-orm";
 
 import { db, transaction } from "./db";
-import { defineJob, startJobs } from "./jobs";
+import { defineJob, defineScheduledJob, startJobs } from "./jobs";
 
 const testJob = defineJob<{ marker: string }>("test-job", async () => {});
+defineScheduledJob(
+  "test-daily-job",
+  { cron: "5 0 * * *", timeZone: "Asia/Colombo" },
+  async () => {},
+);
 
 const jobsWithMarker = async (marker: string) => {
   const { rows } = await db().execute(
@@ -31,5 +36,12 @@ describe("jobs", () => {
     });
     await expect(failing).rejects.toThrow("the booking did not save");
     expect(await jobsWithMarker(marker)).toBe(0);
+  });
+
+  it("startJobs_scheduledJob_isQueuedByTheClockOfItsTimeZone", async () => {
+    const { rows } = await db().execute(
+      sql`select cron, timezone from pgboss.schedule where name = 'test-daily-job'`,
+    );
+    expect(rows).toEqual([{ cron: "5 0 * * *", timezone: "Asia/Colombo" }]);
   });
 });

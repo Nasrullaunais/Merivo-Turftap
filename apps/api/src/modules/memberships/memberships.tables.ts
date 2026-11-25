@@ -73,6 +73,8 @@ export const memberships = pgTable(
     amountDue: bigint("amount_due", { mode: "number" }).notNull(),
     expiresAt: timestamp("expires_at", { withTimezone: true }),
     cancelReason: text("cancel_reason"),
+    /** MEM-06: set when the "ending soon" WhatsApp is queued, so it goes out once. */
+    endingReminderSentAt: timestamp("ending_reminder_sent_at", { withTimezone: true }),
     createdBy: bigint("created_by", { mode: "number" }).references(() => users.id),
     ...timestampColumns(),
   },

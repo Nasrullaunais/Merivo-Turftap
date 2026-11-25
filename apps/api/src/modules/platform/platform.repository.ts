@@ -48,6 +48,11 @@ export async function findUserById(id: number) {
   return user;
 }
 
+export async function findActiveTenantIds() {
+  const rows = await db().select({ id: tenants.id }).from(tenants).where(eq(tenants.active, true));
+  return rows.map((row) => row.id);
+}
+
 export async function findTenantsByIds(ids: number[]) {
   if (!ids.length) return [];
   return db()
