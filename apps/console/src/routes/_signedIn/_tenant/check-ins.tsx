@@ -1,7 +1,7 @@
 import { Skeleton } from "@heroui/react";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import type { CheckIn } from "@turftap/contract/client";
-import { MapPin } from "lucide-react";
+import { Dumbbell } from "lucide-react";
 import { useCallback, useState } from "react";
 
 import { EmptyState } from "../../../components/EmptyState";
@@ -11,7 +11,6 @@ import { CheckInDesk, type Picked } from "../../../features/check-ins/CheckInDes
 import { TodayCheckIns } from "../../../features/check-ins/TodayCheckIns";
 import { useDeskVenues, useTodaysCheckIns } from "../../../features/check-ins/useCheckIns";
 import m from "../../../i18n/en/checkIns";
-import venues from "../../../i18n/en/venues";
 import { PageLayout, TwoColumns } from "../../../layout/PageLayout";
 import { can } from "../../../lib/tenant/activeTenant";
 import { useVenueToday } from "../../../lib/time/useVenueToday";
@@ -36,8 +35,8 @@ function CheckInsPage() {
           side={<SkeletonRows label={m.loadingToday} rows={4} />}
         />
       ) : !venue ? (
-        <EmptyState hue="place" icon={MapPin}>
-          {venues.none}
+        <EmptyState hue="membership" icon={Dumbbell}>
+          {m.noGyms}
         </EmptyState>
       ) : (
         <Desk venues={deskVenues} venue={venue} onVenue={setVenueId} />

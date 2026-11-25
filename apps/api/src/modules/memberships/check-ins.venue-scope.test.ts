@@ -8,7 +8,7 @@ import {
   planInput,
   type TestTenant,
   uniquePhone,
-  venueInput,
+  gymInput,
 } from "../../test/fixtures";
 
 describe("SIG-06 check-ins for staff limited to some venues", () => {
@@ -20,7 +20,7 @@ describe("SIG-06 check-ins for staff limited to some venues", () => {
   beforeAll(async () => {
     tenant = await createTenant();
     const sellAtNewVenue = async () => {
-      const venue = (await call("POST", "/v1/venues", asStaff(tenant), venueInput())).body.data;
+      const venue = (await call("POST", "/v1/venues", asStaff(tenant), gymInput())).body.data;
       const plan = (
         await call("POST", "/v1/membership-plans", asStaff(tenant), planInput(venue.id))
       ).body.data;

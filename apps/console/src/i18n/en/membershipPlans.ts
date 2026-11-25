@@ -7,7 +7,7 @@ export default {
   allPlans: "All plans",
   onSale: "On sale",
   turnedOff: "Turned off",
-  noVenues: "Add a venue first. Each Membership Plan is sold at one venue.",
+  noGyms: "No venue has a gym yet. An Owner turns it on in the Gym box on a venue's page.",
   noneAtVenue: "No plans at this venue yet.",
   noneShown: "No plans match.",
   /** "1 month", "10 days". */

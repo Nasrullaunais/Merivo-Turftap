@@ -7,7 +7,7 @@ import {
   limitToVenues,
   planInput,
   type TestTenant,
-  venueInput,
+  gymInput,
 } from "../../test/fixtures";
 
 const idsOf = (reply: { body: { data: { content: { id: number }[] } } }) =>
@@ -24,7 +24,7 @@ describe("SIG-06 Membership Plans for staff limited to some venues", () => {
   beforeAll(async () => {
     tenant = await createTenant();
     const addVenue = async () =>
-      (await call("POST", "/v1/venues", asStaff(tenant), venueInput())).body.data.id as number;
+      (await call("POST", "/v1/venues", asStaff(tenant), gymInput())).body.data.id as number;
     const addPlan = async (venueId: number) =>
       (await call("POST", "/v1/membership-plans", asStaff(tenant), planInput(venueId))).body.data
         .id as number;

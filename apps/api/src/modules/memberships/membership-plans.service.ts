@@ -33,7 +33,8 @@ export async function get(auth: AuthContext, id: number) {
 
 export function create(auth: AuthContext, input: CreateMembershipPlan) {
   return transaction(async () => {
-    await venuesService.get(auth, input.venueId);
+    const venue = await venuesService.get(auth, input.venueId);
+    if (!venue.hasGym) throw membershipErrors.noGym(venue.name);
     return membershipPlansRepository.insert(auth.tenantId, input);
   });
 }

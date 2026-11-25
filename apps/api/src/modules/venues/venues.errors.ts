@@ -48,6 +48,11 @@ export const venueErrors = {
       "tt_ven_014",
       `This overlaps the booking for ${booking.customerName} at ${describeInstant(booking.startsAt, timeZone)}`,
     ),
+  gymInUse: () =>
+    new Conflict(
+      "tt_ven_015",
+      "This gym still sells Membership Plans or has memberships that aren't over. Turn off its plans and wait for those memberships to end first",
+    ),
 };
 
 constraintErrors({

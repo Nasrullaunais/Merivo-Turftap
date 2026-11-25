@@ -109,6 +109,7 @@ export type Venue = {
     cancellationCutOffHours: number;
     payAtVenue: boolean;
     seriesPaymentDaysBefore: number;
+    hasGym: boolean;
     repeatCheckIns: boolean;
     active: boolean;
     createdAt: string;
@@ -127,6 +128,7 @@ export type CreateVenue = {
     cancellationCutOffHours?: number;
     payAtVenue?: boolean;
     seriesPaymentDaysBefore?: number;
+    hasGym?: boolean;
     repeatCheckIns?: boolean;
 };
 
@@ -142,6 +144,7 @@ export type UpdateVenue = {
     cancellationCutOffHours?: number;
     payAtVenue?: boolean;
     seriesPaymentDaysBefore?: number;
+    hasGym?: boolean;
     repeatCheckIns?: boolean;
 };
 

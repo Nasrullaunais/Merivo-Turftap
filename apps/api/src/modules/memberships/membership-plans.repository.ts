@@ -1,9 +1,13 @@
-import type { CreateMembershipPlan, UpdateMembershipPlan } from "@turftap/contract";
-import { and, eq, inArray, type SQL, sql } from "drizzle-orm";
+import {
+  type CreateMembershipPlan,
+  MEMBERSHIP_HOLDING_STATUSES,
+  type UpdateMembershipPlan,
+} from "@turftap/contract";
+import { and, eq, gte, inArray, type SQL, sql } from "drizzle-orm";
 
 import { db, pageOf, type PageRequest, sortBy } from "../../lib/db";
 import { priceFields, priceOf } from "../../lib/db/columns";
-import { type MembershipPlanRow, membershipPlans } from "./memberships.tables";
+import { type MembershipPlanRow, membershipPlans, memberships } from "./memberships.tables";
 
 const SORTABLE = {
   name: sql`lower(${membershipPlans.name})`,
@@ -84,4 +88,33 @@ export async function deactivate(tenantId: number, id: number, venueIds: number[
     .where(ownedBy(tenantId, id, venueIds))
     .returning({ id: membershipPlans.id });
   return changed.length > 0;
+}
+
+/** VEN-08: a plan on sale, or a membership that still holds today or a later day, at the venue. */
+export async function gymInUse(tenantId: number, venueId: number, today: string) {
+  const planOnSale = db()
+    .select({ id: membershipPlans.id })
+    .from(membershipPlans)
+    .where(
+      and(
+        eq(membershipPlans.tenantId, tenantId),
+        eq(membershipPlans.venueId, venueId),
+        eq(membershipPlans.active, true),
+      ),
+    );
+  const membershipNotOver = db()
+    .select({ id: memberships.id })
+    .from(memberships)
+    .where(
+      and(
+        eq(memberships.tenantId, tenantId),
+        eq(memberships.venueId, venueId),
+        inArray(memberships.status, MEMBERSHIP_HOLDING_STATUSES),
+        gte(memberships.endsOn, today),
+      ),
+    );
+  const [plan] = await planOnSale.limit(1);
+  if (plan) return true;
+  const [membership] = await membershipNotOver.limit(1);
+  return membership !== undefined;
 }

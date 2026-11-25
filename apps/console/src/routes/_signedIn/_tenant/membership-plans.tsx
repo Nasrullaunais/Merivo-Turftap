@@ -1,6 +1,6 @@
 import { Button } from "@heroui/react";
 import { createFileRoute, redirect } from "@tanstack/react-router";
-import { BadgeCheck, MapPin, Plus, PowerOff } from "lucide-react";
+import { BadgeCheck, Dumbbell, Plus, PowerOff } from "lucide-react";
 import { useState } from "react";
 
 import { EmptyState } from "../../../components/EmptyState";
@@ -94,8 +94,8 @@ function MembershipPlansPage() {
       {!plans || !venues ? (
         <SkeletonCards label={m.loading} min={PLAN_CARD_MIN} cards={3} />
       ) : venues.length === 0 ? (
-        <EmptyState hue="place" icon={MapPin}>
-          {m.noVenues}
+        <EmptyState hue="membership" icon={Dumbbell}>
+          {m.noGyms}
         </EmptyState>
       ) : shownVenues?.length === 0 ? (
         <p className="animate-tt-rise text-muted">{m.noneShown}</p>

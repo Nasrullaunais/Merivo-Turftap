@@ -6,7 +6,7 @@ import {
   createTenant,
   planInput,
   type TestTenant,
-  venueInput,
+  gymInput,
 } from "../../test/fixtures";
 
 describe("membership-plans tenant isolation", () => {
@@ -18,7 +18,7 @@ describe("membership-plans tenant isolation", () => {
   beforeAll(async () => {
     tenantA = await createTenant();
     tenantB = await createTenant();
-    venueOfB = (await call("POST", "/v1/venues", asStaff(tenantB), venueInput())).body.data.id;
+    venueOfB = (await call("POST", "/v1/venues", asStaff(tenantB), gymInput())).body.data.id;
     planOfB = (await call("POST", "/v1/membership-plans", asStaff(tenantB), planInput(venueOfB)))
       .body.data.id;
   });

@@ -48,3 +48,9 @@ As a **Manager**, I want to block a resource for a time window (maintenance, pri
 - Given the window overlaps another Blocked Time on the same resource, when I save, then I'm told which one. Back-to-back blocks are fine.
 - Front Desk can see Blocked Times; customers don't see them, only that the slots aren't free.
 - Given a booking that holds slots (waiting for payment, waiting for a check, or confirmed) is in that window, when I save, then I'm stopped and told its start time and customer name. Cancelled and expired bookings don't count.
+
+## VEN-08 Gym
+As an **Owner**, I want to say whether a venue has a **Gym**, so that memberships are only sold where there is one.
+- A venue has no gym until I turn it on. Only a venue with a gym sells Membership Plans and appears on the Membership Plans and Check-ins pages.
+- Given the venue still sells a plan, or has a membership that isn't over (waiting for payment, waiting for a check, or active up to today or later), when I turn its gym off, then I'm told to turn off its plans and wait for those memberships to end first.
+- Managers and Front Desk can see whether a venue has a gym; only Owners change it.

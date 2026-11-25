@@ -6,7 +6,7 @@ import {
   createTenant,
   planInput,
   type TestTenant,
-  venueInput,
+  gymInput,
 } from "../../test/fixtures";
 
 const fieldsOf = (reply: { body: { errors: { field: string }[] } }) =>
@@ -17,7 +17,7 @@ describe("membership-plans routes", () => {
   let venueId: number;
   beforeAll(async () => {
     tenant = await createTenant();
-    venueId = (await call("POST", "/v1/venues", asStaff(tenant), venueInput())).body.data.id;
+    venueId = (await call("POST", "/v1/venues", asStaff(tenant), gymInput())).body.data.id;
   });
 
   it("create_repliesWithTheEnvelope", async () => {
@@ -72,7 +72,7 @@ describe("membership-plans routes", () => {
   });
 
   it("update_neverMovesAPlanToAnotherVenue", async () => {
-    const other = (await call("POST", "/v1/venues", asStaff(tenant), venueInput())).body.data.id;
+    const other = (await call("POST", "/v1/venues", asStaff(tenant), gymInput())).body.data.id;
     const created = await call("POST", "/v1/membership-plans", asStaff(tenant), planInput(venueId));
     const reply = await call(
       "PATCH",
@@ -109,7 +109,7 @@ describe("SIG-05 Membership Plan permissions", () => {
   let venueId: number;
   beforeAll(async () => {
     tenant = await createTenant();
-    venueId = (await call("POST", "/v1/venues", asStaff(tenant), venueInput())).body.data.id;
+    venueId = (await call("POST", "/v1/venues", asStaff(tenant), gymInput())).body.data.id;
   });
 
   it("manager_canAddChangeAndTurnOffAPlan", async () => {

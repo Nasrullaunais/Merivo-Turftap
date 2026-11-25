@@ -1,6 +1,12 @@
 import { beforeAll, describe, expect, it } from "bun:test";
 
-import { createTenant, planInput, type TestTenant, venueInput } from "../../test/fixtures";
+import {
+  createTenant,
+  gymInput,
+  planInput,
+  type TestTenant,
+  venueInput,
+} from "../../test/fixtures";
 import * as venuesService from "../venues/venues.service";
 import * as membershipPlansService from "./membership-plans.service";
 
@@ -11,7 +17,7 @@ describe("MEM-01 Membership Plans", () => {
   let venueId: number;
   beforeAll(async () => {
     tenant = await createTenant();
-    venueId = (await venuesService.create(tenant.owner.auth, venueInput())).id;
+    venueId = (await venuesService.create(tenant.owner.auth, gymInput())).id;
   });
 
   it("create_savesTheNameLengthAndPrice", async () => {
@@ -36,6 +42,12 @@ describe("MEM-01 Membership Plans", () => {
   it("create_refusesAVenueThatDoesNotExist", async () => {
     const created = membershipPlansService.create(tenant.manager.auth, planInput(999_999_999));
     await expect(created).rejects.toMatchObject({ status: 404, code: "tt_ven_001" });
+  });
+
+  it("create_refusesAVenueWithoutAGym", async () => {
+    const pool = await venuesService.create(tenant.owner.auth, venueInput({ name: "Cue Club" }));
+    const created = membershipPlansService.create(tenant.manager.auth, planInput(pool.id));
+    await expect(created).rejects.toMatchObject({ status: 409, code: "tt_mem_019" });
   });
 
   it("create_refusesANameAlreadyOnSaleAtTheVenueIgnoringCase", async () => {
@@ -64,7 +76,7 @@ describe("MEM-01 Membership Plans", () => {
   });
 
   it("create_allowsTheSameNameAtAnotherVenue", async () => {
-    const other = await venuesService.create(tenant.owner.auth, venueInput());
+    const other = await venuesService.create(tenant.owner.auth, gymInput());
     await membershipPlansService.create(tenant.manager.auth, planInput(venueId, { name: "Gold" }));
     const atOther = await membershipPlansService.create(
       tenant.manager.auth,
@@ -91,7 +103,7 @@ describe("MEM-01 Membership Plans", () => {
   });
 
   it("list_filtersByVenue", async () => {
-    const other = await venuesService.create(tenant.owner.auth, venueInput());
+    const other = await venuesService.create(tenant.owner.auth, gymInput());
     const there = await membershipPlansService.create(tenant.manager.auth, planInput(other.id));
     const page = await membershipPlansService.list(tenant.manager.auth, {
       filters: { venueId: other.id },

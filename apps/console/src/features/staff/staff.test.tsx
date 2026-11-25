@@ -246,6 +246,7 @@ describe("SIG-06 choose which venues staff work at", () => {
     cancellationCutOffHours: 6,
     payAtVenue: false,
     seriesPaymentDaysBefore: 2,
+    hasGym: false,
     openingHours: [],
     active: true,
     createdAt: "2026-11-22T04:00:00.000Z",
