@@ -78,6 +78,7 @@ const nimalsBooking: Booking = {
 const transfer: Payment = {
   id: 31,
   bookingId: 21,
+  membershipId: null,
   venueId: 3,
   kind: "TRANSFER",
   status: "ACCEPTED",

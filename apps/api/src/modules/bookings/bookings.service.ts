@@ -19,7 +19,7 @@ import { WHATSAPP_TEMPLATES, type WhatsAppTemplate } from "../../ports/messaging
 import * as customersService from "../customers/customers.service";
 import * as eventsService from "../notifications/events.service";
 import * as notificationsService from "../notifications/notifications.service";
-import * as bookingPaymentsService from "../payments/booking-payments.service";
+import * as recordedPaymentsService from "../payments/recorded-payments.service";
 import * as resourcesService from "../venues/resources.service";
 import * as venuesService from "../venues/venues.service";
 import * as availabilityService from "./availability.service";
@@ -75,7 +75,7 @@ async function detailsOf(auth: AuthContext, bookings: StoredBooking[]) {
     auth.tenantId,
     bookings.map((booking) => booking.customerId),
   );
-  const paidFor = await bookingPaymentsService.paidFor(
+  const paidFor = await recordedPaymentsService.paidFor(
     auth,
     bookings.map((booking) => booking.id),
   );
@@ -208,7 +208,8 @@ async function createWalkIn(auth: AuthContext, input: CreateBooking, walkIn: Wal
     });
     eventsService.publish(auth, "booking.changed", booking);
     await queueReminder(auth, booking);
-    if (walkIn.payment === "CASH") await bookingPaymentsService.recordWalkInCash(auth, booking);
+    if (walkIn.payment === "CASH")
+      await recordedPaymentsService.recordWalkInCash(auth, { bookingId: booking.id }, booking);
     return replyOf(booking, await detailsOfOne(auth, booking));
   });
 }

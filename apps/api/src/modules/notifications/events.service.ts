@@ -9,6 +9,7 @@ type Change = LiveEvent & { tenantId: number; venueId: number };
 const READ_PERMISSION: Record<LiveEventType, Permission> = {
   "booking.changed": "bookings:read",
   "payment.changed": "payments:read",
+  "membership.changed": "memberships:read",
 };
 
 // One API process in v1 (D-11). A second one would need Postgres LISTEN/NOTIFY instead.

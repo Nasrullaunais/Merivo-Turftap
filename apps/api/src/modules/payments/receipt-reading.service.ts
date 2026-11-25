@@ -3,6 +3,7 @@ import { todayIn, wallClockAt } from "../../lib/time";
 import { ports } from "../../ports";
 import * as bookingsService from "../bookings/bookings.service";
 import * as filesService from "../files/files.service";
+import * as membershipsService from "../memberships/memberships.service";
 import * as eventsService from "../notifications/events.service";
 import * as venuesService from "../venues/venues.service";
 import * as paymentsRepository from "./payments.repository";
@@ -26,14 +27,16 @@ function earliest(...matches: (Match | undefined)[]) {
 export async function read(tenantId: number, paymentId: number) {
   const auth: AuthContext = { actor: "system", tenantId };
   const payment = await paymentsRepository.findById(tenantId, paymentId, undefined);
-  if (!payment?.fileId || !payment.bookingId) return;
+  if (!payment?.fileId) return;
   if (await paymentsRepository.hasReading(tenantId, paymentId)) return;
 
   const stored = await filesService.receiptContent(auth, payment.fileId);
   const reading = stored && (await ports().receiptReader.read(stored));
   const reference = referenceKey(reading?.reference);
-  const [booking, venue, sameImage, sameReference] = await Promise.all([
-    bookingsService.get(auth, payment.bookingId),
+  const [paidFor, venue, sameImage, sameReference] = await Promise.all([
+    payment.bookingId === null
+      ? membershipsService.get(auth, payment.membershipId!)
+      : bookingsService.get(auth, payment.bookingId),
     venuesService.get(auth, payment.venueId),
     filesService
       .sameReceiptImages(auth, payment.fileId)
@@ -42,7 +45,7 @@ export async function read(tenantId: number, paymentId: number) {
       ? undefined
       : paymentsRepository.earliestReadWithReference(tenantId, reference, paymentId),
   ]);
-  const madeOn = wallClockAt(booking.createdAt, venue.timeZone).date;
+  const madeOn = wallClockAt(paidFor.createdAt, venue.timeZone).date;
   const paidOn = reading?.paidOn ?? null;
   const amount = reading?.amount ?? null;
 

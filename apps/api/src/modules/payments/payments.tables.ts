@@ -1,9 +1,11 @@
 import { type Currency, PAYMENT_KINDS, PAYMENT_STATUSES } from "@turftap/contract";
-import { bigint, boolean, date, index, pgEnum, pgTable, text } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
+import { bigint, boolean, check, date, index, pgEnum, pgTable, text } from "drizzle-orm/pg-core";
 
 import { idColumn, timestampColumns } from "../../lib/db/columns";
 import { bookings } from "../bookings/bookings.tables";
 import { files } from "../files/files.tables";
+import { memberships } from "../memberships/memberships.tables";
 import { tenantIdColumn, users } from "../platform/platform.tables";
 import { venues } from "../venues/venues.tables";
 
@@ -15,11 +17,12 @@ export const payments = pgTable(
   {
     id: idColumn(),
     tenantId: tenantIdColumn(),
-    /** The booking's venue, kept here so staff limited to some venues can be filtered directly. */
+    /** The booking's or membership's venue, so staff limited to some venues are filtered directly. */
     venueId: bigint("venue_id", { mode: "number" })
       .notNull()
       .references(() => venues.id),
     bookingId: bigint("booking_id", { mode: "number" }).references(() => bookings.id),
+    membershipId: bigint("membership_id", { mode: "number" }).references(() => memberships.id),
     kind: paymentKind("kind").notNull(),
     status: paymentStatus("status").notNull(),
     /** Cents, negative for a refund. */
@@ -38,6 +41,11 @@ export const payments = pgTable(
     index("payments_tenant_idx").on(table.tenantId),
     index("payments_booking_idx").on(table.bookingId),
     index("payments_venue_idx").on(table.venueId),
+    index("payments_membership_idx").on(table.membershipId),
+    check(
+      "payments_for_one_thing",
+      sql`num_nonnulls(${table.bookingId}, ${table.membershipId}) = 1`,
+    ),
   ],
 );
 

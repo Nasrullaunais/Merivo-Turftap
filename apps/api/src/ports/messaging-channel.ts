@@ -17,6 +17,14 @@ export const WHATSAPP_TEMPLATES = {
   seriesCancelled: "series_cancelled",
   /** Values: venue name, resource name, start time in the venue's time zone (BKG-10). */
   bookingReminder: "booking_reminder",
+  /** Values: venue name, plan name, start date, end date (MEM-02, MEM-03). */
+  membershipActive: "membership_active",
+  /** Values: venue name, plan name, start date (MEM-02, not paid in time). */
+  membershipExpired: "membership_expired",
+  /** Values: venue name, plan name, start date, reason. */
+  membershipCancelled: "membership_cancelled",
+  /** Values: venue name, plan name, start date, reason, new time limit to pay by (PAY-05). */
+  membershipReceiptRejected: "membership_receipt_rejected",
 } as const;
 
 export type WhatsAppTemplate = (typeof WHATSAPP_TEMPLATES)[keyof typeof WHATSAPP_TEMPLATES];

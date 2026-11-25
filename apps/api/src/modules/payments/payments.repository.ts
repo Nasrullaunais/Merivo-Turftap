@@ -44,6 +44,8 @@ export function list(
 ) {
   const conditions: (SQL | undefined)[] = [eq(payments.tenantId, tenantId), inVenues(venueIds)];
   if (filters.bookingId !== undefined) conditions.push(eq(payments.bookingId, filters.bookingId));
+  if (filters.membershipId !== undefined)
+    conditions.push(eq(payments.membershipId, filters.membershipId));
   if (filters.kind !== undefined) conditions.push(eq(payments.kind, filters.kind));
   if (filters.status !== undefined) conditions.push(eq(payments.status, filters.status));
   const where = and(...conditions);
@@ -77,24 +79,25 @@ export async function setStatus(
   return payment && toPayment(payment);
 }
 
-/** Each booking's accepted payments added up, in cents. Bookings with none are left out. */
-export async function paidByBooking(tenantId: number, bookingIds: number[]) {
-  if (bookingIds.length === 0) return new Map<number, number>();
+/** Each booking's or membership's accepted payments added up, in cents. Ones with none are left out. */
+export async function paidBy(
+  tenantId: number,
+  column: "bookingId" | "membershipId",
+  ids: number[],
+) {
+  if (ids.length === 0) return new Map<number, number>();
   const rows = await db()
-    .select({
-      bookingId: payments.bookingId,
-      paid: sql<string>`sum(${payments.amount})`,
-    })
+    .select({ id: payments[column], paid: sql<string>`sum(${payments.amount})` })
     .from(payments)
     .where(
       and(
         eq(payments.tenantId, tenantId),
-        inArray(payments.bookingId, bookingIds),
+        inArray(payments[column], ids),
         eq(payments.status, "ACCEPTED"),
       ),
     )
-    .groupBy(payments.bookingId);
-  return new Map(rows.map((row) => [row.bookingId!, Number(row.paid)]));
+    .groupBy(payments[column]);
+  return new Map(rows.map((row) => [row.id!, Number(row.paid)]));
 }
 
 /** Saves a payment's Receipt Reading once; a second save for the same payment changes nothing. */
@@ -117,7 +120,7 @@ export async function hasReading(tenantId: number, paymentId: number) {
 export async function earliestPaidWithFile(tenantId: number, fileIds: number[], beforeId: number) {
   if (fileIds.length === 0) return undefined;
   const [payment] = await db()
-    .select({ id: payments.id, bookingId: payments.bookingId })
+    .select({ id: payments.id })
     .from(payments)
     .where(
       and(
@@ -138,7 +141,7 @@ export async function earliestReadWithReference(
   beforeId: number,
 ) {
   const [payment] = await db()
-    .select({ id: payments.id, bookingId: payments.bookingId })
+    .select({ id: payments.id })
     .from(receiptReadings)
     .innerJoin(payments, eq(payments.id, receiptReadings.paymentId))
     .where(
@@ -162,7 +165,11 @@ export async function readingsOf(
 ): Promise<Map<number, ReceiptReading>> {
   if (paymentIds.length === 0) return new Map();
   const rows = await db()
-    .select({ reading: receiptReadings, duplicateBookingId: duplicates.bookingId })
+    .select({
+      reading: receiptReadings,
+      duplicateBookingId: duplicates.bookingId,
+      duplicateMembershipId: duplicates.membershipId,
+    })
     .from(receiptReadings)
     .leftJoin(
       duplicates,
@@ -172,7 +179,7 @@ export async function readingsOf(
       and(eq(receiptReadings.tenantId, tenantId), inArray(receiptReadings.paymentId, paymentIds)),
     );
   return new Map(
-    rows.map(({ reading: { amount, currency, duplicateOf, ...reading }, duplicateBookingId }) => [
+    rows.map(({ reading: { amount, currency, duplicateOf, ...reading }, ...duplicate }) => [
       reading.paymentId,
       {
         unreadable: reading.unreadable,
@@ -184,7 +191,13 @@ export async function readingsOf(
         dateRecent: reading.dateRecent,
         referenceNew: reading.referenceNew,
         duplicateOf:
-          duplicateOf === null ? null : { paymentId: duplicateOf, bookingId: duplicateBookingId },
+          duplicateOf === null
+            ? null
+            : {
+                paymentId: duplicateOf,
+                bookingId: duplicate.duplicateBookingId,
+                membershipId: duplicate.duplicateMembershipId,
+              },
       },
     ]),
   );

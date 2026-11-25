@@ -71,7 +71,19 @@ A **Receipt Check** (`PAY-04`, `PAY-05`) is staff PATCHing a `PENDING_CHECK` pay
 - Rejected while the customer already has another booking waiting for payment (D-07 allows one): the booking is cancelled instead, with the reason as its `cancelReason`, and the customer gets `booking_cancelled`.
 - A booking cancelled before the check stays cancelled. Only the payment changes and no message is sent; an accepted transfer counts as paid, so it can be refunded.
 - The payment's status change is one conditional UPDATE, so of two staff checking at once, the second gets 409 (`tt_sts_002`).
-- The booking calls live in `bookingsService.receiptAccepted` and `receiptRejected`. Memberships (T23) will get their own pair, picked by what the payment points at.
+- The booking calls live in `bookingsService.receiptAccepted` and `receiptRejected`; memberships have their own pair in `membershipsService`, picked by what the payment points at.
+
+## Memberships
+
+A membership (`MEM-02` to `MEM-04`) is paid like a booking, through the same `payments` resource. A payment has a `bookingId` or a `membershipId`, never both (check constraint `payments_for_one_thing`).
+
+- **Bought online:** `AWAITING_PAYMENT`, with the plan's full price due (no Advance), and expires after the venue's Payment Time Limit through the `expire-membership` job. A receipt moves it to `AWAITING_CHECK`; accepted makes it `ACTIVE` (`membership_active`); rejected reopens it with a fresh time limit (`membership_receipt_rejected`). D-07's one-unpaid limit doesn't apply, so a rejection never cancels it.
+- **Sold at the desk:** staff send `walkIn` as for a Walk-in Booking. It's `ACTIVE` straight away with nothing due online; `CASH` records the full price in the same transaction, `PAY_LATER` leaves it as the balance for cash later.
+- **Price and dates are copied** from the plan when it's made, so changing the plan later doesn't change it. `startsOn` and `endsOn` are venue-local dates, both included.
+- **Renewing** (`MEM-04`): the start moves to the day after the customer's latest `ACTIVE` membership of the same plan that hasn't ended yet.
+- **No double holding:** Postgres refuses two memberships of one plan for one customer whose days overlap while they're `AWAITING_PAYMENT`, `AWAITING_CHECK` or `ACTIVE` (`memberships_no_overlap`), the same way bookings can't overlap.
+- **Pay at Venue venues** sell memberships at the desk only, until OQ-03 is answered (`tt_mem_006`).
+- Cash needs an `ACTIVE` or `ENDED` membership, and refunds a `CANCELLED` one, with the same limits as bookings.
 
 ## Flow
 
@@ -106,6 +118,7 @@ sequenceDiagram
 | Job | When | Does |
 |---|---|---|
 | Expire booking | At the time limit | `AWAITING_PAYMENT` past its `expiresAt` → `EXPIRED`, notify |
+| Expire membership | At the time limit | The same for a membership, `membership_expired` |
 | Booking reminder | 3 hours before start; queued when a booking becomes `CONFIRMED`, unless that time has passed | WhatsApp `booking_reminder` if still `CONFIRMED` |
 | End memberships | Daily, 00:05 Colombo time | `ACTIVE` past end date → `ENDED` |
 | Ask for series payment | The venue's series payment days before each repeat series booking | WhatsApp with bank details and the Advance |
