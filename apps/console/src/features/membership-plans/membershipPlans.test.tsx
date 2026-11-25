@@ -37,12 +37,14 @@ const venue = (id: number, name: string) => ({
   cancellationCutOffHours: 6,
   payAtVenue: false,
   seriesPaymentDaysBefore: 2,
+  hasGym: true,
   openingHours: [],
   active: true,
   ...times,
 });
 const arena = venue(3, "City Arena");
 const gym = venue(4, "Kandy Fitness");
+const poolHall = { ...venue(5, "Cue Club"), hasGym: false };
 const monthly = {
   id: 21,
   venueId: 3,
@@ -81,6 +83,29 @@ describe("MEM-01 Membership Plans", () => {
     expect(within(card).getByText("LKR 5,000")).toBeInTheDocument();
     const pass = within(sectionOf("Kandy Fitness")).getByRole("article", { name: "10-day pass" });
     expect(within(pass).getByText("10 days")).toBeInTheDocument();
+  });
+
+  it("venuesWithoutAGym_areLeftOut", async () => {
+    signInForTesting(PHONE);
+    mockApi({
+      "GET /v1/me": meAs("MANAGER"),
+      "GET /v1/venues": page([gym, poolHall]),
+      "GET /v1/membership-plans": page([tenDays]),
+    });
+    renderApp("/membership-plans");
+    expect(await screen.findByRole("article", { name: "10-day pass" })).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Cue Club" })).toBeNull();
+  });
+
+  it("noVenueWithAGym_saysHowToTurnOneOn", async () => {
+    signInForTesting(PHONE);
+    mockApi({
+      "GET /v1/me": meAs("MANAGER"),
+      "GET /v1/venues": page([poolHall]),
+      "GET /v1/membership-plans": page([]),
+    });
+    renderApp("/membership-plans");
+    expect(await screen.findByText(/No venue has a gym yet/)).toBeInTheDocument();
   });
 
   it("manager_addsATenDayPlanFromTheVenuesOwnAddCard", async () => {

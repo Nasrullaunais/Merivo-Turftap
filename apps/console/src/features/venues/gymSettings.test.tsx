@@ -3,7 +3,7 @@ import type { StaffRole } from "@turftap/contract";
 import { describe, expect, it } from "vitest";
 
 import { signInForTesting } from "../../lib/auth/session";
-import { mockApi } from "../../test/mockApi";
+import { apiError, mockApi } from "../../test/mockApi";
 import { renderApp } from "../../test/renderApp";
 import { myTenant } from "../../test/tenants";
 
@@ -29,6 +29,7 @@ const gym = {
   cancellationCutOffHours: 6,
   payAtVenue: false,
   seriesPaymentDaysBefore: 2,
+  hasGym: true,
   repeatCheckIns: true,
   openingHours: [],
   active: true,
@@ -36,8 +37,10 @@ const gym = {
   updatedAt: "2026-11-22T04:00:00.000Z",
 };
 
-function venuePageAs(role: StaffRole) {
-  let current = gym;
+const IN_USE = "This gym still sells Membership Plans or has memberships that aren't over";
+
+function venuePageAs(role: StaffRole, start: Partial<typeof gym> = {}) {
+  let current = { ...gym, ...start };
   const patches: unknown[] = [];
   mockApi({
     "GET /v1/me": {
@@ -53,6 +56,7 @@ function venuePageAs(role: StaffRole) {
     "PATCH /v1/venues/3": async (request: Request) => {
       const body = await request.json();
       patches.push(body);
+      if (body.hasGym === false) return apiError(409, "tt_ven_015", IN_USE);
       current = { ...current, ...body };
       return ok(current);
     },
@@ -61,6 +65,38 @@ function venuePageAs(role: StaffRole) {
   renderApp("/venues/3");
   return patches;
 }
+
+describe("VEN-08 gym on the venue", () => {
+  it("owner_turnsOnTheGym_andTheCheckInRuleAppears", async () => {
+    const patches = venuePageAs("OWNER", { hasGym: false });
+
+    expect(await screen.findByText(/No gym here/)).toBeInTheDocument();
+    expect(screen.queryByRole("switch", { name: "Allow more than one check-in a day" })).toBeNull();
+    fireEvent.click(screen.getByRole("switch", { name: "This venue has a gym" }));
+
+    expect(
+      await screen.findByRole("switch", { name: "Allow more than one check-in a day" }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Sells Membership Plans and checks members in.")).toBeInTheDocument();
+    expect(patches).toEqual([{ hasGym: true }]);
+  });
+
+  it("owner_turningOffAGymInUse_showsWhyItWasRefused", async () => {
+    venuePageAs("OWNER");
+
+    fireEvent.click(await screen.findByRole("switch", { name: "This venue has a gym" }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(IN_USE);
+    expect(screen.getByRole("switch", { name: "This venue has a gym" })).toBeChecked();
+  });
+
+  it("frontDesk_seesThereIsNoGymButCannotChangeIt", async () => {
+    venuePageAs("FRONT_DESK", { hasGym: false });
+
+    expect(await screen.findByText(/No gym here/)).toBeInTheDocument();
+    expect(screen.queryByRole("switch", { name: "This venue has a gym" })).toBeNull();
+  });
+});
 
 describe("MEM-05 check-in setting on the venue", () => {
   it("owner_turnsOffRepeatCheckIns_andItSavesAtOnce", async () => {

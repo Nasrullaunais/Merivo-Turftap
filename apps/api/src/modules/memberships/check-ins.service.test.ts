@@ -10,7 +10,7 @@ import {
   planInput,
   type TestTenant,
   uniquePhone,
-  venueInput,
+  gymInput,
 } from "../../test/fixtures";
 import * as customersService from "../customers/customers.service";
 import * as paymentsService from "../payments/payments.service";
@@ -39,7 +39,7 @@ describe("MEM-05 check-in", () => {
   beforeAll(async () => {
     tenant = await createTenant();
     const addVenue = async (overrides: Partial<CreateVenue> = {}) =>
-      (await venuesService.create(tenant.owner.auth, venueInput(overrides))).id;
+      (await venuesService.create(tenant.owner.auth, gymInput(overrides))).id;
     venueId = await addVenue();
     onceADayVenueId = await addVenue({ repeatCheckIns: false });
   });

@@ -114,6 +114,7 @@ Settled in a grilling session with the user. Each answer is written here, then i
 | D-29 | Check-in for an active membership sold with "pay later" that still has a Balance | Let in, ask for the cash | Refused until paid; the check-in card offers **Take cash** |
 | D-30 | Can one membership be checked in more than once a day? | Once a day | Up to the venue: a venue setting, on (many a day) by default |
 | D-31 | Can a mistaken check-in be undone? | No undo for now | Yes, for 5 minutes, by anyone who can check in |
+| D-32 | Memberships are only for gyms. How does the app know which venue has one? | A "has a gym" switch on the venue, changed by the Owner | Yes, the switch (`VEN-08`). A separate "area" inside a venue (gym, pool) was left for later, if a second kind of membership place is ever needed |
 
 ## Open questions for venue owners
 

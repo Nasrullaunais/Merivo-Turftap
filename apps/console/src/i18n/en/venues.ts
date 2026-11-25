@@ -23,5 +23,15 @@ export default {
   closesBeforeOpens: "Must close after it opens",
   closedDay: "Closed",
   submit: "Add venue",
+  gym: {
+    title: "Gym",
+    hasGymLabel: "This venue has a gym",
+    hasGym: "Sells Membership Plans and checks members in.",
+    noGym: "No gym here, so no Membership Plans or check-ins.",
+    repeatLabel: "Allow more than one check-in a day",
+    repeats: "A membership can be checked in more than once a day.",
+    onceADay: "A membership can be checked in once a day.",
+    saved: "Saved",
+  },
   weekdays: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
 };

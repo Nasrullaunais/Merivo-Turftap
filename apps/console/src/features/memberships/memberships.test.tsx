@@ -35,6 +35,7 @@ const gym = {
   cancellationCutOffHours: 6,
   payAtVenue: false,
   seriesPaymentDaysBefore: 2,
+  hasGym: true,
   openingHours: [],
   active: true,
   ...times,

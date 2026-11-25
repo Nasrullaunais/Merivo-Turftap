@@ -1,6 +1,19 @@
 import { beforeAll, describe, expect, it } from "bun:test";
 
-import { createTenant, type TestTenant, venueInput } from "../../test/fixtures";
+import { sql } from "drizzle-orm";
+
+import { db } from "../../lib/db";
+import { addDays, todayIn } from "../../lib/time";
+import {
+  createTenant,
+  gymInput,
+  planInput,
+  type TestTenant,
+  uniquePhone,
+  venueInput,
+} from "../../test/fixtures";
+import * as membershipPlansService from "../memberships/membership-plans.service";
+import * as membershipsService from "../memberships/memberships.service";
 import * as venuesService from "./venues.service";
 
 const FIRST_PAGE = { page: 0, size: 20, sort: { field: "name", direction: "asc" } } as const;
@@ -62,5 +75,57 @@ describe("VEN-01 venues", () => {
       page: FIRST_PAGE,
     });
     expect(page.content.every((venue) => venue.active)).toBe(true);
+  });
+});
+
+describe("VEN-08 gym", () => {
+  let tenant: TestTenant;
+  beforeAll(async () => {
+    tenant = await createTenant();
+  });
+
+  const turnGymOff = (venueId: number) =>
+    venuesService.update(tenant.owner.auth, venueId, { hasGym: false });
+
+  async function gymWithPlan() {
+    const venue = await venuesService.create(tenant.owner.auth, gymInput());
+    const plan = await membershipPlansService.create(tenant.manager.auth, planInput(venue.id));
+    return { venueId: venue.id, planId: plan.id };
+  }
+
+  async function sell(planId: number) {
+    return membershipsService.create(tenant.frontDesk.auth, {
+      planId,
+      walkIn: { customerName: "Nimal Perera", customerPhone: uniquePhone(), payment: "CASH" },
+    });
+  }
+
+  it("create_startsWithoutAGym", async () => {
+    const venue = await venuesService.create(tenant.owner.auth, venueInput());
+    expect(venue.hasGym).toBe(false);
+  });
+
+  it("update_refusesTurningTheGymOffWhileAPlanIsOnSale", async () => {
+    const { venueId } = await gymWithPlan();
+    await expect(turnGymOff(venueId)).rejects.toMatchObject({ status: 409, code: "tt_ven_015" });
+    expect((await venuesService.get(tenant.owner.auth, venueId)).hasGym).toBe(true);
+  });
+
+  it("update_refusesTurningTheGymOffWhileAMembershipIsNotOver", async () => {
+    const { venueId, planId } = await gymWithPlan();
+    await sell(planId);
+    await membershipPlansService.remove(tenant.manager.auth, planId);
+    await expect(turnGymOff(venueId)).rejects.toMatchObject({ code: "tt_ven_015" });
+  });
+
+  it("update_turnsTheGymOffOnceItsPlansAreOffAndItsMembershipsHaveEnded", async () => {
+    const { venueId, planId } = await gymWithPlan();
+    const membership = await sell(planId);
+    await membershipPlansService.remove(tenant.manager.auth, planId);
+    const yesterday = addDays(todayIn("Asia/Colombo"), -1);
+    await db().execute(
+      sql`update memberships set starts_on = ${addDays(yesterday, -30)}, ends_on = ${yesterday} where id = ${membership.id}`,
+    );
+    expect((await turnGymOff(venueId)).hasGym).toBe(false);
   });
 });

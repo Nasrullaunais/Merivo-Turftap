@@ -36,6 +36,7 @@ const gym = {
   cancellationCutOffHours: 6,
   payAtVenue: false,
   seriesPaymentDaysBefore: 2,
+  hasGym: true,
   repeatCheckIns: true,
   openingHours: [],
   active: true,
@@ -167,6 +168,14 @@ afterEach(() => {
 });
 
 describe("MEM-05 check-ins at the desk", () => {
+  it("noVenueWithAGym_saysHowToTurnOneOn", async () => {
+    mockDeskApi({ memberships: [], venue: { hasGym: false } });
+    renderApp("/check-ins");
+
+    expect(await screen.findByText(/No venue has a gym yet/)).toBeInTheDocument();
+    expect(screen.queryByRole("searchbox")).toBeNull();
+  });
+
   it("search_aWholePhoneNumberOpensTheCustomer_andCheckInAddsThemToToday", async () => {
     const sent = mockDeskApi({ memberships: [paidUp] });
 

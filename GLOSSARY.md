@@ -50,6 +50,10 @@ _Avoid_: Branch, location, site, facility
 One thing inside a venue that can be booked by time, such as "Futsal Court 1" or "Pool Table 3".
 _Avoid_: Court, table, asset, facility, slot
 
+**Gym**:
+The part of a venue that people enter with a membership instead of booking by time. A venue has a gym or not; only a venue with a gym sells Membership Plans and checks members in.
+_Avoid_: Fitness centre, facility
+
 **Photo**:
 A picture of a venue or of one of its resources, shown on the Customer Portal. The first one is the **cover**.
 _Avoid_: Image, picture, gallery
@@ -95,7 +99,7 @@ _Avoid_: Manual booking, offline booking
 ## Memberships
 
 **Membership Plan**:
-Something a venue sells that gives access for a period, such as "Gym monthly".
+Something a venue with a gym sells that gives access for a period, such as "Gym monthly".
 _Avoid_: Package, subscription plan
 
 **Membership**:

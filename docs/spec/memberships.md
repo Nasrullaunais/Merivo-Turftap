@@ -2,7 +2,7 @@
 
 ## MEM-01 Membership Plans
 As a **Manager**, I want to create Membership Plans with a name, length (in days or months) and price, so that customers can buy them.
-- A plan belongs to one venue. Its name is unique among that venue's plans on sale.
+- A plan belongs to one venue with a gym (`VEN-08`). Given the venue has no gym, when I add a plan, then I'm told an Owner must turn its gym on first. Its name is unique among that venue's plans on sale.
 - The length is 1 to 365 days or 1 to 24 months.
 - A plan can be turned off. Customers can no longer buy it; existing memberships keep working.
 

@@ -9,7 +9,7 @@ import {
   planInput,
   type TestTenant,
   uniquePhone,
-  venueInput,
+  gymInput,
 } from "../../test/fixtures";
 
 describe("MEM-05 check-ins routes", () => {
@@ -19,7 +19,7 @@ describe("MEM-05 check-ins routes", () => {
 
   beforeAll(async () => {
     tenant = await createTenant();
-    venueId = (await call("POST", "/v1/venues", asStaff(tenant), venueInput())).body.data.id;
+    venueId = (await call("POST", "/v1/venues", asStaff(tenant), gymInput())).body.data.id;
     planId = (await call("POST", "/v1/membership-plans", asStaff(tenant), planInput(venueId))).body
       .data.id;
   });

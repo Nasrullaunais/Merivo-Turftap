@@ -3,6 +3,7 @@ import type { CreateVenue, UpdateVenue, VenueFilters } from "@turftap/contract";
 import type { AuthContext } from "../../lib/auth/context";
 import { transaction } from "../../lib/db";
 import type { ListQuery } from "../../lib/resource";
+import * as gymService from "../memberships/gym.service";
 import { venueErrors } from "./venues.errors";
 import * as venuesRepository from "./venues.repository";
 
@@ -30,6 +31,10 @@ export function create(auth: AuthContext, input: CreateVenue) {
 export function update(auth: AuthContext, id: number, input: UpdateVenue) {
   if (Object.keys(input).length === 0) return get(auth, id);
   return transaction(async () => {
+    if (input.hasGym === false) {
+      const before = await get(auth, id);
+      if (before.hasGym && (await gymService.inUse(auth, before))) throw venueErrors.gymInUse();
+    }
     const venue = await venuesRepository.update(auth.tenantId, id, auth.venueIds, input);
     if (!venue) throw venueErrors.notFound(id);
     return venue;

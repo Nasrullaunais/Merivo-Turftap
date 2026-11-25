@@ -71,6 +71,10 @@ export const venueInput = (overrides: Partial<z.input<typeof CreateVenue>> = {})
     ...overrides,
   });
 
+/** VEN-08: only a venue with a gym sells Membership Plans. */
+export const gymInput = (overrides: Partial<z.input<typeof CreateVenue>> = {}) =>
+  venueInput({ hasGym: true, ...overrides });
+
 export const resourceInput = (
   venueId: number,
   overrides: Partial<CreateResource> = {},

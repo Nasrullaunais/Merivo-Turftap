@@ -1,8 +1,12 @@
 // Demo data for local development. Safe to run again: existing rows are left as they are.
-import type { ResourceType } from "@turftap/contract";
+import { membershipLastDay, type ResourceType } from "@turftap/contract";
 import { and, eq, isNull } from "drizzle-orm";
 
 import { closeDb, db } from "../src/lib/db";
+import { addDays, todayIn } from "../src/lib/time";
+import { customers } from "../src/modules/customers/customers.tables";
+import { membershipPlans, memberships } from "../src/modules/memberships/memberships.tables";
+import { payments } from "../src/modules/payments/payments.tables";
 import { tenants, users } from "../src/modules/platform/platform.tables";
 import { staff, staffVenues } from "../src/modules/staff/staff.tables";
 import { priceRules, resources, venues } from "../src/modules/venues/venues.tables";
@@ -53,6 +57,21 @@ await db()
       address: "12 Peradeniya Road, Kandy",
       phone: "+94812345678",
       openingHours: everyDay("10:00", "22:00"),
+    },
+    {
+      tenantId: tenant.id,
+      name: "Peak Fitness Colombo",
+      description: "Gym with weights and cardio",
+      address: "88 Duplication Road, Colombo 04",
+      phone: "+94112567890",
+      openingHours: everyDay("05:00", "22:00"),
+      hasGym: true,
+      bankAccount: {
+        bankName: "Sampath Bank",
+        branch: "Bambalapitiya",
+        accountName: "Peak Fitness (Pvt) Ltd",
+        accountNumber: "1029 5566 7788",
+      },
     },
   ])
   .onConflictDoNothing();
@@ -191,6 +210,104 @@ await db()
     ["Pool Table 1", "Pool Table 2"].map((table) => rule(table, [5, 6], "18:00", "22:00", 800)),
   )
   .onConflictDoNothing();
+
+// VEN-08, MEM-05: the gym's plans, and one customer for each thing the check-in desk can show.
+const peakFitness = venueIds.get("Peak Fitness Colombo")!;
+await db()
+  .insert(membershipPlans)
+  .values(
+    [
+      { name: "Gym monthly", lengthCount: 1, lengthUnit: "MONTHS" as const, ...lkr(6000) },
+      { name: "Gym quarterly", lengthCount: 3, lengthUnit: "MONTHS" as const, ...lkr(16500) },
+      { name: "10-day pass", lengthCount: 10, lengthUnit: "DAYS" as const, ...lkr(2500) },
+    ].map((plan) => ({ ...plan, tenantId: tenant.id, venueId: peakFitness })),
+  )
+  .onConflictDoNothing();
+const gymPlans = new Map(
+  (
+    await db()
+      .select()
+      .from(membershipPlans)
+      .where(and(eq(membershipPlans.venueId, peakFitness), eq(membershipPlans.active, true)))
+  ).map((plan) => [plan.name, plan]),
+);
+
+const today = todayIn("Asia/Colombo");
+// Days from today each one starts; Ruwan's quarter ended a few days ago.
+const demoMembers = [
+  {
+    phone: "+94771230003",
+    name: "Kasun Jayawardena",
+    plan: "Gym monthly",
+    startsIn: -10,
+    paid: true,
+  },
+  {
+    phone: "+94771230002",
+    name: "Nimali Silva",
+    plan: "Gym monthly",
+    startsIn: -3,
+    paid: false,
+  },
+  {
+    phone: "+94771230005",
+    name: "Tharindu Bandara",
+    plan: "10-day pass",
+    startsIn: 5,
+    paid: true,
+  },
+  {
+    phone: "+94771230007",
+    name: "Ruwan Fernando",
+    plan: "Gym quarterly",
+    startsIn: -95,
+    paid: true,
+  },
+];
+for (const member of demoMembers) {
+  await db()
+    .insert(customers)
+    .values({ tenantId: tenant.id, phone: member.phone, name: member.name })
+    .onConflictDoNothing();
+  const [customer] = await db()
+    .select()
+    .from(customers)
+    .where(and(eq(customers.tenantId, tenant.id), eq(customers.phone, member.phone)));
+  const [held] = await db()
+    .select({ id: memberships.id })
+    .from(memberships)
+    .where(and(eq(memberships.venueId, peakFitness), eq(memberships.customerId, customer!.id)));
+  if (held) continue;
+  const plan = gymPlans.get(member.plan)!;
+  const startsOn = addDays(today, member.startsIn);
+  const [membership] = await db()
+    .insert(memberships)
+    .values({
+      tenantId: tenant.id,
+      venueId: peakFitness,
+      planId: plan.id,
+      customerId: customer!.id,
+      startsOn,
+      endsOn: membershipLastDay(startsOn, plan.lengthCount, plan.lengthUnit),
+      status: "ACTIVE",
+      priceAmount: plan.priceAmount,
+      priceCurrency: plan.priceCurrency,
+      amountDue: 0,
+      createdBy: owner.id,
+    })
+    .returning();
+  if (member.paid)
+    await db().insert(payments).values({
+      tenantId: tenant.id,
+      venueId: peakFitness,
+      membershipId: membership!.id,
+      kind: "CASH",
+      status: "ACCEPTED",
+      amount: plan.priceAmount,
+      currency: plan.priceCurrency,
+      createdBy: owner.id,
+    });
+}
 
 console.log(`Seeded tenant "${DEMO_SLUG}". Sign in as owner with: Bearer fake:${OWNER_PHONE}`);
 console.log(`Kandy-only Manager: Bearer fake:${KANDY_MANAGER_PHONE}`);

@@ -1,0 +1,1 @@
+ALTER TABLE "venues" ADD COLUMN "has_gym" boolean DEFAULT false NOT NULL;

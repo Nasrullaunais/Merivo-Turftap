@@ -37,6 +37,7 @@ const arena = {
   cancellationCutOffHours: 6,
   payAtVenue: false,
   seriesPaymentDaysBefore: 2,
+  hasGym: false,
   openingHours: [],
   active: true,
   ...times,

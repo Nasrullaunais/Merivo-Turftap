@@ -14,7 +14,7 @@ import {
   queuedMessagesFor,
   type TestTenant,
   uniquePhone,
-  venueInput,
+  gymInput,
 } from "../../test/fixtures";
 import * as customersService from "../customers/customers.service";
 import * as paymentsService from "../payments/payments.service";
@@ -53,7 +53,7 @@ describe("MEM-02, MEM-03, MEM-04 memberships", () => {
     venueId = (
       await venuesService.create(
         tenant.owner.auth,
-        venueInput({ bankAccount, paymentTimeLimitMinutes: PAYMENT_TIME_LIMIT_MINUTES }),
+        gymInput({ bankAccount, paymentTimeLimitMinutes: PAYMENT_TIME_LIMIT_MINUTES }),
       )
     ).id;
   });
@@ -154,7 +154,7 @@ describe("MEM-02, MEM-03, MEM-04 memberships", () => {
     it("create_atAPayAtVenueVenue_isRefusedUntilOQ03IsAnswered", async () => {
       const payAtVenue = await venuesService.create(
         tenant.owner.auth,
-        venueInput({ payAtVenue: true }),
+        gymInput({ payAtVenue: true }),
       );
       const plan = await membershipPlansService.create(manager(), planInput(payAtVenue.id));
       const created = membershipsService.create(await newCustomer(), { planId: plan.id });

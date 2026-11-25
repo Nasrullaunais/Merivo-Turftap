@@ -57,11 +57,5 @@ export default {
   inCount: (count: number) => `${count} in`,
   undo: (name: string) => `Undo ${name}'s check-in`,
   undoShort: "Undo",
-  settings: {
-    title: "Check-ins",
-    repeatLabel: "Allow more than one check-in a day",
-    repeats: "A membership can be checked in more than once a day.",
-    onceADay: "A membership can be checked in once a day.",
-    saved: "Saved",
-  },
+  noGyms: "No venue has a gym yet. An Owner turns it on in the Gym box on a venue's page.",
 };

@@ -43,6 +43,11 @@ export const membershipErrors = {
   checkInNotFound: (id: number) => new NotFound("tt_mem_017", `Check-in ${id} was not found`),
   tooLateToUndo: (minutes: number) =>
     new Conflict("tt_mem_018", `A check-in can only be undone within ${minutes} minutes`),
+  noGym: (venueName: string) =>
+    new Conflict(
+      "tt_mem_019",
+      `${venueName} has no gym, so it can't sell Membership Plans. An Owner can turn on its gym in the venue's settings`,
+    ),
 };
 
 constraintErrors({

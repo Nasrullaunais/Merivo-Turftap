@@ -14,10 +14,10 @@ export function useMembershipPlans() {
   });
 }
 
-/** The open venues, each heading its own plans. */
+/** VEN-08: the open venues with a gym, each heading its own plans. */
 export function usePlanVenues() {
   return useQuery({
     ...listVenuesOptions({ query: { active: "true", size: LIST_SIZE } }),
-    select: (reply) => reply.data.content,
+    select: (reply) => reply.data.content.filter((venue) => venue.hasGym),
   });
 }

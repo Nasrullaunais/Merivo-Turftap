@@ -11,7 +11,7 @@ import {
   type TestTenant,
   uniquePhone,
   uploadForm,
-  venueInput,
+  gymInput,
 } from "../../test/fixtures";
 
 describe("memberships tenant isolation", () => {
@@ -24,8 +24,7 @@ describe("memberships tenant isolation", () => {
   beforeAll(async () => {
     tenantA = await createTenant();
     tenantB = await createTenant();
-    const venueOfB = (await call("POST", "/v1/venues", asStaff(tenantB), venueInput())).body.data
-      .id;
+    const venueOfB = (await call("POST", "/v1/venues", asStaff(tenantB), gymInput())).body.data.id;
     planOfB = (await call("POST", "/v1/membership-plans", asStaff(tenantB), planInput(venueOfB)))
       .body.data.id;
     // The same person is a customer of both tenants.

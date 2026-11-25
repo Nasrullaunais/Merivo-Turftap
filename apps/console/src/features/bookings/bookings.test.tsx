@@ -36,6 +36,7 @@ const arena = {
   cancellationCutOffHours: 6,
   payAtVenue: false,
   seriesPaymentDaysBefore: 2,
+  hasGym: false,
   openingHours: [5].map((weekday) => ({ weekday, opens: "06:00", closes: "23:00" })),
   active: true,
   ...times,

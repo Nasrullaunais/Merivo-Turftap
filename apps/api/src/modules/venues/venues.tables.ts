@@ -53,6 +53,7 @@ export const venues = pgTable(
     seriesPaymentDaysBefore: integer("series_payment_days_before")
       .notNull()
       .default(DEFAULT_SERIES_PAYMENT_DAYS_BEFORE),
+    hasGym: boolean("has_gym").notNull().default(false),
     repeatCheckIns: boolean("repeat_check_ins").notNull().default(true),
     active: boolean("active").notNull().default(true),
     ...timestampColumns(),

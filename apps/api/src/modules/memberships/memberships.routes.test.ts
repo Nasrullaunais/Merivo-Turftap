@@ -14,7 +14,7 @@ import {
   type TestTenant,
   uniquePhone,
   uploadForm,
-  venueInput,
+  gymInput,
 } from "../../test/fixtures";
 import * as receiptReadingService from "../payments/receipt-reading.service";
 import * as membershipExpiryService from "./membership-expiry.service";
@@ -31,7 +31,7 @@ describe("memberships routes", () => {
 
   beforeAll(async () => {
     tenant = await createTenant();
-    venueId = (await call("POST", "/v1/venues", asStaff(tenant), venueInput())).body.data.id;
+    venueId = (await call("POST", "/v1/venues", asStaff(tenant), gymInput())).body.data.id;
     planId = (
       await call(
         "POST",
@@ -254,7 +254,7 @@ describe("SIG-05 membership permissions", () => {
 
   beforeAll(async () => {
     tenant = await createTenant();
-    const venueId = (await call("POST", "/v1/venues", asStaff(tenant), venueInput())).body.data.id;
+    const venueId = (await call("POST", "/v1/venues", asStaff(tenant), gymInput())).body.data.id;
     planId = (await call("POST", "/v1/membership-plans", asStaff(tenant), planInput(venueId))).body
       .data.id;
   });

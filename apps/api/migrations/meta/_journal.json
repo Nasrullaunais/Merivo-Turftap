@@ -183,6 +183,13 @@
       "when": 1795600012842,
       "tag": "0025_check_ins",
       "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1795608332978,
+      "tag": "0026_venue_has_gym",
+      "breakpoints": true
     }
   ]
 }

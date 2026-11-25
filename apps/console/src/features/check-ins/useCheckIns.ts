@@ -30,10 +30,11 @@ function useSettled(value: string) {
 }
 
 /** Open venues the caller works at; the desk checks people in at one of them. */
+/** VEN-08: only venues with a gym check members in. */
 export function useDeskVenues() {
   return useQuery({
     ...listVenuesOptions({ query: { active: "true", size: MAX_PAGE_SIZE } }),
-    select: (reply) => reply.data.content,
+    select: (reply) => reply.data.content.filter((venue) => venue.hasGym),
   });
 }
 
