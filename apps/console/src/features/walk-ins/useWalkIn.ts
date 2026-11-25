@@ -1,5 +1,5 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { MAX_PAGE_SIZE, PhoneInput } from "@turftap/contract";
+import { MAX_PAGE_SIZE } from "@turftap/contract";
 import type { Resource } from "@turftap/contract/client";
 import {
   createBookingMutation,
@@ -7,7 +7,6 @@ import {
   listAvailabilityQueryKey,
   listAvailabilityOptions,
   listBookingsQueryKey,
-  listCustomersOptions,
 } from "@turftap/contract/client/react-query";
 
 const MS_PER_MINUTE = 60_000;
@@ -38,16 +37,6 @@ export function useSlotsFrom(resource: Resource, startsAt: string, date: string,
   while (free.has(new Date(Date.parse(startsAt) + freeInARow * slotMs).toISOString())) freeInARow++;
 
   return { isPending: single.isPending, freeInARow, quote: quote.data };
-}
-
-/** The customer with this phone number, once it is a whole number. */
-export function useCustomerByPhone(phone: string) {
-  const parsed = PhoneInput.safeParse(phone);
-  return useQuery({
-    ...listCustomersOptions({ query: { phone: parsed.data ?? "" } }),
-    enabled: parsed.success,
-    select: (reply) => reply.data.content[0],
-  });
 }
 
 /**

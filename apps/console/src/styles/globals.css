@@ -51,6 +51,7 @@
   --animate-tt-card-in: tt-card-in 320ms var(--tt-ease) both;
   --animate-tt-from-next: tt-from-next var(--tt-dur-3) var(--tt-ease) both;
   --animate-tt-from-previous: tt-from-previous var(--tt-dur-3) var(--tt-ease) both;
+  --animate-tt-grow: tt-grow 700ms var(--tt-ease) both;
 
   @keyframes tt-rise {
     from {
@@ -101,6 +102,11 @@
     from {
       opacity: 0;
       transform: translateX(-28px);
+    }
+  }
+  @keyframes tt-grow {
+    from {
+      transform: scaleX(0);
     }
   }
   @keyframes tt-tint {

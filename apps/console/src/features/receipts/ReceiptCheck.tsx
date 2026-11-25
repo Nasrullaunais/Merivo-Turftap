@@ -12,6 +12,7 @@ import { MAX_REJECT_REASON_LENGTH } from "@turftap/contract";
 import type { Payment, ReceiptReading } from "@turftap/contract/client";
 import { formatMoney } from "@turftap/ui";
 import {
+  BadgeCheck,
   CircleCheck,
   CircleX,
   ExternalLink,
@@ -26,12 +27,14 @@ import { BOOKING_ICONS, BOOKING_TONES } from "../../components/bookingLook";
 import { Collapse } from "../../components/Collapse";
 import type { Tone } from "../../components/look";
 import { LoadingButton } from "../../components/LoadingButton";
+import { MEMBERSHIP_ICONS, MEMBERSHIP_TONES } from "../../components/membershipLook";
 import { TYPE_ICONS } from "../../components/resourceLook";
 import { StatePill } from "../../components/StatePill";
 import { TopicTile } from "../../components/TopicTile";
 import bookings from "../../i18n/en/bookings";
+import memberships from "../../i18n/en/memberships";
 import m from "../../i18n/en/receipts";
-import { useReceiptBooking } from "./useReceiptChecks";
+import { usePaidMembership, useReceiptBooking } from "./useReceiptChecks";
 
 type Decision = "ACCEPTED" | "REJECTED";
 
@@ -48,7 +51,11 @@ export function ReceiptCheck({ payment, onDecide, deciding, onOpenBooking }: Pro
   const reading = payment.receiptReading;
   return (
     <article aria-label={m.receipt} className="grid animate-tt-from-next gap-4">
-      <BookingSummary bookingId={payment.bookingId} />
+      {payment.membershipId === null ? (
+        <BookingSummary bookingId={payment.bookingId} />
+      ) : (
+        <MembershipSummary membershipId={payment.membershipId} />
+      )}
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,22rem)]">
         <ReceiptFile url={payment.receiptUrl} />
         <div className="grid content-start gap-4">
@@ -64,24 +71,58 @@ export function ReceiptCheck({ payment, onDecide, deciding, onOpenBooking }: Pro
   );
 }
 
-function BookingSummary({ bookingId }: { bookingId: number | null }) {
-  const { booking, resource, venue } = useReceiptBooking(bookingId);
-  if (!booking)
-    return (
-      <div role="status" aria-label={m.loading} className="grid gap-2 tt-panel p-4">
-        <Skeleton className="h-7 w-48 rounded-lg" />
-        <Skeleton className="h-4 w-72 rounded-lg" />
-      </div>
-    );
+const SummarySkeleton = () => (
+  <div role="status" aria-label={m.loading} className="grid gap-2 tt-panel p-4">
+    <Skeleton className="h-7 w-48 rounded-lg" />
+    <Skeleton className="h-4 w-72 rounded-lg" />
+  </div>
+);
+
+function Customer({ name, phone }: { name: string; phone: string }) {
+  return (
+    <div className="grid min-w-48 flex-1 gap-1">
+      <h2 className="truncate text-2xl font-semibold tracking-tight">{name}</h2>
+      <span className="inline-flex items-center gap-1.5 text-sm text-muted tabular-nums">
+        <Phone aria-hidden size={14} />
+        {phone}
+      </span>
+    </div>
+  );
+}
+
+/** PAY-04 for memberships: the plan and its dates take the resource's place. */
+function MembershipSummary({ membershipId }: { membershipId: number }) {
+  const { data: membership } = usePaidMembership(membershipId);
+  if (!membership) return <SummarySkeleton />;
   return (
     <div className="flex flex-wrap items-center gap-4 tt-panel p-4">
-      <div className="grid min-w-48 flex-1 gap-1">
-        <h2 className="truncate text-2xl font-semibold tracking-tight">{booking.customerName}</h2>
-        <span className="inline-flex items-center gap-1.5 text-sm text-muted tabular-nums">
-          <Phone aria-hidden size={14} />
-          {booking.customerPhone}
-        </span>
+      <Customer name={membership.customerName} phone={membership.customerPhone} />
+      <div className="flex items-center gap-3">
+        <TopicTile hue="membership" icon={BadgeCheck} size={40} className="rounded-xl" />
+        <div className="grid">
+          <span className="font-medium">{membership.planName}</span>
+          <span className="text-sm text-muted tabular-nums">
+            {memberships.range(membership.startsOn, membership.endsOn)}
+          </span>
+        </div>
       </div>
+      <StatePill
+        key={membership.status}
+        className="animate-tt-pop"
+        tone={MEMBERSHIP_TONES[membership.status]}
+        icon={MEMBERSHIP_ICONS[membership.status]}
+        label={memberships.states[membership.status]}
+      />
+    </div>
+  );
+}
+
+function BookingSummary({ bookingId }: { bookingId: number | null }) {
+  const { booking, resource, venue } = useReceiptBooking(bookingId);
+  if (!booking) return <SummarySkeleton />;
+  return (
+    <div className="flex flex-wrap items-center gap-4 tt-panel p-4">
+      <Customer name={booking.customerName} phone={booking.customerPhone} />
       {resource && venue && (
         <div className="flex items-center gap-3">
           <TopicTile

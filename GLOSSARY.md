@@ -127,7 +127,7 @@ Money recorded on a booking: a bank transfer with its Transfer Receipt, cash tak
 _Avoid_: Transaction, charge
 
 **Balance**:
-What is still to pay on a booking: its price minus the payments accepted so far. Front Desk takes it in cash at the venue.
+What is still to pay on a booking or a membership: its price minus the payments accepted so far. Front Desk takes it in cash at the venue.
 _Avoid_: Outstanding, remaining amount, amount owed
 
 **Refund**:

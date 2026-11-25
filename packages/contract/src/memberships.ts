@@ -2,6 +2,7 @@ import { z } from "zod";
 
 import { MAX_CANCEL_REASON_LENGTH, WalkIn } from "./bookings";
 import { Id, LocalDate, Money, PhoneNumber, Timestamp } from "./common";
+import type { PlanLengthUnit } from "./membership-plans";
 import { BankAccount } from "./venues";
 
 /** D-08: `EXPIRED` is not paid in time, like a booking; `ENDED` is past its end date. */
@@ -70,6 +71,23 @@ export const UpdateMembership = z
     cancelReason: z.string().trim().min(1).max(MAX_CANCEL_REASON_LENGTH).optional(),
   })
   .meta({ id: "UpdateMembership" });
+
+const isoDateOf = (year: number, monthIndex: number, day: number) =>
+  new Date(Date.UTC(year, monthIndex, day)).toISOString().slice(0, 10);
+
+/**
+ * D-28: the last day of a membership, both ends included. 10 days from 1 Mar ends 10 Mar;
+ * a month from 15 Jan ends 14 Feb, and from 31 Jan ends 28 Feb (that month's last day).
+ */
+export function membershipLastDay(startsOn: string, lengthCount: number, unit: PlanLengthUnit) {
+  const [year, month, day] = startsOn.split("-").map(Number) as [number, number, number];
+  if (unit === "DAYS") return isoDateOf(year, month - 1, day + lengthCount - 1);
+  const target = month - 1 + lengthCount;
+  const daysInTarget = new Date(Date.UTC(year, target + 1, 0)).getUTCDate();
+  return day > daysInTarget
+    ? isoDateOf(year, target, daysInTarget)
+    : isoDateOf(year, target, day - 1);
+}
 
 export const MembershipFilters = z.object({
   venueId: z.coerce.number().pipe(Id).optional(),
