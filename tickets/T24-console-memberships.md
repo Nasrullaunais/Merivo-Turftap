@@ -1,6 +1,6 @@
 # T24 Memberships screens in the console
 
-Status: todo · Stories: `MEM-03`, `PAY-04` (for memberships) · Depends on: T23
+Status: done · Stories: `MEM-03`, `PAY-04` (for memberships) · Depends on: T23
 
 ## Goal
 Staff see a venue's memberships (filter by status), sell one at the desk, and check membership receipts in the same receipt queue as bookings.

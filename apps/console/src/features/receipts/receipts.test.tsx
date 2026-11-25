@@ -1,4 +1,4 @@
-import type { Booking, Payment, ReceiptReading } from "@turftap/contract/client";
+import type { Booking, Membership, Payment, ReceiptReading } from "@turftap/contract/client";
 import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -67,6 +67,27 @@ const bookingFor = (id: number, customerName: string, status: Booking["status"])
   ...times,
 });
 
+const gymMonthly: Membership = {
+  id: 41,
+  venueId: 3,
+  planId: 7,
+  planName: "Gym monthly",
+  customerId: 41,
+  customerName: "Dilani Wickramasinghe",
+  customerPhone: "+94770004444",
+  startsOn: "2027-01-15",
+  endsOn: "2027-02-14",
+  status: "AWAITING_CHECK",
+  price: lkr(5_000),
+  amountDue: lkr(5_000),
+  paid: lkr(0),
+  balance: lkr(5_000),
+  expiresAt: null,
+  cancelReason: null,
+  bankAccount: null,
+  ...times,
+};
+
 const readWell: ReceiptReading = {
   unreadable: false,
   amount: lkr(2_250),
@@ -81,13 +102,13 @@ const readWell: ReceiptReading = {
 
 const transfer = (
   id: number,
-  bookingId: number,
+  bookingId: number | null,
   createdAt: string,
   receiptReading: ReceiptReading | null = readWell,
 ): Payment => ({
   id,
   bookingId,
-  membershipId: null,
+  membershipId: bookingId === null ? gymMonthly.id : null,
   venueId: 3,
   kind: "TRANSFER",
   status: "PENDING_CHECK",
@@ -150,6 +171,7 @@ function mockReceiptApi(payments: Payment[], { checkedMeanwhile = [] as number[]
     ...Object.fromEntries(
       [...bookings.keys()].map((id) => [`GET /v1/bookings/${id}`, () => ok(bookings.get(id))]),
     ),
+    "GET /v1/memberships/41": gymMonthly,
     ...Object.fromEntries(
       payments.map((payment) => [
         `PATCH /v1/payments/${payment.id}`,
@@ -243,6 +265,26 @@ describe("PAY-03 to PAY-07 receipt checks", () => {
     expect(check.getByText("Matches the amount due")).toBeInTheDocument();
     expect(check.getByText("New reference")).toBeInTheDocument();
     expect(await check.findByText("Court 2")).toBeInTheDocument();
+  });
+
+  it("membershipReceipt_showsThePlanAndItsDatesInsteadOfAResource", async () => {
+    const fake = mockReceiptApi([transfer(31, 21, MIDDLE), transfer(34, null, OLDEST)]);
+    const check = await openQueue();
+
+    expect(
+      await check.findByRole("heading", { name: "Dilani Wickramasinghe" }),
+    ).toBeInTheDocument();
+    expect(check.getByText("Gym monthly")).toBeInTheDocument();
+    expect(check.getByText("15 Jan – 14 Feb 2027")).toBeInTheDocument();
+    expect(check.getByText("Waiting for receipt check")).toBeInTheDocument();
+    await waitFor(() => expect(waitingRows()[0]).toHaveTextContent("Gym monthly"));
+    expect(waitingRows()[1]).not.toHaveTextContent("Gym monthly");
+
+    fireEvent.click(check.getByRole("button", { name: "Accept" }));
+    await waitFor(() => expect(fake.patches).toEqual([{ id: 34, body: { status: "ACCEPTED" } }]));
+    expect(
+      await screen.findByRole("heading", { name: "Nimal Perera", level: 2 }),
+    ).toBeInTheDocument();
   });
 
   it("check_unreadable_saysSo", async () => {

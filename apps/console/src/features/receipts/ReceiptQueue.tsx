@@ -2,7 +2,7 @@ import { Alert, Skeleton } from "@heroui/react";
 import type { MyTenant, PaymentStatus } from "@turftap/contract";
 import type { Payment } from "@turftap/contract/client";
 import { ApiError, formatMoney } from "@turftap/ui";
-import { ReceiptText } from "lucide-react";
+import { BadgeCheck, ReceiptText } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { EmptyState } from "../../components/EmptyState";
@@ -14,7 +14,12 @@ import { usePresence } from "../../components/usePresence";
 import m from "../../i18n/en/receipts";
 import { can } from "../../lib/tenant/activeTenant";
 import { ReceiptCheck } from "./ReceiptCheck";
-import { useCheckReceipt, usePaidBooking, useWaitingReceipts } from "./useReceiptChecks";
+import {
+  useCheckReceipt,
+  usePaidBooking,
+  usePaidMembership,
+  useWaitingReceipts,
+} from "./useReceiptChecks";
 
 type Props = {
   tenant: MyTenant | undefined;
@@ -116,11 +121,12 @@ function WaitingRows({ waiting, currentId, onPick }: RowsProps) {
               className={`${ROW_LINK} cursor-pointer text-start`}
               onClick={() => onPick(payment.id)}
             >
-              <CustomerName bookingId={payment.bookingId} />
+              <CustomerName payment={payment} />
             </button>
           }
           detail={
             <>
+              {payment.membershipId !== null && <PlanName membershipId={payment.membershipId} />}
               <span className="tabular-nums">{formatMoney(payment.amount)}</span>
               <span>{m.waited(payment.createdAt, now)}</span>
             </>
@@ -143,10 +149,27 @@ function useNow() {
   return now;
 }
 
-function CustomerName({ bookingId }: { bookingId: number | null }) {
-  const { data: booking } = usePaidBooking(bookingId);
-  if (!booking) return <Skeleton className="inline-block h-4 w-32 rounded-md align-middle" />;
-  return <>{booking.customerName}</>;
+function CustomerName({ payment }: { payment: Payment }) {
+  const { data: booking } = usePaidBooking(payment.bookingId);
+  const { data: membership } = usePaidMembership(payment.membershipId);
+  const name = (booking ?? membership)?.customerName;
+  if (!name) return <Skeleton className="inline-block h-4 w-32 rounded-md align-middle" />;
+  return <>{name}</>;
+}
+
+/** A membership receipt names its plan, in the memberships hue, so the two kinds tell apart. */
+function PlanName({ membershipId }: { membershipId: number }) {
+  const { data: membership } = usePaidMembership(membershipId);
+  return (
+    <span className="inline-flex min-w-0 items-center gap-1 tt-hue-membership">
+      <BadgeCheck aria-hidden size={13} className="shrink-0 text-[var(--tt-hue)]" />
+      {membership ? (
+        <span className="truncate">{membership.planName}</span>
+      ) : (
+        <Skeleton className="inline-block h-3 w-20 rounded" />
+      )}
+    </span>
+  );
 }
 
 function QueueSkeleton() {

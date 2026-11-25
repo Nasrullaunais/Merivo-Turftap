@@ -2,9 +2,11 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { MAX_PAGE_SIZE } from "@turftap/contract";
 import {
   getBookingOptions,
+  getMembershipOptions,
   getResourceOptions,
   getVenueOptions,
   listBookingsQueryKey,
+  listMembershipsQueryKey,
   listPaymentsOptions,
   listPaymentsQueryKey,
   updatePaymentMutation,
@@ -39,6 +41,15 @@ export function usePaidBooking(bookingId: number | null) {
   });
 }
 
+/** The membership a receipt pays for. */
+export function usePaidMembership(membershipId: number | null) {
+  return useQuery({
+    ...getMembershipOptions({ path: { id: membershipId ?? 0 } }),
+    enabled: membershipId !== null,
+    select: (reply) => reply.data,
+  });
+}
+
 /** The booking with its resource and its venue's time zone. */
 export function useReceiptBooking(bookingId: number | null) {
   const booking = usePaidBooking(bookingId);
@@ -57,7 +68,7 @@ export function useReceiptBooking(bookingId: number | null) {
 
 /**
  * PAY-04, PAY-05: accept or reject. A refusal shows in the check (someone else checked it
- * meanwhile), and either way the queue and the booking refetch.
+ * meanwhile), and either way the queue and what it paid for refetch.
  */
 export function useCheckReceipt() {
   const queryClient = useQueryClient();
@@ -68,6 +79,8 @@ export function useCheckReceipt() {
       void queryClient.invalidateQueries({ queryKey: listPaymentsQueryKey() });
       void queryClient.invalidateQueries({ queryKey: listBookingsQueryKey() });
       void queryClient.invalidateQueries({ queryKey: [{ _id: "getBooking" }] });
+      void queryClient.invalidateQueries({ queryKey: listMembershipsQueryKey() });
+      void queryClient.invalidateQueries({ queryKey: [{ _id: "getMembership" }] });
     },
   });
 }

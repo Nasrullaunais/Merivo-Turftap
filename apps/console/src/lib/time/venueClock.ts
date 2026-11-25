@@ -26,5 +26,9 @@ export function onVenueClock(instant: string | Date, timeZone: string) {
 export const addDays = (date: string, days: number) =>
   new Date(Date.parse(`${date}T00:00:00Z`) + days * MS_PER_DAY).toISOString().slice(0, 10);
 
+/** Whole days from one date to a later one: 25 Dec to 28 Dec is 3. */
+export const daysFrom = (from: string, to: string) =>
+  Math.round((Date.parse(`${to}T00:00:00Z`) - Date.parse(`${from}T00:00:00Z`)) / MS_PER_DAY);
+
 /** Monday is 1 and Sunday is 7, as in a venue's opening hours. */
 export const weekdayOf = (date: string) => new Date(`${date}T00:00:00Z`).getUTCDay() || SUNDAY;

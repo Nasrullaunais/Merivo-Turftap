@@ -57,9 +57,12 @@ export const NAV_GROUPS: NavSection[][] = [
       label: m.nav.memberships,
       icon: BadgeCheck,
       hue: "membership",
-      to: "/membership-plans",
-      pages: [{ label: m.nav.membershipPlans, to: "/membership-plans" }],
-      isIn: under("/membership-plans"),
+      to: "/memberships",
+      pages: [
+        { label: m.nav.memberships, to: "/memberships" },
+        { label: m.nav.membershipPlans, to: "/membership-plans" },
+      ],
+      isIn: under("/memberships", "/membership-plans"),
     },
   ],
   [

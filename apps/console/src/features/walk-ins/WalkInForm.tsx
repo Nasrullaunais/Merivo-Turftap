@@ -28,9 +28,10 @@ import { TYPE_ICONS } from "../../components/resourceLook";
 import { SkeletonLine } from "../../components/SkeletonRows";
 import { TopicTile } from "../../components/TopicTile";
 import m from "../../i18n/en/walkIns";
+import { useCustomerByPhone } from "../../lib/customers/useCustomerByPhone";
 import { addDays, onVenueClock } from "../../lib/time/venueClock";
 import { SeriesClashes } from "./SeriesClashes";
-import { useBookSeries, useBookWalkIn, useCustomerByPhone, useSlotsFrom } from "./useWalkIn";
+import { useBookSeries, useBookWalkIn, useSlotsFrom } from "./useWalkIn";
 
 const MS_PER_MINUTE = 60_000;
 // A wrong "paid in cash" records money nobody took; a wrong "pay later" only leaves a Balance.

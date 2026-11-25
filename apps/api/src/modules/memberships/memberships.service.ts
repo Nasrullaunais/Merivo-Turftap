@@ -1,17 +1,18 @@
-import type {
-  CreateMembership,
-  Membership,
-  MembershipFilters,
-  MembershipPlan,
-  UpdateMembership,
-  WalkIn,
+import {
+  type CreateMembership,
+  type Membership,
+  type MembershipFilters,
+  type MembershipPlan,
+  membershipLastDay,
+  type UpdateMembership,
+  type WalkIn,
 } from "@turftap/contract";
 
 import type { AuthContext } from "../../lib/auth/context";
 import { transaction } from "../../lib/db";
 import { httpErrors } from "../../lib/errors";
 import { type ListQuery, statusChangedMeanwhile } from "../../lib/resource";
-import { addDays, describeDate, describeInstant, lastDayOfMonths, todayIn } from "../../lib/time";
+import { addDays, describeDate, describeInstant, todayIn } from "../../lib/time";
 import { WHATSAPP_TEMPLATES, type WhatsAppTemplate } from "../../ports/messaging-channel";
 import * as customersService from "../customers/customers.service";
 import * as eventsService from "../notifications/events.service";
@@ -121,9 +122,7 @@ async function planOnSale(auth: AuthContext, planId: number) {
 }
 
 const lastDayFor = (startsOn: string, plan: MembershipPlan) =>
-  plan.lengthUnit === "DAYS"
-    ? addDays(startsOn, plan.lengthCount - 1)
-    : lastDayOfMonths(startsOn, plan.lengthCount);
+  membershipLastDay(startsOn, plan.lengthCount, plan.lengthUnit);
 
 /**
  * MEM-02: today or a later start, and the plan's length from there. MEM-04: with an active

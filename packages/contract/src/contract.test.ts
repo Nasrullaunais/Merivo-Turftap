@@ -2,6 +2,7 @@ import { describe, expect, it } from "bun:test";
 import { z } from "zod";
 
 import { PhoneInput, Timestamp } from "./common";
+import { membershipLastDay } from "./memberships";
 import { CreateResource, UpdateResource } from "./resources";
 import { CreateVenue, UpdateVenue } from "./venues";
 
@@ -107,5 +108,20 @@ describe("VEN-04 resource schemas", () => {
 
   it("UpdateResource_neverPicksUpTheDefaultStartInterval", () => {
     expect(UpdateResource.parse({ slotMinutes: 15 })).toEqual({ slotMinutes: 15 });
+  });
+});
+
+describe("MEM-02 D-28 a membership's last day", () => {
+  it.each([
+    ["2027-03-01", 10, "DAYS", "2027-03-10"],
+    ["2027-12-30", 3, "DAYS", "2028-01-01"],
+    ["2027-01-15", 1, "MONTHS", "2027-02-14"],
+    ["2027-01-01", 1, "MONTHS", "2027-01-31"],
+    ["2027-01-31", 1, "MONTHS", "2027-02-28"],
+    ["2028-01-31", 1, "MONTHS", "2028-02-29"],
+    ["2027-11-30", 3, "MONTHS", "2028-02-29"],
+    ["2027-03-31", 1, "MONTHS", "2027-04-30"],
+  ] as const)("membershipLastDay_from %s for %i %s ends %s", (startsOn, count, unit, last) => {
+    expect(membershipLastDay(startsOn, count, unit)).toBe(last);
   });
 });

@@ -17,6 +17,7 @@ import { Route as SignedInNoAccessRouteImport } from './routes/_signedIn/no-acce
 import { Route as SignedInTenantIndexRouteImport } from './routes/_signedIn/_tenant/index'
 import { Route as SignedInTenantCalendarRouteImport } from './routes/_signedIn/_tenant/calendar'
 import { Route as SignedInTenantMembershipPlansRouteImport } from './routes/_signedIn/_tenant/membership-plans'
+import { Route as SignedInTenantMembershipsRouteImport } from './routes/_signedIn/_tenant/memberships'
 import { Route as SignedInTenantReceiptChecksRouteImport } from './routes/_signedIn/_tenant/receipt-checks'
 import { Route as SignedInTenantStaffRouteImport } from './routes/_signedIn/_tenant/staff'
 import { Route as SignedInTenantResourcesResourceIdRouteImport } from './routes/_signedIn/_tenant/resources/$resourceId'
@@ -62,6 +63,12 @@ const SignedInTenantMembershipPlansRoute =
     path: '/membership-plans',
     getParentRoute: () => SignedInTenantRoute,
   } as any)
+const SignedInTenantMembershipsRoute =
+  SignedInTenantMembershipsRouteImport.update({
+    id: '/memberships',
+    path: '/memberships',
+    getParentRoute: () => SignedInTenantRoute,
+  } as any)
 const SignedInTenantReceiptChecksRoute =
   SignedInTenantReceiptChecksRouteImport.update({
     id: '/receipt-checks',
@@ -99,6 +106,7 @@ export interface FileRoutesByFullPath {
   '/no-access': typeof SignedInNoAccessRoute
   '/calendar': typeof SignedInTenantCalendarRoute
   '/membership-plans': typeof SignedInTenantMembershipPlansRoute
+  '/memberships': typeof SignedInTenantMembershipsRoute
   '/receipt-checks': typeof SignedInTenantReceiptChecksRoute
   '/staff': typeof SignedInTenantStaffRoute
   '/resources/$resourceId': typeof SignedInTenantResourcesResourceIdRoute
@@ -112,6 +120,7 @@ export interface FileRoutesByTo {
   '/no-access': typeof SignedInNoAccessRoute
   '/calendar': typeof SignedInTenantCalendarRoute
   '/membership-plans': typeof SignedInTenantMembershipPlansRoute
+  '/memberships': typeof SignedInTenantMembershipsRoute
   '/receipt-checks': typeof SignedInTenantReceiptChecksRoute
   '/staff': typeof SignedInTenantStaffRoute
   '/resources/$resourceId': typeof SignedInTenantResourcesResourceIdRoute
@@ -127,6 +136,7 @@ export interface FileRoutesById {
   '/_signedIn/no-access': typeof SignedInNoAccessRoute
   '/_signedIn/_tenant/calendar': typeof SignedInTenantCalendarRoute
   '/_signedIn/_tenant/membership-plans': typeof SignedInTenantMembershipPlansRoute
+  '/_signedIn/_tenant/memberships': typeof SignedInTenantMembershipsRoute
   '/_signedIn/_tenant/receipt-checks': typeof SignedInTenantReceiptChecksRoute
   '/_signedIn/_tenant/staff': typeof SignedInTenantStaffRoute
   '/_signedIn/_tenant/': typeof SignedInTenantIndexRoute
@@ -143,6 +153,7 @@ export interface FileRouteTypes {
     | '/no-access'
     | '/calendar'
     | '/membership-plans'
+    | '/memberships'
     | '/receipt-checks'
     | '/staff'
     | '/resources/$resourceId'
@@ -156,6 +167,7 @@ export interface FileRouteTypes {
     | '/no-access'
     | '/calendar'
     | '/membership-plans'
+    | '/memberships'
     | '/receipt-checks'
     | '/staff'
     | '/resources/$resourceId'
@@ -170,6 +182,7 @@ export interface FileRouteTypes {
     | '/_signedIn/no-access'
     | '/_signedIn/_tenant/calendar'
     | '/_signedIn/_tenant/membership-plans'
+    | '/_signedIn/_tenant/memberships'
     | '/_signedIn/_tenant/receipt-checks'
     | '/_signedIn/_tenant/staff'
     | '/_signedIn/_tenant/'
@@ -241,6 +254,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SignedInTenantMembershipPlansRouteImport
       parentRoute: typeof SignedInTenantRoute
     }
+    '/_signedIn/_tenant/memberships': {
+      id: '/_signedIn/_tenant/memberships'
+      path: '/memberships'
+      fullPath: '/memberships'
+      preLoaderRoute: typeof SignedInTenantMembershipsRouteImport
+      parentRoute: typeof SignedInTenantRoute
+    }
     '/_signedIn/_tenant/receipt-checks': {
       id: '/_signedIn/_tenant/receipt-checks'
       path: '/receipt-checks'
@@ -282,6 +302,7 @@ declare module '@tanstack/react-router' {
 interface SignedInTenantRouteChildren {
   SignedInTenantCalendarRoute: typeof SignedInTenantCalendarRoute
   SignedInTenantMembershipPlansRoute: typeof SignedInTenantMembershipPlansRoute
+  SignedInTenantMembershipsRoute: typeof SignedInTenantMembershipsRoute
   SignedInTenantReceiptChecksRoute: typeof SignedInTenantReceiptChecksRoute
   SignedInTenantStaffRoute: typeof SignedInTenantStaffRoute
   SignedInTenantIndexRoute: typeof SignedInTenantIndexRoute
@@ -293,6 +314,7 @@ interface SignedInTenantRouteChildren {
 const SignedInTenantRouteChildren: SignedInTenantRouteChildren = {
   SignedInTenantCalendarRoute: SignedInTenantCalendarRoute,
   SignedInTenantMembershipPlansRoute: SignedInTenantMembershipPlansRoute,
+  SignedInTenantMembershipsRoute: SignedInTenantMembershipsRoute,
   SignedInTenantReceiptChecksRoute: SignedInTenantReceiptChecksRoute,
   SignedInTenantStaffRoute: SignedInTenantStaffRoute,
   SignedInTenantIndexRoute: SignedInTenantIndexRoute,
