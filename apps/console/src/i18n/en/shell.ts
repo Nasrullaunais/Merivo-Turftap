@@ -13,6 +13,7 @@ export default {
   nav: {
     calendar: "Calendar",
     receiptChecks: "Receipt checks",
+    checkIns: "Check-ins",
     memberships: "Memberships",
     membershipPlans: "Membership Plans",
     staff: "Staff",

@@ -6,6 +6,7 @@ import { can } from "../lib/tenant/activeTenant";
 const ROUTE_PERMISSIONS = {
   "/calendar": "bookings:read",
   "/receipt-checks": "payments:read",
+  "/check-ins": "check-ins:read",
   "/memberships": "memberships:read",
   "/membership-plans": "membership-plans:read",
   "/staff": "staff:read",

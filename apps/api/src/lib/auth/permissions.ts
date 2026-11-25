@@ -26,6 +26,7 @@ export const ROLE_PERMISSIONS: Record<StaffRole, ReadonlySet<Permission>> = {
     ...all("payments"),
     ...all("membership-plans"),
     ...all("memberships"),
+    ...all("check-ins"),
   ]),
   FRONT_DESK: new Set([
     ...readOnly("venues"),
@@ -49,6 +50,9 @@ export const ROLE_PERMISSIONS: Record<StaffRole, ReadonlySet<Permission>> = {
     "memberships:read",
     "memberships:create",
     "memberships:update",
+    "check-ins:read",
+    "check-ins:create",
+    "check-ins:delete",
   ]),
 };
 

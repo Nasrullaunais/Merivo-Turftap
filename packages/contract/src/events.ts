@@ -6,6 +6,7 @@ export const LIVE_EVENT_TYPES = [
   "booking.changed",
   "payment.changed",
   "membership.changed",
+  "check-in.changed",
 ] as const;
 
 /** Something changed on the server (D-11). It carries only what changed; the screen refetches it. */

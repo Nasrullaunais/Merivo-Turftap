@@ -52,7 +52,7 @@ Status: `todo`, `doing`, `done`, `blocked` (waiting on a decision or an outside 
 | [T22](T22-membership-plans.md) | Membership Plans (API + console) | MEM-01 | | done |
 | [T23](T23-memberships-api.md) | Memberships API: buy, sell, renew | MEM-02, MEM-03, MEM-04 | T13, T22 | done (OQ-03 refused for now) |
 | [T24](T24-console-memberships.md) | Memberships screens in the console | MEM-03, PAY-04 | T23 | done |
-| [T25](T25-check-ins.md) | Check-ins (API + console) | MEM-05 | T23 | todo |
+| [T25](T25-check-ins.md) | Check-ins (API + console) | MEM-05 | T23 | done |
 | [T26](T26-membership-end-and-reminders.md) | Memberships end, and reminders | MEM-06 | T23 | todo |
 | **F. Customer Portal** |||||
 | [T27](T27-portal-shell.md) | Portal shell, unknown address, phone layout | POR-01, POR-05 | | todo |
@@ -111,6 +111,9 @@ Settled in a grilling session with the user. Each answer is written here, then i
 | D-26 | How does the 409 for a clashing Repeat Series list the dates? | Reuse `errors` with one item per date | A new optional `clashingDates` field on error replies, so the dates aren't hidden in `message` |
 | D-27 | What does the customer get when staff cancel the rest of a Repeat Series? | One new `series_cancelled` message | Yes: one message with the count and reason, not one per booking |
 | D-28 | A month-long membership starting on the 29th, 30th or 31st: when does it end if next month has no such date? | That month's last day | Yes: 31 Jan + 1 month ends 28 Feb; otherwise the day before the same date (15 Jan → 14 Feb) |
+| D-29 | Check-in for an active membership sold with "pay later" that still has a Balance | Let in, ask for the cash | Refused until paid; the check-in card offers **Take cash** |
+| D-30 | Can one membership be checked in more than once a day? | Once a day | Up to the venue: a venue setting, on (many a day) by default |
+| D-31 | Can a mistaken check-in be undone? | No undo for now | Yes, for 5 minutes, by anyone who can check in |
 
 ## Open questions for venue owners
 

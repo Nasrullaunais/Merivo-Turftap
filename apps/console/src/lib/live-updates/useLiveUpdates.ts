@@ -17,6 +17,7 @@ const STALE_AFTER: Record<LiveEventType, readonly string[]> = {
     "getMembership",
   ],
   "membership.changed": ["listMemberships", "getMembership"],
+  "check-in.changed": ["listCheckIns", "getCheckIn"],
 };
 const EVERY_LIVE_QUERY = [...new Set(Object.values(STALE_AFTER).flat())];
 

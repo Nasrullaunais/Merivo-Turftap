@@ -7,6 +7,7 @@ import {
 import { customersResource } from "./modules/customers/customers.routes";
 import { filesResource } from "./modules/files/files.routes";
 import {
+  checkInsResource,
   membershipPlansResource,
   membershipsResource,
 } from "./modules/memberships/memberships.routes";
@@ -41,5 +42,6 @@ export const RESOURCES: Resource[] = [
   paymentsResource,
   membershipPlansResource,
   membershipsResource,
+  checkInsResource,
   eventsResource,
 ];

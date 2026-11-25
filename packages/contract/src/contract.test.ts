@@ -1,6 +1,7 @@
 import { describe, expect, it } from "bun:test";
 import { z } from "zod";
 
+import { checkInRefusal } from "./check-ins";
 import { PhoneInput, Timestamp } from "./common";
 import { membershipLastDay } from "./memberships";
 import { CreateResource, UpdateResource } from "./resources";
@@ -123,5 +124,30 @@ describe("MEM-02 D-28 a membership's last day", () => {
     ["2027-03-31", 1, "MONTHS", "2027-04-30"],
   ] as const)("membershipLastDay_from %s for %i %s ends %s", (startsOn, count, unit, last) => {
     expect(membershipLastDay(startsOn, count, unit)).toBe(last);
+  });
+});
+
+describe("MEM-05 who may check in", () => {
+  const TODAY = "2026-12-10";
+  const membership = {
+    status: "ACTIVE" as const,
+    startsOn: "2026-12-01",
+    endsOn: "2026-12-31",
+    balance: { amount: 0, currency: "LKR" as const },
+  };
+
+  it.each([
+    ["an active, paid membership on its first day", { startsOn: TODAY }, undefined],
+    ["an active, paid membership on its last day", { endsOn: TODAY }, undefined],
+    ["one waiting for payment", { status: "AWAITING_PAYMENT" }, "NOT_PAID"],
+    ["one whose receipt waits for a check", { status: "AWAITING_CHECK" }, "NOT_PAID"],
+    ["one not paid in time", { status: "EXPIRED" }, "NOT_PAID"],
+    ["one with a Balance still owed", { balance: { amount: 1, currency: "LKR" } }, "BALANCE_OWED"],
+    ["one starting tomorrow", { startsOn: "2026-12-11" }, "NOT_STARTED"],
+    ["one that ended yesterday but isn't marked yet", { endsOn: "2026-12-09" }, "ENDED"],
+    ["one marked ended", { status: "ENDED" }, "ENDED"],
+    ["a cancelled one", { status: "CANCELLED" }, "CANCELLED"],
+  ] as const)("checkInRefusal_gives the right answer for %s", (_, change, refusal) => {
+    expect(checkInRefusal({ ...membership, ...change }, TODAY)).toBe(refusal);
   });
 });

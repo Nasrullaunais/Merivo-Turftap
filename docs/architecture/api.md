@@ -96,7 +96,7 @@ Platform Admins manage tenants and WhatsApp numbers with scripts on the server i
 | `payments` | payments | list, get, create, update | |
 | `membership-plans` | memberships | all | list, get |
 | `memberships` | memberships | list, get, create, update | |
-| `check-ins` | memberships | list, create | |
+| `check-ins` | memberships | list, get, create, delete (undo, only in the first 5 minutes) | |
 | `files` | files | create | |
 | `events` | notifications | list | |
 
@@ -112,7 +112,8 @@ Permission names are `<resource>:<action>`, where action is `read`, `create`, `u
 | `venues` | ✓ | read | read |
 | `closed-dates`, `resources`, `price-rules`, `blocked-times`, `photos`, `membership-plans` | ✓ | ✓ | read |
 | `files` | ✓ | create | create |
-| `customers`, `bookings`, `payments`, `memberships`, `check-ins` | ✓ | ✓ | read, create, update |
+| `customers`, `bookings`, `payments`, `memberships` | ✓ | ✓ | read, create, update |
+| `check-ins` | ✓ | ✓ | read, create, delete |
 | `repeat-series` | ✓ | ✓ | read |
 
 Customers and the Assistant don't use this table. Their access is fixed in code: they see only their own bookings, memberships and payments, plus whatever the portal can open without sign-in. Of files and payments they may only upload a receipt and send it as a `TRANSFER` payment.

@@ -109,6 +109,21 @@
       transform: scaleX(0);
     }
   }
+  @keyframes tt-drain {
+    to {
+      stroke-dashoffset: var(--tt-ring);
+    }
+  }
+  @keyframes tt-ripple {
+    from {
+      opacity: 0.55;
+      transform: scale(0.7);
+    }
+    to {
+      opacity: 0;
+      transform: scale(2.4);
+    }
+  }
   @keyframes tt-tint {
     from {
       background-color: color-mix(in oklab, var(--tt-tint) 22%, transparent);
@@ -193,6 +208,18 @@ body {
 @utility tt-landed {
   --tt-tint: var(--accent);
   animation: tt-tint 2600ms var(--tt-ease) both;
+}
+
+/* A ring that empties over --tt-for, started --tt-since ago: how long an undo is still possible. */
+@utility tt-drain {
+  stroke-dasharray: var(--tt-ring);
+  animation: tt-drain var(--tt-for) linear both;
+  animation-delay: calc(var(--tt-since) * -1);
+}
+
+/* A ring that spreads out once and fades behind a mark: "done, they're in". */
+@utility tt-ripple {
+  animation: tt-ripple 900ms var(--tt-ease) both;
 }
 
 @utility tt-hue-booking {
