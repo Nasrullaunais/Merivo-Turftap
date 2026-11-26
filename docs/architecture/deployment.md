@@ -2,22 +2,32 @@
 
 ## v1 setup
 
-One VPS (a rented server) running Docker Compose:
+One VPS (a rented server, OVH, Ubuntu 26.04) running Docker Compose from [`compose.prod.yaml`](../../compose.prod.yaml), copied to the server as `/opt/turftap/compose.yaml`:
 
 | Service | Notes |
 |---|---|
-| `caddy` | The only thing open to the internet (ports 80/443). HTTPS for `turftap.lk`, `console.turftap.lk`, `api.turftap.lk`, `n8n.turftap.lk` and the wildcard `*.turftap.lk` for tenant portals. A wildcard certificate needs the DNS challenge, which needs Caddy built with our DNS provider's plugin. |
-| `api` | One image of the backend. Also runs the pg-boss jobs. |
-| `portal`, `console` | Built static files, served by Caddy |
+| `web` | Caddy, the only thing open to the internet (ports 80/443). Its image also holds the built portal and console. HTTPS for `<domain>`, `console.<domain>`, `api.<domain>` and the wildcard `*.<domain>` for tenant portals. The wildcard certificate needs the DNS challenge, so the image is built with Caddy's Cloudflare plugin. On the portal and console addresses, `/v1` goes to the API, so the apps call it on their own address. |
+| `api` | One image of the backend. Also runs the pg-boss jobs. Not published on any port. |
+| `migrate` | The API image running `scripts/migrate.ts`. Started only by the release. |
 | `postgres` | Two databases: `turftap` (app) and `n8n`. Named volume. |
-| `n8n` | The Assistant. Its editor is behind Caddy with basic auth. |
+| `n8n` | Not yet. Added with the first Assistant ticket (T35); its editor goes behind Caddy with basic auth. |
 
 Uploaded files are not on the server: they live in a Cloudflare R2 bucket ([ADR 0012](../adr/0012-files-in-cloudflare-r2.md)).
 
-- Published ports other than Caddy's bind to `127.0.0.1` only.
+- Only `web` publishes ports. Docker's published ports skip the `ufw` firewall, so nothing else may publish one.
 - Every volume is **named**, never anonymous, so recreating a container can't silently start an empty database.
-- `restart: unless-stopped` on every service.
-- `compose.yaml` in the repo is for local development: Postgres (`127.0.0.1:5433`, with `turftap`, `turftap_test` and `n8n` databases), SeaweedFS (`127.0.0.1:8334`) and n8n (`127.0.0.1:5679`). These ports avoid clashing with other projects on the default ones; each can be changed in `.env`. The production file adds Caddy and the app images.
+- `restart: unless-stopped` on every service, and logs are capped at 5 × 10 MB per service.
+- The production project is named `turftap-prod`, so it can never take over the local `turftap` containers.
+- `compose.yaml` in the repo is for local development: Postgres (`127.0.0.1:5433`, with `turftap`, `turftap_test` and `n8n` databases), SeaweedFS (`127.0.0.1:8334`) and n8n (`127.0.0.1:5679`). These ports avoid clashing with other projects on the default ones; each can be changed in `.env`.
+
+### Hidden and live
+
+`SITE_MODE` in the server's `.env` picks one of two Caddy setups in [`infra/web/`](../../infra/web/):
+
+- **`hidden`** (now): every address shows a "coming soon" page, and the API can't be reached from the internet. Releases still run in full, so the pipeline is tested on every tag. The API runs with `NODE_ENV=development` and the fake adapters, which is safe only because nobody outside can reach it.
+- **`live`**: the real apps on the real addresses. Needs `NODE_ENV=production`, so every fake must be replaced first (see [Going live](#going-live)).
+
+Until `turftap.lk` is bought, `BASE_DOMAIN` is `167-114-120-81.sslip.io`, a free name that points at the server's IP. The portal reads the tenant from the first part of its address, so the same image works on any domain.
 
 ## Config and secrets
 
@@ -50,13 +60,32 @@ Sign-in uses Auth0's passwordless SMS connection ([ADR 0008](../adr/0008-phone-l
 
 ## Platform Admin scripts
 
-In v1 a Platform Admin links WhatsApp numbers (`bun run whatsapp:link`, `bun run whatsapp:unlink`) by running scripts on the server, against the production database and settings ([platform-admin.md](../spec/platform-admin.md)). The scripts go through the same services as the API, so the same rules apply.
+In v1 a Platform Admin links WhatsApp numbers (`bun run whatsapp:link`, `bun run whatsapp:unlink`) by running scripts on the server, against the production database and settings ([platform-admin.md](../spec/platform-admin.md)). The scripts go through the same services as the API, so the same rules apply. On the server they run inside the API image: `cd /opt/turftap && TURFTAP_VERSION=$(cat .version) docker compose run --rm migrate bun scripts/whatsapp-link.ts <arguments>`.
 
 ## Releases
 
 1. A pull request merges into `main` after CI passes (lint, type check, all tests).
-2. Tag `vX.Y.Z`. CI builds and pushes the images.
-3. On the server: back up → migrate → start the new version → check `/health/ready`.
+2. Tag the commit on `main` and push the tag: `git tag v0.2.0 && git push origin v0.2.0`.
+3. [`release.yml`](../../.github/workflows/release.yml) checks that the tag is on `main`, runs the full check, builds the `api` and `web` images and pushes them to GHCR as `ghcr.io/nasrullaunais/turftap-<api|web>:<tag>`.
+4. It then connects to the server as the `deploy` user and runs [`infra/deploy/release.sh`](../../infra/deploy/release.sh): pull → start Postgres → back up (the last 10 backups stay in `/opt/turftap/backups`) → migrate → start the new version → wait up to 2 minutes for both services to be healthy (`/health/ready` for the API).
+5. If the new version isn't healthy, the script starts the previous one again and the run fails, so GitHub emails you. The migration stays: migrations only add, and removals take two releases (see [Database changes](#database-changes)).
+
+**Going back by hand:** in GitHub, open Actions → release → Run workflow, pick the older tag under "Use workflow from", and run it. It skips the build and releases that tag's images.
+
+**On the server:** `cd /opt/turftap`, then `docker compose ps`, `docker compose logs -f api`, and `cat .version` for the running version.
+
+### Server setup (once per server)
+
+1. Log in as `ubuntu` with an SSH key, copy [`infra/deploy/setup-server.sh`](../../infra/deploy/setup-server.sh) over and run `sudo bash setup-server.sh "<deploy public key>" 167-114-120-81.sslip.io`. It installs Docker and automatic security updates, adds 2 GB of swap, opens only SSH/80/443, turns off password logins, creates the `deploy` user and writes `/opt/turftap/.env` with new secrets.
+2. Copy `/opt/turftap/.env` into a password manager. It exists nowhere else.
+3. In GitHub, the `production` environment (usable only by `v*` tags) holds the secrets `DEPLOY_SSH_KEY` (the deploy key's private half) and `DEPLOY_KNOWN_HOSTS` (the server's SSH host key line), and the variable `DEPLOY_HOST`.
+
+### Going live
+
+1. Buy the domain and move its DNS to Cloudflare. Add `A` records for the domain and `*` pointing at the server, unproxied (grey cloud).
+2. Make a Cloudflare API token with **Zone > DNS > Edit** on that zone.
+3. In `/opt/turftap/.env`: `BASE_DOMAIN`, `CLOUDFLARE_API_TOKEN`, `CONSOLE_URL`, `CORS_ORIGINS`, the real adapters (Auth0, R2, WhatsApp, SMS, receipt reader), `NODE_ENV=production` and `SITE_MODE=live`.
+4. Run the release again for the current tag (Run workflow). Check `https://api.<domain>/health/ready`, the console, and one tenant's portal.
 
 ## Backups
 

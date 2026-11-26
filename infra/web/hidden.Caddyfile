@@ -1,0 +1,7 @@
+# Before go-live: every address shows the "coming soon" page and the API stays private.
+{$BASE_DOMAIN}, console.{$BASE_DOMAIN}, api.{$BASE_DOMAIN} {
+	encode
+	root * /srv/coming-soon
+	try_files {path} /index.html
+	file_server
+}

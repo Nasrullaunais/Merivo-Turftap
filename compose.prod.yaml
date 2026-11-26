@@ -1,0 +1,86 @@
+# Production (docs/architecture/deployment.md). The release copies this file to the server as
+# /opt/turftap/compose.yaml; infra/deploy/release.sh sets TURFTAP_VERSION.
+name: turftap-prod
+
+x-service: &service
+  restart: unless-stopped
+  logging:
+    driver: json-file
+    options: { max-size: 10m, max-file: "5" }
+
+x-api: &api
+  <<: *service
+  image: ghcr.io/nasrullaunais/turftap-api:${TURFTAP_VERSION:-missing}
+  env_file: .env
+  depends_on:
+    postgres:
+      condition: service_healthy
+
+services:
+  postgres:
+    <<: *service
+    image: postgres:18.7-alpine
+    environment:
+      POSTGRES_USER: turftap
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: turftap
+    volumes:
+      - postgres-data:/var/lib/postgresql
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U turftap -d turftap"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  api:
+    <<: *api
+    healthcheck:
+      test:
+        - CMD
+        - bun
+        - -e
+        - "const r = await fetch('http://127.0.0.1:3000/health/ready'); process.exit(r.ok ? 0 : 1)"
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 10s
+
+  migrate:
+    <<: *api
+    restart: "no"
+    profiles: [tools]
+    command: ["bun", "scripts/migrate.ts"]
+
+  web:
+    <<: *service
+    image: ghcr.io/nasrullaunais/turftap-web:${TURFTAP_VERSION:-missing}
+    command:
+      [
+        "caddy",
+        "run",
+        "--adapter",
+        "caddyfile",
+        "--config",
+        "/etc/caddy/${SITE_MODE:-hidden}.Caddyfile",
+      ]
+    environment:
+      BASE_DOMAIN: ${BASE_DOMAIN:?set BASE_DOMAIN in .env}
+      CLOUDFLARE_API_TOKEN: ${CLOUDFLARE_API_TOKEN:-}
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - caddy-data:/data
+      - caddy-config:/config
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:2019/config/"]
+      interval: 10s
+      timeout: 3s
+      retries: 6
+
+volumes:
+  postgres-data:
+  caddy-data:
+  caddy-config:

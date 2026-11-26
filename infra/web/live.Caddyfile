@@ -1,0 +1,39 @@
+{
+	acme_dns cloudflare {env.CLOUDFLARE_API_TOKEN}
+}
+
+(app) {
+	encode
+	handle /v1/* {
+		reverse_proxy api:3000
+	}
+	handle {
+		root * {args[0]}
+		@assets path /assets/*
+		@pages not path /assets/*
+		header @assets Cache-Control "public, max-age=31536000, immutable"
+		header @pages Cache-Control "no-cache"
+		try_files {path} /index.html
+		file_server
+	}
+}
+
+{$BASE_DOMAIN} {
+	encode
+	root * /srv/coming-soon
+	try_files {path} /index.html
+	file_server
+}
+
+api.{$BASE_DOMAIN} {
+	reverse_proxy api:3000
+}
+
+console.{$BASE_DOMAIN} {
+	import app /srv/console
+}
+
+# Every other name is a tenant's portal; the names above win over this one.
+*.{$BASE_DOMAIN} {
+	import app /srv/portal
+}

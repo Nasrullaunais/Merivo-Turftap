@@ -1,0 +1,13 @@
+**/node_modules
+**/dist
+**/coverage
+**/.tanstack
+**/*.tsbuildinfo
+.git
+.github
+.env
+.env.*
+.claude
+.scratch
+docs
+tickets

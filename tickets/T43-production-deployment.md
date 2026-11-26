@@ -1,6 +1,6 @@
 # T43 Production deployment
 
-Status: todo · Stories: none · Depends on: none (needed before Auth0 and WhatsApp can reach the API) · Decision: **D-14** · Go-live waits on buying the domain
+Status: doing (pipeline done; go-live waits on the domain and T40–T42) · Stories: none · Depends on: none (needed before Auth0 and WhatsApp can reach the API) · Decision: **D-14** · Go-live waits on buying the domain
 
 ## Goal
 The app runs on the OVH VPS with HTTPS for every address, and a release is: tag → images built → back up → migrate → start → `/health/ready`.
@@ -18,3 +18,12 @@ The app runs on the OVH VPS with HTTPS for every address, and a release is: tag 
 
 ## Done when
 - The site answers on HTTPS at the real addresses, `/health/ready` is green, and a second release with a migration works.
+
+## Built so far
+- Tag `vX.Y.Z` on `main` → check → `api` and `web` images in GHCR → `release.sh` on the server (back up, migrate, start, check, go back on failure). See `docs/architecture/deployment.md#releases`.
+- The server runs `SITE_MODE=hidden` on `167-114-120-81.sslip.io`: every address shows "coming soon" and the API runs with fakes, unreachable from the internet.
+- n8n is left out until T35.
+
+## Left for go-live
+- Buy the domain, DNS on Cloudflare, then follow `docs/architecture/deployment.md#going-live`. The `live` Caddy setup was tested on `localhost` but not yet with a Cloudflare certificate.
+- Needs the real adapters first (T40, T41, T42, R2), because `NODE_ENV=production` refuses fakes.
