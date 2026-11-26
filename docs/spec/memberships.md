@@ -34,3 +34,7 @@ As **Front Desk**, I want to search a customer by phone number and tap "check in
 
 ## MEM-06 Expiry reminder
 As a **Customer**, I want a WhatsApp message 3 days before my membership ends, so that I can renew in time.
+- The message goes out at 09:00, once per membership. If a day is missed, it still goes out while the last day is ahead.
+- No message when I've already renewed: another membership at the same venue that runs past this one, paid or with its receipt waiting for a check.
+- No message for a membership of 3 days or less, at a venue that was turned off, or from a tenant that is off.
+- The night after its last day, an active membership becomes ended. No message is sent for that.

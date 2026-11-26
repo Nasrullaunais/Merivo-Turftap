@@ -15,3 +15,8 @@ export function usersByIds(ids: number[]) {
 export function tenantById(id: number) {
   return platformRepository.findTenantById(id);
 }
+
+/** Tenants that are on, for nightly jobs that work tenant by tenant. */
+export function activeTenantIds() {
+  return platformRepository.findActiveTenantIds();
+}

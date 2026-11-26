@@ -1,0 +1,1 @@
+ALTER TABLE "memberships" ADD COLUMN "ending_reminder_sent_at" timestamp with time zone;

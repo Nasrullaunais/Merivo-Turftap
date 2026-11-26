@@ -1,5 +1,18 @@
 import type { MembershipFilters, MembershipStatus } from "@turftap/contract";
-import { and, desc, eq, gte, inArray, lte, type SQL, sql } from "drizzle-orm";
+import {
+  aliasedTable,
+  and,
+  desc,
+  eq,
+  gt,
+  gte,
+  inArray,
+  isNull,
+  lt,
+  lte,
+  type SQL,
+  sql,
+} from "drizzle-orm";
 
 import { db, pageOf, type PageRequest, sortBy } from "../../lib/db";
 import { priceOf } from "../../lib/db/columns";
@@ -163,4 +176,75 @@ export async function lastActiveDay(
     .orderBy(desc(memberships.endsOn))
     .limit(1);
   return latest?.endsOn;
+}
+
+/** MEM-06: the venues that have active memberships, for the nightly jobs that work venue by venue. */
+export async function venueIdsWithActive(tenantId: number) {
+  const rows = await db()
+    .selectDistinct({ venueId: memberships.venueId })
+    .from(memberships)
+    .where(and(eq(memberships.tenantId, tenantId), eq(memberships.status, "ACTIVE")));
+  return rows.map((row) => row.venueId);
+}
+
+/** MEM-06: active memberships whose last day was before `today` become `ENDED`. */
+export async function endPast(tenantId: number, venueId: number, today: string) {
+  return db()
+    .update(memberships)
+    .set({ status: "ENDED" })
+    .where(
+      and(
+        eq(memberships.tenantId, tenantId),
+        eq(memberships.venueId, venueId),
+        eq(memberships.status, "ACTIVE"),
+        lt(memberships.endsOn, today),
+      ),
+    )
+    .returning();
+}
+
+const renewals = aliasedTable(memberships, "renewals");
+/** D-33: paid or waiting for a receipt check counts as renewed; only waiting to pay doesn't. */
+const RENEWED_STATUSES: MembershipStatus[] = ["ACTIVE", "AWAITING_CHECK"];
+
+/**
+ * MEM-06: marks active memberships ending after `today` and by `lastDay` that aren't renewed and
+ * weren't reminded yet, and returns them. Ones no longer than the reminder window are left out.
+ */
+export async function markEndingSoon(
+  tenantId: number,
+  venueId: number,
+  today: string,
+  lastDay: string,
+  reminderDays: number,
+) {
+  const renewed = db()
+    .select({ id: renewals.id })
+    .from(renewals)
+    .where(
+      and(
+        eq(renewals.tenantId, tenantId),
+        eq(renewals.venueId, venueId),
+        eq(renewals.customerId, memberships.customerId),
+        inArray(renewals.status, RENEWED_STATUSES),
+        gt(renewals.endsOn, memberships.endsOn),
+      ),
+    );
+  const rows = await db()
+    .update(memberships)
+    .set({ endingReminderSentAt: sql`now()` })
+    .where(
+      and(
+        eq(memberships.tenantId, tenantId),
+        eq(memberships.venueId, venueId),
+        eq(memberships.status, "ACTIVE"),
+        isNull(memberships.endingReminderSentAt),
+        gt(memberships.endsOn, today),
+        lte(memberships.endsOn, lastDay),
+        sql`${memberships.endsOn} - ${memberships.startsOn} >= ${reminderDays}`,
+        sql`not exists ${renewed}`,
+      ),
+    )
+    .returning();
+  return Promise.all(rows.map((row) => withPlan(tenantId, row).then((found) => found!)));
 }

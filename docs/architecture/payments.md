@@ -122,6 +122,6 @@ sequenceDiagram
 | Booking reminder | 3 hours before start; queued when a booking becomes `CONFIRMED`, unless that time has passed | WhatsApp `booking_reminder` if still `CONFIRMED` |
 | End memberships | Daily, 00:05 Colombo time | `ACTIVE` past end date → `ENDED` |
 | Ask for series payment | The venue's series payment days before each repeat series booking | WhatsApp with bank details and the Advance |
-| Membership reminder | Daily | WhatsApp 3 days before end |
+| Membership reminder | Daily, 09:00 Colombo time | WhatsApp `membership_ending_soon` for `ACTIVE` ones ending within 3 days, not renewed, not reminded yet (`MEM-06`) |
 
 Each job checks the row's current state when it runs and does nothing if things have moved on.

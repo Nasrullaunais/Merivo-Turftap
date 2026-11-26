@@ -25,6 +25,8 @@ export const WHATSAPP_TEMPLATES = {
   membershipCancelled: "membership_cancelled",
   /** Values: venue name, plan name, start date, reason, new time limit to pay by (PAY-05). */
   membershipReceiptRejected: "membership_receipt_rejected",
+  /** Values: venue name, plan name, last day (MEM-06, a few days before it ends). */
+  membershipEndingSoon: "membership_ending_soon",
 } as const;
 
 export type WhatsAppTemplate = (typeof WHATSAPP_TEMPLATES)[keyof typeof WHATSAPP_TEMPLATES];

@@ -53,7 +53,7 @@ Status: `todo`, `doing`, `done`, `blocked` (waiting on a decision or an outside 
 | [T23](T23-memberships-api.md) | Memberships API: buy, sell, renew | MEM-02, MEM-03, MEM-04 | T13, T22 | done (OQ-03 refused for now) |
 | [T24](T24-console-memberships.md) | Memberships screens in the console | MEM-03, PAY-04 | T23 | done |
 | [T25](T25-check-ins.md) | Check-ins (API + console) | MEM-05 | T23 | done |
-| [T26](T26-membership-end-and-reminders.md) | Memberships end, and reminders | MEM-06 | T23 | todo |
+| [T26](T26-membership-end-and-reminders.md) | Memberships end, and reminders | MEM-06 | T23 | done |
 | **F. Customer Portal** |||||
 | [T27](T27-portal-shell.md) | Portal shell, unknown address, phone layout | POR-01, POR-05 | | todo |
 | [T28](T28-portal-browse.md) | Browse venues, resources and free slots | POR-02, BKG-01 | T05, T27 | todo |
@@ -115,6 +115,10 @@ Settled in a grilling session with the user. Each answer is written here, then i
 | D-30 | Can one membership be checked in more than once a day? | Once a day | Up to the venue: a venue setting, on (many a day) by default |
 | D-31 | Can a mistaken check-in be undone? | No undo for now | Yes, for 5 minutes, by anyone who can check in |
 | D-32 | Memberships are only for gyms. How does the app know which venue has one? | A "has a gym" switch on the venue, changed by the Owner | Yes, the switch (`VEN-08`). A separate "area" inside a venue (gym, pool) was left for later, if a second kind of membership place is ever needed |
+| D-33 | Which of the customer's other memberships count as "already renewed" for the reminder? | Paid, or receipt sent | Any plan at the same venue that runs past this one's last day, active or waiting for its receipt check. One only waiting to be paid doesn't count, so the customer still gets the nudge |
+| D-34 | A missed or retried reminder run | Mark each reminder sent | A "reminder sent" time on the membership. Each run reminds anything ending within the next 3 days not reminded yet, so a missed day catches up and nobody gets two |
+| D-35 | When do reminders go out? | 09:00 Colombo time | 09:00. Ending memberships still happens at 00:05 |
+| D-36 | Tell the customer when a membership has ended? | No, the reminder is enough | No |
 
 ## Open questions for venue owners
 

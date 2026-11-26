@@ -280,3 +280,8 @@ export async function passMembershipTimeLimit(membershipId: number) {
     .set({ expiresAt: sql`now() - interval '1 second'` })
     .where(eq(memberships.id, membershipId));
 }
+
+/** Moves a membership's days, so one sold today can be made to have started and ended earlier. */
+export async function moveMembershipDays(membershipId: number, startsOn: string, endsOn: string) {
+  await db().update(memberships).set({ startsOn, endsOn }).where(eq(memberships.id, membershipId));
+}

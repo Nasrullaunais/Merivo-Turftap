@@ -141,6 +141,8 @@ The handler uses the repository, not the service: the service imports the job to
 
 A job queued inside `transaction()` is saved with the data, so it never runs for a row that didn't save. Handlers must check the row's state when they run, because things may have moved on.
 
+A job that runs by the clock is declared with `defineScheduledJob(name, { cron, timeZone }, handler)`; `memberships.jobs.ts` has two. A run missed while the API was down happens once when it is back. Its handler loops over the tenants that are on and works one tenant at a time, so repository functions still take `tenantId` first.
+
 A job gets a queue and a worker only if its file is loaded before `startJobs()`. `app.ts` loads most of them through the routes; a jobs file no route loads, like `notifications.jobs.ts`, is imported in `app.ts` directly.
 
 ## Live updates
