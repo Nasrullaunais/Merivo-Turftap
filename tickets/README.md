@@ -73,7 +73,7 @@ Status: `todo`, `doing`, `done`, `blocked` (waiting on a decision or an outside 
 | [T40](T40-whatsapp-cloud-adapter.md) | WhatsApp Cloud adapter | SIG-01, SIG-03, AST-07 | T04 | todo |
 | [T41](T41-sms-adapter.md) | SMS adapter | SIG-01 | | blocked (D-15) |
 | [T42](T42-auth0-in-frontends.md) | Auth0 sign-in in console and portal | SIG-01 | T29 | blocked (Auth0 tenant) |
-| [T43](T43-production-deployment.md) | Production deployment | | | todo |
+| [T43](T43-production-deployment.md) | Production deployment | | | doing (pipeline done; go-live waits on the domain and T40–T42) |
 | [T44](T44-backups.md) | Backups and restore drill | | T43 | todo |
 | [T45](T45-end-to-end-tests.md) | End-to-end journeys (Playwright + axe) | POR-05 | T30, T20 | todo |
 
@@ -96,7 +96,7 @@ Settled in a grilling session with the user. Each answer is written here, then i
 | D-11 | Live updates: Server-Sent Events read with `fetch` (so the sign-in header goes along), or polling? | Server-Sent Events with `fetch`, one in-memory event bus | Yes |
 | D-12 | What counts as a "recent" receipt date? | On or after the day the booking was made, and not in the future | Yes |
 | D-13 | "Same image" check: exact file hash only? | Yes, SHA-256 of the bytes | Yes |
-| D-14 | Is `turftap.lk` registered, and is its DNS on Cloudflare? | (a fact only you know) | Not bought yet. When bought, DNS goes on Cloudflare. T43 builds with the domain as a setting; only go-live waits |
+| D-14 | Is `turftap.lk` registered, and is its DNS on Cloudflare? | (a fact only you know) | Not bought yet. When bought, DNS goes on Cloudflare. T43 builds with the domain as a setting; only go-live waits. Until then the server uses `167-114-120-81.sslip.io` and shows "coming soon" (`SITE_MODE=hidden`) |
 | D-15 | SMS vendor for login codes | Research Sri Lankan options in T41, you pick | Yes |
 | D-16 | Storing receipts outside Sri Lanka, and backing them up: block development, or a launch checklist item? | Launch checklist item (T44) | Yes |
 | D-17 | How to test the n8n workflow | API tests for what n8n calls, plus a written manual checklist per Assistant ticket | Yes |

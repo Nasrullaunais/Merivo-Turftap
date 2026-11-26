@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <title>TurfTap · Coming soon</title>
+    <style>
+      :root {
+        --accent: oklch(0.52 0.1 186);
+        --canvas: oklch(97.5% 0 0);
+        --muted: oklch(0.52 0 0);
+        --ease: cubic-bezier(0.22, 1, 0.36, 1);
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        min-height: 100dvh;
+        display: grid;
+        place-items: center;
+        padding: 24px;
+        background:
+          radial-gradient(60rem 40rem at 50% -10%, oklch(0.9 0.06 186 / 0.6), transparent 70%),
+          var(--canvas);
+        color: oklch(0.2 0 0);
+        font-family:
+          system-ui,
+          -apple-system,
+          "Segoe UI",
+          sans-serif;
+        text-align: center;
+      }
+      main > * {
+        opacity: 0;
+        animation: rise 700ms var(--ease) forwards;
+      }
+      main > :nth-child(2) {
+        animation-delay: 120ms;
+      }
+      main > :nth-child(3) {
+        animation-delay: 240ms;
+      }
+      svg {
+        transition: transform 320ms var(--ease);
+      }
+      svg:hover {
+        transform: rotate(-6deg) scale(1.06);
+      }
+      h1 {
+        margin: 20px 0 8px;
+        font-size: clamp(1.75rem, 5vw, 2.5rem);
+        letter-spacing: -0.02em;
+      }
+      p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 1.05rem;
+      }
+      @keyframes rise {
+        from {
+          opacity: 0;
+          transform: translateY(12px);
+        }
+        to {
+          opacity: 1;
+          transform: none;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        main > * {
+          animation: none;
+          opacity: 1;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <svg aria-hidden="true" viewBox="0 0 32 32" width="72" height="72">
+        <rect width="32" height="32" rx="9" fill="var(--accent)" />
+        <rect
+          x="7"
+          y="9"
+          width="18"
+          height="14"
+          rx="2.5"
+          fill="none"
+          stroke="white"
+          stroke-width="2"
+        />
+        <path d="M16 9v14" stroke="white" stroke-width="2" />
+        <circle cx="16" cy="16" r="2.6" fill="none" stroke="white" stroke-width="1.8" />
+      </svg>
+      <h1>TurfTap is almost here</h1>
+      <p>Book courts, tables and memberships in a few taps. Opening soon.</p>
+    </main>
+  </body>
+</html>
