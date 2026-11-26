@@ -1,11 +1,15 @@
 import "@testing-library/jest-dom/vitest";
 
-import { cleanup } from "@testing-library/react";
+import { cleanup, configure } from "@testing-library/react";
 import { afterEach } from "vitest";
 
 import { installApiTransport } from "../lib/api/transport";
 
 installApiTransport();
+
+// The first page a test file renders takes over a second on CI runners; the 1-second default flaked.
+const FIND_TIMEOUT_MS = 5000;
+configure({ asyncUtilTimeout: FIND_TIMEOUT_MS });
 
 // jsdom's Request rejects relative URLs; browsers resolve them against the page.
 const NodeRequest = globalThis.Request;
