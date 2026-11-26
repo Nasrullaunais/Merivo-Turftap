@@ -1,7 +1,7 @@
 import { HOLDING_STATUSES, minuteOfDay, type OpeningHours } from "@turftap/contract";
 import type { BlockedTime, Booking, ClosedDate, Resource, Venue } from "@turftap/contract/client";
 
-import { addDays, onVenueClock, weekdayOf } from "../../lib/time/venueClock";
+import { addDays, onVenueClock, weekdayOf } from "@turftap/ui";
 import type { CalendarState } from "./calendarStates";
 
 export { addDays, onVenueClock, weekdayOf };

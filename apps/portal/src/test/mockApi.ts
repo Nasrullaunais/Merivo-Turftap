@@ -2,6 +2,7 @@ import { vi } from "vitest";
 
 const FAILURE = Symbol("failure");
 const IN_TURN = Symbol("inTurn");
+const BY_QUERY = Symbol("byQuery");
 
 /** An error reply, shaped like the API's error envelope. */
 export const failure = (status: number, code: string, message = "Refused") => ({
@@ -16,6 +17,9 @@ export const inTurn = (...replies: unknown[]) => ({ [IN_TURN]: replies });
 
 const has = (value: unknown, mark: symbol) =>
   typeof value === "object" && value !== null && mark in value;
+
+/** A reply that depends on the query, such as `?date=` or `?slots=`. */
+export const byQuery = (reply: (query: URLSearchParams) => unknown) => ({ [BY_QUERY]: reply });
 
 /**
  * Answers API calls by "METHOD /path" with the success envelope, or the error envelope for a
@@ -36,7 +40,10 @@ export function mockApi(routes: Record<string, unknown>) {
     calls.set(key, count + 1);
     const route = routes[key];
     const replies = has(route, IN_TURN) ? (route as ReturnType<typeof inTurn>)[IN_TURN] : [route];
-    const reply = replies[Math.min(count, replies.length - 1)];
+    const turn = replies[Math.min(count, replies.length - 1)];
+    const reply = has(turn, BY_QUERY)
+      ? (turn as ReturnType<typeof byQuery>)[BY_QUERY](new URL(request.url).searchParams)
+      : turn;
     if (has(reply, FAILURE)) {
       const { status, code, message } = reply as ReturnType<typeof failure>;
       return Response.json({ status, code, message, traceId: "test" }, { status });

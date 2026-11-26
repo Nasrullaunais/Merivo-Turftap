@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-import { onVenueClock } from "./venueClock";
+import { onVenueClock } from "@turftap/ui";
 
 /** Today's date on the venue's clock, read once when the screen opens. */
 export function useVenueToday(timeZone: string | undefined) {

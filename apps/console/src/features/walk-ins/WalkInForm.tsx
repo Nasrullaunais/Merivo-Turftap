@@ -17,7 +17,7 @@ import {
   type WalkInPayment,
 } from "@turftap/contract";
 import type { Resource } from "@turftap/contract/client";
-import { ApiError, formatMoney } from "@turftap/ui";
+import { addDays, ApiError, formatMoney, onVenueClock } from "@turftap/ui";
 import { Banknote, CalendarCheck, Clock, UserCheck } from "lucide-react";
 import { type FormEvent, useState } from "react";
 
@@ -29,7 +29,6 @@ import { SkeletonLine } from "../../components/SkeletonRows";
 import { TopicTile } from "../../components/TopicTile";
 import m from "../../i18n/en/walkIns";
 import { useCustomerByPhone } from "../../lib/customers/useCustomerByPhone";
-import { addDays, onVenueClock } from "../../lib/time/venueClock";
 import { SeriesClashes } from "./SeriesClashes";
 import { useBookSeries, useBookWalkIn, useSlotsFrom } from "./useWalkIn";
 

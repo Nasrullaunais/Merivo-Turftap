@@ -6,7 +6,7 @@ import {
   type WalkInPayment,
 } from "@turftap/contract";
 import type { MembershipPlan, Venue } from "@turftap/contract/client";
-import { ApiError, formatMoney } from "@turftap/ui";
+import { addDays, ApiError, daysFrom, formatMoney, onVenueClock } from "@turftap/ui";
 import { BadgeCheck, Banknote, Check, Clock, MapPin, RefreshCw, UserCheck } from "lucide-react";
 import { type FormEvent, useState } from "react";
 import { Radio, RadioGroup } from "react-aria-components";
@@ -18,7 +18,6 @@ import { TopicTile } from "../../components/TopicTile";
 import planWords from "../../i18n/en/membershipPlans";
 import m from "../../i18n/en/memberships";
 import { useCustomerByPhone } from "../../lib/customers/useCustomerByPhone";
-import { addDays, daysFrom, onVenueClock } from "../../lib/time/venueClock";
 import { useCurrentLastDay, useSellMembership } from "./useMemberships";
 
 // A wrong "paid in cash" records money nobody took; a wrong "pay later" only leaves a Balance.

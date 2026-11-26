@@ -3,7 +3,7 @@ import { Clock } from "lucide-react";
 
 import m from "../../i18n/en/venues";
 import { useVenueToday } from "../../lib/time/useVenueToday";
-import { weekdayOf } from "../../lib/time/venueClock";
+import { weekdayOf } from "@turftap/ui";
 
 /** Today's opening hours on the venue's own clock. */
 export function TodayHours({ venue }: { venue: Venue }) {

@@ -121,3 +121,111 @@
     scale: 1;
   }
 }
+
+/* withViewTransition: slot tiles glide to their new place; the chosen tile opens into the block. */
+:root[data-glide]::view-transition {
+  pointer-events: none;
+}
+:root[data-glide]::view-transition-old(root),
+:root[data-glide]::view-transition-new(root) {
+  animation: none;
+}
+/* The bars stay on top of moving tiles and keep their own motion. */
+::view-transition-group(tt-top-bar),
+::view-transition-group(tt-book-bar) {
+  z-index: 1;
+  animation: none;
+}
+::view-transition-old(tt-top-bar),
+::view-transition-old(tt-book-bar) {
+  display: none;
+}
+::view-transition-new(tt-top-bar),
+::view-transition-new(tt-book-bar) {
+  animation: none;
+}
+::view-transition-group(.tt-slot) {
+  animation-duration: 380ms;
+  animation-timing-function: var(--tt-ease);
+}
+::view-transition-image-pair(.tt-slot) {
+  overflow: clip;
+  border-radius: 1rem;
+}
+::view-transition-old(.tt-slot),
+::view-transition-new(.tt-slot) {
+  height: 100%;
+  object-fit: none;
+  object-position: left top;
+  animation-duration: 380ms;
+}
+/* Opening: the tile stretches with the block and gives way fast, so no white corner lingers. */
+:root[data-glide="pick"]::view-transition-old(.tt-chosen) {
+  object-fit: fill;
+  animation-duration: 140ms;
+}
+:root[data-glide="pick"]::view-transition-new(.tt-chosen) {
+  animation-duration: 180ms;
+}
+/* A tile the block takes in slides up into it; one it lets go comes back out. */
+::view-transition-old(.tt-slot):only-child {
+  animation: tt-merge 280ms var(--tt-ease) both;
+}
+::view-transition-new(.tt-slot):only-child {
+  animation: tt-merge 320ms var(--tt-ease) reverse both;
+}
+@keyframes tt-merge {
+  to {
+    opacity: 0;
+    transform: translateY(-18px) scale(0.85);
+  }
+}
+
+/* Book on the chosen block: a light sweeps across, the button pulses and its arrow goes and comes back. */
+@utility tt-shine {
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(
+      105deg,
+      transparent 30%,
+      rgb(255 255 255 / 0.35) 50%,
+      transparent 70%
+    );
+    translate: -110% 0;
+  }
+  &[data-going="true"]::after {
+    animation: tt-sweep-light 460ms var(--tt-ease) both;
+  }
+  &[data-going="true"] .tt-book {
+    animation: tt-press 460ms var(--tt-ease-pop) both;
+  }
+  &[data-going="true"] .tt-book-arrow {
+    animation: tt-arrow-go 460ms var(--tt-ease) both;
+  }
+}
+@keyframes tt-sweep-light {
+  to {
+    translate: 110% 0;
+  }
+}
+@keyframes tt-press {
+  30% {
+    scale: 0.94;
+  }
+  65% {
+    scale: 1.05;
+  }
+}
+@keyframes tt-arrow-go {
+  45% {
+    opacity: 0;
+    transform: translateX(16px);
+  }
+  46% {
+    opacity: 0;
+    transform: translateX(-16px);
+  }
+}

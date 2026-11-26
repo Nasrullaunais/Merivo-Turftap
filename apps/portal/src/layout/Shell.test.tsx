@@ -1,24 +1,12 @@
-import { QueryClientProvider } from "@tanstack/react-query";
-import { RouterProvider } from "@tanstack/react-router";
-import { act, fireEvent, render, screen, within } from "@testing-library/react";
-import { createQueryClient } from "@turftap/ui";
+import { act, fireEvent, screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { createAppRouter } from "../router";
 import { failure, inTurn, mockApi } from "../test/mockApi";
+import { renderPortal } from "../test/renderPortal";
 
 const PHONE_WIDTH_PX = 360;
 const tenant = { slug: "demo", name: "Kick Off Sports" };
 const noVenues = { content: [], page: 0, size: 20, totalElements: 0, totalPages: 0 };
-
-function renderPortal() {
-  const queryClient = createQueryClient();
-  render(
-    <QueryClientProvider client={queryClient}>
-      <RouterProvider router={createAppRouter()} context={{ queryClient }} />
-    </QueryClientProvider>,
-  );
-}
 
 const requestedPaths = (fetch: ReturnType<typeof mockApi>) =>
   fetch.mock.calls.map(([request]) => new URL((request as Request).url).pathname);
