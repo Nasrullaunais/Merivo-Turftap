@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as BookRouteImport } from './routes/book'
 import { Route as SignInRouteImport } from './routes/sign-in'
+import { Route as BookingsBookingIdRouteImport } from './routes/bookings/$bookingId'
 import { Route as ResourcesResourceIdRouteImport } from './routes/resources/$resourceId'
 import { Route as VenuesVenueIdRouteImport } from './routes/venues/$venueId'
 
@@ -30,6 +31,11 @@ const SignInRoute = SignInRouteImport.update({
   path: '/sign-in',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BookingsBookingIdRoute = BookingsBookingIdRouteImport.update({
+  id: '/bookings/$bookingId',
+  path: '/bookings/$bookingId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ResourcesResourceIdRoute = ResourcesResourceIdRouteImport.update({
   id: '/resources/$resourceId',
   path: '/resources/$resourceId',
@@ -45,6 +51,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/book': typeof BookRoute
   '/sign-in': typeof SignInRoute
+  '/bookings/$bookingId': typeof BookingsBookingIdRoute
   '/resources/$resourceId': typeof ResourcesResourceIdRoute
   '/venues/$venueId': typeof VenuesVenueIdRoute
 }
@@ -52,6 +59,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/book': typeof BookRoute
   '/sign-in': typeof SignInRoute
+  '/bookings/$bookingId': typeof BookingsBookingIdRoute
   '/resources/$resourceId': typeof ResourcesResourceIdRoute
   '/venues/$venueId': typeof VenuesVenueIdRoute
 }
@@ -60,20 +68,33 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/book': typeof BookRoute
   '/sign-in': typeof SignInRoute
+  '/bookings/$bookingId': typeof BookingsBookingIdRoute
   '/resources/$resourceId': typeof ResourcesResourceIdRoute
   '/venues/$venueId': typeof VenuesVenueIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    '/' | '/book' | '/sign-in' | '/resources/$resourceId' | '/venues/$venueId'
+    | '/'
+    | '/book'
+    | '/sign-in'
+    | '/bookings/$bookingId'
+    | '/resources/$resourceId'
+    | '/venues/$venueId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/book' | '/sign-in' | '/resources/$resourceId' | '/venues/$venueId'
+  to:
+    | '/'
+    | '/book'
+    | '/sign-in'
+    | '/bookings/$bookingId'
+    | '/resources/$resourceId'
+    | '/venues/$venueId'
   id:
     | '__root__'
     | '/'
     | '/book'
     | '/sign-in'
+    | '/bookings/$bookingId'
     | '/resources/$resourceId'
     | '/venues/$venueId'
   fileRoutesById: FileRoutesById
@@ -82,6 +103,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   BookRoute: typeof BookRoute
   SignInRoute: typeof SignInRoute
+  BookingsBookingIdRoute: typeof BookingsBookingIdRoute
   ResourcesResourceIdRoute: typeof ResourcesResourceIdRoute
   VenuesVenueIdRoute: typeof VenuesVenueIdRoute
 }
@@ -109,6 +131,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SignInRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/bookings/$bookingId': {
+      id: '/bookings/$bookingId'
+      path: '/bookings/$bookingId'
+      fullPath: '/bookings/$bookingId'
+      preLoaderRoute: typeof BookingsBookingIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/resources/$resourceId': {
       id: '/resources/$resourceId'
       path: '/resources/$resourceId'
@@ -130,6 +159,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   BookRoute: BookRoute,
   SignInRoute: SignInRoute,
+  BookingsBookingIdRoute: BookingsBookingIdRoute,
   ResourcesResourceIdRoute: ResourcesResourceIdRoute,
   VenuesVenueIdRoute: VenuesVenueIdRoute,
 }

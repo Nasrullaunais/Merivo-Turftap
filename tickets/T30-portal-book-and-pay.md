@@ -1,6 +1,6 @@
 # T30 Book, see how to pay, send receipt
 
-Status: todo · Stories: `BKG-02`, `PAY-01`, `PAY-02` · Depends on: T11, T28, T29
+Status: done · Stories: `BKG-02`, `PAY-01`, `PAY-02` · Depends on: T11, T28, T29
 
 ## Goal
 From the slot list, a signed-in customer confirms a booking, sees the bank details, exact amount and time left, and uploads their Transfer Receipt.

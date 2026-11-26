@@ -1,8 +1,16 @@
 import { z } from "zod";
 
-import { Id, LocalDate, Money, PhoneInput, PhoneNumber, Timestamp } from "./common";
+import {
+  CENTS_PER_RUPEE,
+  Id,
+  LocalDate,
+  Money,
+  PhoneInput,
+  PhoneNumber,
+  Timestamp,
+} from "./common";
 import { CustomerName } from "./customers";
-import { BankAccount } from "./venues";
+import { BankAccount, FULL_AMOUNT_PERCENT } from "./venues";
 
 export const BOOKING_STATUSES = [
   "AWAITING_PAYMENT",
@@ -21,6 +29,16 @@ export const BOOKING_HORIZON_DAYS = 30;
 /** A whole day of the shortest slots; opening hours limit a booking long before this. */
 export const MAX_SLOTS_PER_BOOKING = 96;
 export const MAX_CANCEL_REASON_LENGTH = 200;
+
+/** BKG-02: cents to pay online: the Advance rounded up to whole rupees, or nothing at Pay at Venue. */
+export function amountDueOnline(
+  priceCents: number,
+  venue: { advancePercent: number; payAtVenue: boolean },
+): number {
+  if (venue.payAtVenue) return 0;
+  const centsTimesPercent = priceCents * venue.advancePercent;
+  return Math.ceil(centsTimesPercent / (FULL_AMOUNT_PERCENT * CENTS_PER_RUPEE)) * CENTS_PER_RUPEE;
+}
 
 export const Booking = z
   .object({

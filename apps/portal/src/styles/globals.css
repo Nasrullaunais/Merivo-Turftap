@@ -229,3 +229,57 @@
     transform: translateX(-16px);
   }
 }
+
+/* T30 booking ticket: two notches cut where the stub (--tt-stub tall) tears off. */
+@utility tt-ticket {
+  --tt-cut: calc(100% - var(--tt-stub, 3.5rem));
+  background: var(--tt-panel);
+  border-radius: 1.25rem;
+  mask:
+    radial-gradient(circle 0.7rem at 0 var(--tt-cut), transparent 96%, #000 100%) left / 51% 100%
+      no-repeat,
+    radial-gradient(circle 0.7rem at 100% var(--tt-cut), transparent 96%, #000 100%) right / 51%
+      100% no-repeat;
+}
+/* The mask would clip a box-shadow, so the shadow sits on a wrapper and follows the notches. */
+@utility tt-ticket-shadow {
+  filter: drop-shadow(0 1px 1px rgb(0 0 0 / 0.05)) drop-shadow(0 10px 24px rgb(0 0 0 / 0.08));
+}
+
+/* The venue's bank details, drawn as a bank card on the money hue. */
+@utility tt-bank-card {
+  color: white;
+  border-radius: 1.25rem;
+  background:
+    radial-gradient(
+      90% 120% at 100% 0%,
+      color-mix(in oklab, var(--tt-hue-money) 55%, white) 0%,
+      transparent 60%
+    ),
+    linear-gradient(
+      140deg,
+      var(--tt-hue-money),
+      color-mix(in oklab, var(--tt-hue-money) 65%, oklch(0.28 0.12 275))
+    );
+  box-shadow: 0 14px 32px -14px color-mix(in oklab, var(--tt-hue-money) 70%, transparent);
+}
+
+/* The step you are on breathes softly, so the eye finds it. */
+@utility tt-beacon {
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  background: var(--tt-tone);
+  animation: tt-beacon 2400ms var(--tt-ease) 600ms infinite both;
+}
+@keyframes tt-beacon {
+  0% {
+    opacity: 0.35;
+    transform: scale(1);
+  }
+  70%,
+  100% {
+    opacity: 0;
+    transform: scale(1.7);
+  }
+}

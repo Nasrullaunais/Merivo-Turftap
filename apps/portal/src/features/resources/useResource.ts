@@ -1,10 +1,11 @@
 import { getResourceOptions } from "@turftap/contract/client/react-query";
 import { useQuery } from "@tanstack/react-query";
 
-/** A missing or turned-off resource is shown on the page, not as a toast. */
-export function useResource(resourceId: number) {
+/** Waits while `resourceId` is still unknown. A missing or turned-off one is shown on the page. */
+export function useResource(resourceId: number | undefined) {
   return useQuery({
-    ...getResourceOptions({ path: { id: resourceId } }),
+    ...getResourceOptions({ path: { id: resourceId! } }),
+    enabled: resourceId !== undefined,
     select: (reply) => reply.data,
     meta: { silent: true },
   });
