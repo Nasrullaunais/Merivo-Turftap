@@ -98,3 +98,12 @@ A good test fails when the behaviour breaks and keeps passing when the code is o
 - Format and lint only the files you touch.
 - Dependencies use their latest stable release. Holding one back is a decision for the user (see Decisions), and the reason is written in the docs.
 - Pull requests: one topic, a short plain description, story IDs listed.
+
+## Some notes
+
+- No sudden movements in the UI on transitions or changes, everything should happen though a smooth motion, a well thoughout flow.
+- UI should be modern, colorful with meaning. 
+- page initial load should have a nice animation, not a random movement.
+- give careful thought to the UX, less clicks/typing. more selecting an option when appropraite. dont slam the user with a large form, take the user through it step by step. 
+- the UI structure and hierachy should give the most guidance to the user, not words.
+- make sure every click and hovers are greeted. mobile and tablets should be fully supported.
