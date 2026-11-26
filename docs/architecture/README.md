@@ -88,6 +88,7 @@ Modules use each other **only through services**. Outside services are reached *
 - [adapters.md](adapters.md): every port and its adapters
 - [frontend.md](frontend.md): the two React apps
 - [console-design.md](console-design.md): how the Staff Console looks, moves and loads
+- [portal-design.md](portal-design.md): how the Customer Portal looks on a phone, and its pages for an unknown or turned-off address
 - [assistant.md](assistant.md): the n8n WhatsApp flow
 - [payments.md](payments.md): booking and payment states, receipt checks
 - [testing.md](testing.md): test kinds and architecture rules

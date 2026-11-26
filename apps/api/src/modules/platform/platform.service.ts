@@ -1,6 +1,6 @@
-import { type Me, PhoneInput } from "@turftap/contract";
+import { type Me, PhoneInput, type Tenant } from "@turftap/contract";
 
-import type { Caller } from "../../lib/auth/context";
+import type { AuthContext, Caller } from "../../lib/auth/context";
 import { ROLE_PERMISSIONS } from "../../lib/auth/permissions";
 import { config } from "../../lib/config";
 import { transaction } from "../../lib/db";
@@ -62,9 +62,17 @@ function onOrNotFound<T extends { active: boolean }>(tenant: T | undefined) {
   return tenant;
 }
 
+/** PLA-03: the portal tells an unknown address apart from a tenant that was turned off. */
+async function portalTenant(slug: string) {
+  const tenant = await platformRepository.findTenantBySlug(slug);
+  if (!tenant) throw platformErrors.tenantNotFound();
+  if (!tenant.active) throw platformErrors.tenantOff();
+  return tenant;
+}
+
 async function publicCaller(slug?: string): Promise<Caller> {
   if (!slug) return { actor: "public" };
-  const tenant = onOrNotFound(await platformRepository.findTenantBySlug(slug));
+  const tenant = await portalTenant(slug);
   return { actor: "public", tenantId: tenant.id };
 }
 
@@ -78,7 +86,7 @@ async function withCustomerRecord(caller: Caller & { tenantId: number; phone: st
 async function customerCaller(token: string, slug: string): Promise<Caller> {
   const signIn = await customerSignIns.get(`${token}|${slug}`, async () => {
     const { phone } = await ports().auth.verify(token);
-    const tenant = onOrNotFound(await platformRepository.findTenantBySlug(slug));
+    const tenant = await portalTenant(slug);
     const user = await platformRepository.findOrCreateUser(phone);
     return { userId: user.id, tenantId: tenant.id, phone };
   });
@@ -152,4 +160,11 @@ export async function me(caller: Caller): Promise<Me> {
       return role ? [{ id, slug, name, role, permissions: [...ROLE_PERMISSIONS[role]] }] : [];
     }),
   };
+}
+
+/** POR-01: the name shown at the top of the portal. */
+export async function tenant(auth: AuthContext): Promise<Tenant> {
+  const row = await platformRepository.findTenantById(auth.tenantId);
+  if (!row) throw platformErrors.tenantNotFound();
+  return { slug: row.slug, name: row.name };
 }

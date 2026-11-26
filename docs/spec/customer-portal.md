@@ -3,6 +3,8 @@
 ## POR-01 Tenant address
 As a **Customer**, I want to open my venue's own web address (`<tenant>.turftap.lk`), so that I only see that business.
 - Given an unknown address, when I open it, then I see a "venue not found" page.
+- Given a tenant that is turned off, when I open its address, then I see a "not available" page (`PLA-03`).
+- The tenant's name is always at the top of the page.
 
 ## POR-02 Browse without signing in
 As a **Customer**, I want to see venues, resources, prices and free slots before signing in, so that I can decide first.

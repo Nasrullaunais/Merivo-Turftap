@@ -3,7 +3,15 @@ import { eq } from "drizzle-orm";
 
 import { db } from "../../lib/db";
 import { staff } from "../staff/staff.tables";
-import { call, createTenant, type TestTenant, uniquePhone } from "../../test/fixtures";
+import {
+  asCustomer,
+  asStaff,
+  call,
+  createTenant,
+  type TestTenant,
+  turnOff,
+  uniquePhone,
+} from "../../test/fixtures";
 import { users } from "./platform.tables";
 
 describe("SIG-02, SIG-05 GET /v1/me", () => {
@@ -84,5 +92,44 @@ describe("SIG-02, SIG-05 GET /v1/me", () => {
     expect(reply.body.data.tenants).toEqual([
       expect.objectContaining({ id: first.id, role: "MANAGER" }),
     ]);
+  });
+});
+
+describe("POR-01, PLA-03 GET /v1/tenant", () => {
+  let tenant: TestTenant;
+  beforeAll(async () => {
+    tenant = await createTenant();
+  });
+
+  it("tenant_givesTheNameOfThePortalAddressWithoutSignIn", async () => {
+    const reply = await call("GET", "/v1/tenant", { tenantSlug: tenant.slug });
+    expect(reply).toMatchObject({
+      status: 200,
+      body: { data: { slug: tenant.slug, name: `Tenant ${tenant.slug}` } },
+    });
+  });
+
+  it("tenant_givesTheSameToSignedInCustomersAndStaff", async () => {
+    const asCustomerReply = await call("GET", "/v1/tenant", asCustomer(tenant, uniquePhone()));
+    const asStaffReply = await call("GET", "/v1/tenant", asStaff(tenant));
+    expect(asCustomerReply.body.data.slug).toBe(tenant.slug);
+    expect(asStaffReply.body.data.slug).toBe(tenant.slug);
+  });
+
+  it("tenant_needsATenant", async () => {
+    const reply = await call("GET", "/v1/tenant");
+    expect(reply).toMatchObject({ status: 400, body: { code: "tt_htt_400" } });
+  });
+
+  it("tenant_unknownAddress_isNotFound", async () => {
+    const reply = await call("GET", "/v1/tenant", { tenantSlug: "no-such-tenant" });
+    expect(reply).toMatchObject({ status: 404, body: { code: "tt_plt_001" } });
+  });
+
+  it("tenant_turnedOff_isNotAvailable", async () => {
+    const offTenant = await createTenant();
+    await turnOff(offTenant);
+    const reply = await call("GET", "/v1/tenant", { tenantSlug: offTenant.slug });
+    expect(reply).toMatchObject({ status: 403, body: { code: "tt_plt_010" } });
   });
 });

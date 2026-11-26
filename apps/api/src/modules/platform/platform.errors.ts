@@ -19,6 +19,7 @@ export const platformErrors = {
   tenantHasNumber: () =>
     new Conflict("tt_plt_008", "This tenant already has a WhatsApp number. Unlink it first"),
   noNumber: () => new NotFound("tt_plt_009", "This tenant has no WhatsApp number"),
+  tenantOff: () => new Forbidden("tt_plt_010", "This venue is not available right now"),
 };
 
 constraintErrors({

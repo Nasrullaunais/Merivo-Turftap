@@ -52,7 +52,7 @@ Backgrounds are plain greys with no hue. Colour sits on things, never on the flo
 - **Never an edge stripe.** No coloured bar down one side of anything: not on pills, calendar entries, rows, cards or the current page in the sidebar. The user turned it down on 2026-11-24. Colour goes in a tint, a tile, an icon or a full outline instead.
 - **Shadow** is one soft two-layer shadow for cards (`--tt-shadow-card`) and a bigger one for dialogs and popovers. Nothing else casts a shadow.
 - **Radius** has three steps: 6px for chips and icon buttons, 8px for buttons, inputs and rows, 12px for panels and dialogs. `rounded-full` is only for dots, avatars and pills.
-- **Light only for now.** Every colour is a token in `apps/console/src/styles/globals.css`, so dark mode is one more block of values later, not a rewrite. Never write a raw colour (`#fff`, `bg-white`, `text-gray-500`) in a component.
+- **Light only for now.** Every colour is a token in `packages/ui/src/theme.css`, shared with the portal, so dark mode is one more block of values later, not a rewrite. Never write a raw colour (`#fff`, `bg-white`, `text-gray-500`) in a component.
 
 ### 3.2 Hue says what kind of thing it is
 
@@ -223,7 +223,7 @@ Answering an action:
 - **Nothing appears or disappears at once.** New things rise or land, removed things fade out in place (`usePresence`), and a box whose content changes eases to its new height (`SmoothHeight`). The calendar slides to a new date.
 - **Hover moves only cards**: cards, summary tiles and calendar bookings lift (§8). Everything else changes tone only.
 - **No long waits for effects.** Nothing over 400ms blocks a person from their next press, except the slower saved and landed tints, which never block anything.
-- **Reduced motion.** With `prefers-reduced-motion: reduce`, every animation and transition is cut to near zero (one rule in `globals.css`), and view transitions are skipped by checking the media query first. Content still appears; it just doesn't move.
+- **Reduced motion.** With `prefers-reduced-motion: reduce`, every animation and transition is cut to near zero (one rule in `packages/ui/src/theme.css`), and view transitions are skipped by checking the media query first. Content still appears; it just doesn't move.
 
 ## 7. Loading
 
@@ -286,7 +286,7 @@ These are the shapes to reuse. Build new screens from them before inventing a ne
 
 | What | Where |
 |---|---|
-| Colour, surface, motion tokens and keyframes | `apps/console/src/styles/globals.css` |
+| Colour, surface, motion tokens and keyframes | `packages/ui/src/theme.css` (shared); console-only looks in `apps/console/src/styles/globals.css` |
 | Brand accent shared with the portal | `packages/ui/src/theme.css` |
 | Sidebar (`Sidebar`), shell (`AppShell`), page frame (`PageLayout`) | `apps/console/src/layout/` |
 | Nav items, their hues and icons | `apps/console/src/config/nav.ts` |

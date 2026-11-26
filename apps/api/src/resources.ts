@@ -13,7 +13,11 @@ import {
 } from "./modules/memberships/memberships.routes";
 import { eventsResource } from "./modules/notifications/notifications.routes";
 import { paymentsResource } from "./modules/payments/payments.routes";
-import { meResource, whatsappNumbersResource } from "./modules/platform/platform.routes";
+import {
+  meResource,
+  tenantResource,
+  whatsappNumbersResource,
+} from "./modules/platform/platform.routes";
 import { staffResource } from "./modules/staff/staff.routes";
 import {
   blockedTimesResource,
@@ -26,6 +30,7 @@ import {
 
 export const RESOURCES: Resource[] = [
   meResource,
+  tenantResource,
   whatsappNumbersResource,
   staffResource,
   venuesResource,

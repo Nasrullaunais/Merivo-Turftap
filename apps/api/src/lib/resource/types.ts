@@ -59,8 +59,11 @@ export type ResourceDefinition<
 export type SingletonDefinition<Item extends z.ZodType> = {
   name: string;
   schemas: { item: Item };
-  service: { get: (caller: Caller) => Promise<z.output<Item>> };
-};
+} & (
+  | { about: "caller"; service: { get: (caller: Caller) => Promise<z.output<Item>> } }
+  /** Open without sign-in; anyone with a tenant (X-Tenant-Slug on the portal) may read it. */
+  | { about: "tenant"; service: { get: (auth: AuthContext) => Promise<z.output<Item>> } }
+);
 
 export type Resource = {
   name: string;

@@ -7,9 +7,11 @@ export const Route = createFileRoute("/")({ component: HomePage });
 
 function HomePage() {
   return (
-    <main className="mx-auto grid max-w-xl gap-4 p-4">
-      <h1 className="text-2xl font-semibold">{m.title}</h1>
+    <div className="grid gap-5">
+      <h1 className="animate-tt-rise text-2xl font-semibold tracking-tight [animation-delay:60ms]">
+        {m.title}
+      </h1>
       <VenueList />
-    </main>
+    </div>
   );
 }

@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 
 import m from "../i18n/en/shell";
-import { BrandMark } from "./BrandMark";
+import { BrandMark } from "@turftap/ui";
 
 /** Pages outside the shell (sign in, choose a tenant): the brand, then one small panel. */
 export function CentredPanel({ title, children }: { title: string; children: ReactNode }) {
