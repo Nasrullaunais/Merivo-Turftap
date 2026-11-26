@@ -1,6 +1,6 @@
 # T31 My bookings and memberships
 
-Status: todo · Stories: `POR-04`, `BKG-06` · Depends on: T30
+Status: done · Stories: `POR-04`, `BKG-06` · Depends on: T30
 
 ## Goal
 A customer sees upcoming and past bookings with their state, sends a receipt for one waiting for payment, and cancels before the cut-off. Memberships are listed too (once T23 exists).

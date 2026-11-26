@@ -102,7 +102,7 @@ export function BookingTicket({
 }
 
 /** A calendar leaf: month on a teal band, the day's number big, the weekday under it. */
-function DayLeaf({ date }: { date: string }) {
+export function DayLeaf({ date }: { date: string }) {
   return (
     <div className="grid w-14 shrink-0 animate-tt-pop overflow-hidden rounded-xl text-center shadow-[inset_0_0_0_1px_var(--tt-line)] [animation-delay:80ms]">
       <span className="sr-only">{slots.shortDate(date)}</span>

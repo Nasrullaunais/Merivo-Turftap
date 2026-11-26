@@ -21,6 +21,12 @@ globalThis.Request = class extends NodeRequest {
 
 // jsdom can't scroll; the router scrolls to the top after each page change.
 window.scrollTo = () => {};
+// jsdom has no ResizeObserver; HeroUI's toasts create one to measure themselves.
+globalThis.ResizeObserver ??= class {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+};
 
 afterEach(() => {
   cleanup();

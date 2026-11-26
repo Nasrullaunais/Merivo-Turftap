@@ -5,6 +5,7 @@ import { CardSkeletons } from "../components/CardSkeletons";
 import m from "../i18n/en/shell";
 import { tenantProblemOf } from "../lib/tenant/tenantProblem";
 import { useTenant } from "../lib/tenant/useTenant";
+import { BottomNav } from "./BottomNav";
 import { TenantProblemPage } from "./TenantProblemPage";
 import { TopBar } from "./TopBar";
 
@@ -41,9 +42,10 @@ export function Shell({ children }: { children: ReactNode }) {
     <div className="relative isolate flex min-h-dvh flex-col">
       <div aria-hidden className="tt-canvas-glow" />
       <TopBar name={name} />
-      <main className="mx-auto w-full max-w-5xl flex-1 px-4 pt-6 pb-16">
+      <main className="mx-auto w-full max-w-5xl flex-1 px-4 pt-6 pb-[calc(4rem+var(--tt-nav-space))]">
         {name ? children : <PageSkeleton />}
       </main>
+      {name && <BottomNav />}
     </div>
   );
 }

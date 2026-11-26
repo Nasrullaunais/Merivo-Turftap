@@ -22,6 +22,14 @@
   }
 }
 
+/* Room the phone's bottom nav takes (POR-05); bars pinned to the bottom sit above it. */
+:root {
+  --tt-nav-space: calc(4rem + env(safe-area-inset-bottom));
+  @media (width >= 40rem) {
+    --tt-nav-space: 0px;
+  }
+}
+
 /* A frosted bar: the page scrolls under it without the name getting lost. */
 @utility tt-glass {
   background: color-mix(in oklab, var(--tt-panel) 78%, transparent);

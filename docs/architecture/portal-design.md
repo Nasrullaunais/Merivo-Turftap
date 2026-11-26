@@ -2,7 +2,7 @@
 
 How the Customer Portal looks and moves. It follows [console-design.md](console-design.md) (principles, colour meanings, motion vocabulary, loading rules) and shares its tokens from `packages/ui/src/theme.css`. This page lists only what is different for customers on a phone.
 
-Status: written 2026-11-26 with T27 (the shell), approved. §5 added with T28, approved. §6 added with T29, approved. §7 added with T30, approved.
+Status: written 2026-11-26 with T27 (the shell), approved. §5 added with T28, approved. §6 added with T29, approved. §7 added with T30, approved. §8 and the nav in §2 added with T31, approved.
 
 ## 1. Phone first
 
@@ -14,7 +14,7 @@ Status: written 2026-11-26 with T27 (the shell), approved. §5 added with T28, a
 - **Top bar**: frosted (`tt-glass`), sticky, 64px tall. The tenant's initials on a teal square (`TenantMark`) and its name, which also becomes the browser tab's title. Pressing it goes home.
 - **Pages open only once the tenant is known.** Until then the top bar and the page show skeletons shaped like what is coming. If the tenant can't be read, the whole page is replaced by a status page (§3), so no page ever shows its own "not found" toast.
 - A soft teal wash behind the top of the page (`tt-canvas-glow`) is the brand; it never sits behind content.
-- **Bottom nav** comes with T31.
+- **Sections** (`POR-05`): **Venues** and **My bookings**. On phones they sit in a frosted bottom nav, icon over label; from 640px they move into the top bar as a pill switch. A teal tint (phones) or a white pill (wider) slides to the current one. A booking's own page counts as My bookings. Bars pinned to the bottom, like the Book bar, sit above the bottom nav (`--tt-nav-space`).
 - Locally the tenant is read from `?tenant=`, so every link keeps that part of the address.
 
 ## 3. Status pages (`components/StatusPage.tsx`)
@@ -86,3 +86,20 @@ After **Book** the customer goes **confirm → transfer → send the receipt**, 
   2. **Send the receipt**: a dashed purple drop zone ("Choose your receipt", JPG, PNG or PDF up to 5 MB) that also takes a dropped file. A wrong type or a file over 5 MB is refused before upload, in red, with a shake. A good file shows large above its name, with × and **Send receipt**.
   From `lg` the ticket sits in a sticky column beside the steps; on phones it comes last.
 - **Afterwards** the page shows one panel in the state's tone and icon, as the console's (§3.3 of console-design.md), with rings spreading from the badge: blue "Receipt sent" (the venue checks it), green "You're booked" (with "Pay LKR 9,000 at the venue." when money is left), grey "The time to pay ran out" with **Book again**, grey "This booking was cancelled". The steps (for "Receipt sent" and "You're booked") and the ticket sit under it. When the countdown reaches zero the page turns to "ran out" at once and asks the server again.
+
+## 8. My bookings (T31)
+
+| Page | Address | What it shows |
+|---|---|---|
+| My bookings | `/me?show=upcoming\|past\|memberships` | A switch, then one list. Signing in comes first. |
+
+- **Switch**: **Upcoming**, **Past** and **Memberships**, each as wide as its label, with a white pill that slides to the chosen one. Upcoming and Memberships carry a teal count (live bookings, active memberships). Memberships shows only when a venue has a gym or the customer has one. The choice is in the address, so Back keeps it.
+- **Booking card**: the calendar leaf, the resource's icon and name, the venue, "6:00 PM – 8:00 PM · 2 hours" and the state pill (beside the name from 640px, under the time on phones). The top part opens the booking's page. Under a dashed line, what the customer can do now:
+  - Waiting for payment: the time left to pay (amber, red in the last 5 minutes), **Cancel** and a purple **Send receipt**, which opens the booking's page (§7).
+  - Waiting for receipt check: a blue "The venue is checking your receipt" and **Call** with the venue's phone.
+  - Confirmed: green "Paid" or purple "LKR 4,500 to pay at the venue", then "Free to cancel until 6:00 PM, Sun 29 Nov" and **Cancel**. After the Cancellation Cut-off the line says why it can't be cancelled here and **Call** replaces Cancel (`BKG-06`).
+  - Started, cancelled, expired and past bookings have no footer.
+- **Cancel**: a red question folds open inside the card: "Cancel this booking?", that the time goes back for others, what was paid ("Any refund is arranged with the venue"), **Keep it** (focused) and **Yes, cancel**. When it lands, the card glides down to **Cancelled or expired**, a quiet group at the end of Upcoming. If the server refuses, its message shows as a toast and the list reloads.
+- **Past** loads 20 at a time, latest first, with **Show older bookings**.
+- **Membership card**: the plan on a membership tile, the venue, "Thu 26 Nov → Fri 25 Dec" and the state pill; an active one has the days-used bar and "29 days left" (amber from 3 days left, as in the console). Renewing comes with T32.
+- Empty lists show one panel with an icon; Upcoming offers **See venues**.
