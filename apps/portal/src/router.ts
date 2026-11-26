@@ -28,4 +28,8 @@ declare module "@tanstack/react-router" {
   interface Register {
     router: ReturnType<typeof createApp>["router"];
   }
+  interface HistoryState {
+    /** BKG-02: the time list was opened because the chosen time went to someone else. */
+    justTaken?: boolean;
+  }
 }

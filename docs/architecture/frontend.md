@@ -55,7 +55,7 @@ Code shared by **both** apps goes in `packages/ui` (theme, components, `ApiError
 
 ## Sign-in in the portal
 
-- Customers browse without signing in. A page that needs the customer (`/book` today) sends them to `/sign-in?back=<that page>`, and they return there afterwards. `back` is only ever a page of the portal.
+- Customers browse without signing in. A page that needs the customer (`/book`, `/bookings/$bookingId`) sends them to `/sign-in?back=<that page>`, and they return there afterwards. `back` is only ever a page of the portal.
 - Until Auth0 exists (T42) it is the same test form as the console: `fake:<phone>` in `sessionStorage`.
 - After the phone, `GET /v1/customers` returns the customer's own record at this tenant. None yet: they are asked for their name once and `POST /v1/customers` creates it (`POR-03`). Someone who booked through the Assistant already has a record, so they go straight back.
 - `useMyCustomer()` in `lib/customer/` is how any page reads that record.

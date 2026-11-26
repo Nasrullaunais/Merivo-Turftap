@@ -1,9 +1,10 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useRouterState } from "@tanstack/react-router";
 import { Id, LocalDate } from "@turftap/contract";
 
 import { BackLink } from "../../components/BackLink";
 import { NotFoundPanel } from "../../components/NotFoundPanel";
 import { ResourceHeader } from "../../features/resources/ResourceHeader";
+import { JustTaken } from "../../features/slots/JustTaken";
 import { useResource } from "../../features/resources/useResource";
 import { SlotPicker } from "../../features/slots/SlotPicker";
 import { useVenue } from "../../features/venues/useVenue";
@@ -30,6 +31,7 @@ function ResourcePage() {
   const resource = useResource(resourceId);
   const venueId = resource.data?.venueId;
   const venue = useVenue(venueId);
+  const justTaken = useRouterState({ select: (state) => state.location.state.justTaken });
 
   if (resource.isError || venue.isError) return <NotFoundPanel {...resources.notFound} />;
   return (
@@ -40,6 +42,7 @@ function ResourcePage() {
         <BackLink to="/" />
       )}
       <ResourceHeader resource={resource.data} />
+      {justTaken && <JustTaken />}
       {resource.data && venue.data && (
         <SlotPicker
           resource={resource.data}

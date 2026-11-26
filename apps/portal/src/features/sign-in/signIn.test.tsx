@@ -2,23 +2,29 @@ import { fireEvent, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { getAccessToken, signInForTesting } from "../../lib/auth/session";
-import { customer, me, tenant } from "../../test/fixtures";
+import { court, customer, me, slot, tenant, venue } from "../../test/fixtures";
 import { failure, inTurn, mockApi } from "../../test/mockApi";
 import { page, renderPortal } from "../../test/renderPortal";
 
-const BOOKING = "/book?resourceId=2&startsAt=2026-11-28T12%3A30%3A00.000Z&count=1";
+const AT_18 = "2026-11-28T12:30:00.000Z";
+const BOOKING = `/book?resourceId=2&startsAt=${encodeURIComponent(AT_18)}&count=1`;
 
 const api = (overrides: Record<string, unknown> = {}) =>
   mockApi({
     "GET /v1/tenant": tenant,
     "GET /v1/me": me,
     "GET /v1/customers": page([customer]),
+    "GET /v1/resources/2": court,
+    "GET /v1/venues/1": venue,
+    "GET /v1/photos": page([]),
+    "GET /v1/availability": page([slot(AT_18, 4500)]),
     ...overrides,
   });
 
 const phoneAsked = () => screen.findByRole("heading", { name: "What's your phone number?" });
 const nameAsked = () => screen.findByRole("heading", { name: "What's your name?" });
-const bookingShown = () => screen.findByRole("heading", { name: "You're signed in, Kasun Perera" });
+// The confirm step shows the booking under the customer's name, on the ticket's stub.
+const bookingShown = () => screen.findByText("Kasun Perera");
 
 async function signInWith(phone: string) {
   fireEvent.change(await screen.findByLabelText(/Phone number/), { target: { value: phone } });

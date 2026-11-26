@@ -1,11 +1,9 @@
 import {
+  amountDueOnline,
   type Booking,
   type BookingFilters,
-  CENTS_PER_RUPEE,
   type CreateBooking,
-  FULL_AMOUNT_PERCENT,
   HOLDING_STATUSES,
-  type Money,
   type UpdateBooking,
   type WalkIn,
 } from "@turftap/contract";
@@ -114,13 +112,6 @@ export async function get(auth: AuthContext, id: number, lock?: "update") {
   return replyOf(booking, details, await venueOf(auth, booking.venueId));
 }
 
-/** BKG-02: the full price, or the Advance rounded up to whole rupees. Nothing at Pay at Venue. */
-function amountDueOf(price: Money, venue: Venue): number {
-  if (venue.payAtVenue) return 0;
-  const centsTimesPercent = price.amount * venue.advancePercent;
-  return Math.ceil(centsTimesPercent / (FULL_AMOUNT_PERCENT * CENTS_PER_RUPEE)) * CENTS_PER_RUPEE;
-}
-
 function ownCustomerIdOf(auth: AuthContext): number {
   if (!isCustomerSide(auth)) throw bookingErrors.walkInMissing();
   if (auth.customerId === undefined) throw bookingErrors.noCustomerRecord();
@@ -164,7 +155,7 @@ export async function create(auth: AuthContext, input: CreateBooking) {
       source: "ONLINE",
       priceAmount: slot.price.amount,
       priceCurrency: slot.price.currency,
-      amountDue: amountDueOf(slot.price, venue),
+      amountDue: amountDueOnline(slot.price.amount, venue),
       expiresAt,
       cancellationCutOffHours: venue.cancellationCutOffHours,
     });
