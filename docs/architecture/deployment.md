@@ -60,7 +60,7 @@ Sign-in uses Auth0's passwordless SMS connection ([ADR 0008](../adr/0008-phone-l
 
 ## Platform Admin scripts
 
-In v1 a Platform Admin links WhatsApp numbers (`bun run whatsapp:link`, `bun run whatsapp:unlink`) by running scripts on the server, against the production database and settings ([platform-admin.md](../spec/platform-admin.md)). The scripts go through the same services as the API, so the same rules apply. On the server they run inside the API image: `cd /opt/turftap && TURFTAP_VERSION=$(cat .version) docker compose run --rm migrate bun scripts/whatsapp-link.ts <arguments>`.
+In v1 a Platform Admin links WhatsApp numbers (`bun run whatsapp:link`, `bun run whatsapp:unlink`) by running scripts on the server, against the production database and settings ([platform-admin.md](../spec/platform-admin.md)). The scripts go through the same services as the API, so the same rules apply. On the server they run inside the API image, as the `deploy` user (see [On the server](#releases)): `TURFTAP_VERSION=$(cat .version) docker compose run --rm migrate bun scripts/whatsapp-link.ts <arguments>`.
 
 ## Releases
 
@@ -72,7 +72,7 @@ In v1 a Platform Admin links WhatsApp numbers (`bun run whatsapp:link`, `bun run
 
 **Going back by hand:** in GitHub, open Actions → release → Run workflow, pick the older tag under "Use workflow from", and run it. It skips the build and releases that tag's images.
 
-**On the server:** `cd /opt/turftap`, then `docker compose ps`, `docker compose logs -f api`, and `cat .version` for the running version.
+**On the server:** `ssh ubuntu@167.114.120.81`, then `sudo -iu deploy` and `cd /opt/turftap` (only `deploy` can open that folder). From there: `docker compose ps`, `docker compose logs -f api`, and `cat .version` for the running version.
 
 ### Server setup (once per server)
 
