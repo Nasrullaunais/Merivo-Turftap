@@ -8,7 +8,7 @@ import { useState } from "react";
 import { TONE_CLASS } from "../../components/look";
 import m from "../../i18n/en/slots";
 import { BookBar } from "./BookBar";
-import { DateStrip, type DayState } from "./DateStrip";
+import { DateStrip, type DayState } from "../../components/DateStrip";
 import { DayNotice } from "./DayNotice";
 import { withViewTransition } from "../../lib/motion/viewTransition";
 import { ChosenBlock, type Longer } from "./ChosenBlock";

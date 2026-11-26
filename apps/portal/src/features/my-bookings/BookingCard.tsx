@@ -15,6 +15,7 @@ import m from "../../i18n/en/myBookings";
 import slots from "../../i18n/en/slots";
 import { CancelPanel } from "./CancelPanel";
 import { PayTimer } from "./PayTimer";
+import { useCancelBooking } from "./useCancelBooking";
 
 const MS_PER_HOUR = 3_600_000;
 const MS_PER_MINUTE = 60_000;
@@ -34,6 +35,7 @@ const QUIET_BUTTON =
 /** POR-04: one booking: what, when and its state, with what the customer can do about it now. */
 export function BookingCard({ booking, resource, venue, now, style }: Props) {
   const [confirming, setConfirming] = useState(false);
+  const cancel = useCancelBooking(booking.id);
   const cancelButton = useRef<HTMLButtonElement>(null);
   const timeZone = venue?.timeZone ?? "UTC";
   const Stamp = BOOKING_ICONS[booking.status];
@@ -172,7 +174,17 @@ export function BookingCard({ booking, resource, venue, now, style }: Props) {
           </div>
         </div>
       )}
-      {canCancel && <CancelPanel booking={booking} open={confirming} onKeep={close} />}
+      {canCancel && (
+        <CancelPanel
+          title={m.confirmCancel.title}
+          body={m.confirmCancel.body}
+          paid={booking.paid}
+          open={confirming}
+          cancelling={cancel.isPending}
+          onKeep={close}
+          onCancel={() => cancel.mutate()}
+        />
+      )}
     </article>
   );
 }

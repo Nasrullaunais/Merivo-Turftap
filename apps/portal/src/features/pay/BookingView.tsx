@@ -56,7 +56,8 @@ export function BookingView({ booking, resource, venue }: Props) {
     return (
       <div className="mx-auto grid w-full max-w-lg gap-6 lg:max-w-5xl lg:grid-cols-[minmax(0,1fr)_380px] lg:items-start lg:gap-8">
         <PaySteps
-          booking={booking}
+          payable={booking}
+          paysFor={{ bookingId: booking.id }}
           leftMs={leftMs}
           venuePhone={venue.phone}
           timeZone={venue.timeZone}

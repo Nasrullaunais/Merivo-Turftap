@@ -1,16 +1,23 @@
-import type { Booking } from "@turftap/contract/client";
+import type { Money } from "@turftap/contract/client";
 import { formatMoney } from "@turftap/ui";
 import { CircleX, LoaderCircle } from "lucide-react";
 import { useEffect, useRef } from "react";
 
 import m from "../../i18n/en/myBookings";
-import { useCancelBooking } from "./useCancelBooking";
 
-type Props = { booking: Booking; open: boolean; onKeep: () => void };
+type Props = {
+  title: string;
+  /** What cancelling gives up. */
+  body: string;
+  paid: Money;
+  open: boolean;
+  cancelling: boolean;
+  onKeep: () => void;
+  onCancel: () => void;
+};
 
-/** BKG-06: asks before cancelling, folded open under the booking it is about. */
-export function CancelPanel({ booking, open, onKeep }: Props) {
-  const cancel = useCancelBooking(booking.id);
+/** BKG-06, MEM-02: asks before cancelling, folded open under the booking or membership it is about. */
+export function CancelPanel({ title, body, paid, open, cancelling, onKeep, onCancel }: Props) {
   const keepButton = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
@@ -21,7 +28,7 @@ export function CancelPanel({ booking, open, onKeep }: Props) {
     <div data-card-quiet data-open={open} inert={!open} className="tt-collapse">
       <div>
         <section
-          aria-label={m.confirmCancel.title}
+          aria-label={title}
           className="tt-tone-bad mx-3 mb-3 grid gap-3 rounded-xl bg-[color-mix(in_oklab,var(--tt-tone)_8%,var(--tt-panel))] p-4"
         >
           <div className="flex items-start gap-3">
@@ -32,11 +39,11 @@ export function CancelPanel({ booking, open, onKeep }: Props) {
               <CircleX size={18} aria-hidden />
             </span>
             <div className="grid gap-0.5">
-              <h4 className="font-semibold tracking-tight">{m.confirmCancel.title}</h4>
-              <p className="text-sm text-pretty text-muted">{m.confirmCancel.body}</p>
-              {booking.paid.amount > 0 && (
+              <h4 className="font-semibold tracking-tight">{title}</h4>
+              <p className="text-sm text-pretty text-muted">{body}</p>
+              {paid.amount > 0 && (
                 <p className="text-sm text-pretty text-muted">
-                  {m.confirmCancel.paid(formatMoney(booking.paid))}
+                  {m.confirmCancel.paid(formatMoney(paid))}
                 </p>
               )}
             </div>
@@ -46,18 +53,18 @@ export function CancelPanel({ booking, open, onKeep }: Props) {
               ref={keepButton}
               type="button"
               onClick={onKeep}
-              disabled={cancel.isPending}
+              disabled={cancelling}
               className="tt-t1 inline-flex h-9 items-center rounded-full px-4 text-sm font-medium hover:bg-[var(--tt-hover)] active:scale-[0.97] disabled:opacity-50"
             >
               {m.confirmCancel.keep}
             </button>
             <button
               type="button"
-              onClick={() => cancel.mutate()}
-              disabled={cancel.isPending}
+              onClick={onCancel}
+              disabled={cancelling}
               className="tt-t1 inline-flex h-9 items-center gap-1.5 rounded-full bg-[var(--tt-tone)] px-4 text-sm font-medium text-white hover:bg-[color-mix(in_oklab,var(--tt-tone)_88%,black)] active:scale-[0.97] disabled:opacity-80"
             >
-              {cancel.isPending && <LoaderCircle size={15} aria-hidden className="animate-spin" />}
+              {cancelling && <LoaderCircle size={15} aria-hidden className="animate-spin" />}
               {m.confirmCancel.yes}
             </button>
           </div>

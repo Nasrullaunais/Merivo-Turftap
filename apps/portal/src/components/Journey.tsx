@@ -33,21 +33,24 @@ type Props = {
   timeLimit?: string;
   /** The venue is checking the receipt, so the last step shows that. */
   checking?: boolean;
+  /** A membership is bought, then active; a booking is confirmed, then booked. */
+  what?: "booking" | "membership";
 };
 
-/** BKG-02, PAY-01: the whole way from confirming to booked, and where the customer is on it. */
-export function Journey({ online, at, timeLimit, checking = false }: Props) {
+/** BKG-02, PAY-01, MEM-02: the whole way from confirming to booked, and where the customer is on it. */
+export function Journey({ online, at, timeLimit, checking = false, what = "booking" }: Props) {
+  const words = what === "booking" ? m.journey : { ...m.journey, ...m.journey.membership };
   const booked: Step = checking
     ? {
-        label: m.journey.booked,
+        label: words.booked,
         icon: ScanSearch,
         colour: COLOURS.busy,
         chip: { text: m.journey.checking, icon: ScanSearch, tone: "tt-tone-busy" },
       }
-    : { label: m.journey.booked, icon: CircleCheck, colour: COLOURS.good };
+    : { label: words.booked, icon: CircleCheck, colour: COLOURS.good };
   const steps: Step[] = online
     ? [
-        { label: m.journey.confirm, icon: CalendarCheck, colour: COLOURS.booking },
+        { label: words.confirm, icon: CalendarCheck, colour: COLOURS.booking },
         {
           label: m.journey.transfer,
           icon: Landmark,

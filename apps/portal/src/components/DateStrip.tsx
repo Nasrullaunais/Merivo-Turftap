@@ -1,21 +1,24 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useEffect, useRef } from "react";
 
-import m from "../../i18n/en/slots";
+import m from "../i18n/en/slots";
 
 export type DayState = "open" | "closed" | "notOpen";
 
 type Props = {
   dates: string[];
   value: string;
-  stateOf: (date: string) => DayState;
+  /** Every day is open when left out. */
+  stateOf?: (date: string) => DayState;
   onChange: (date: string) => void;
 };
 
 const SCROLL_SHARE = 0.8;
 
-/** D-06: one chip per bookable day, today first. Closed days keep a red dot so they stand out. */
-export function DateStrip({ dates, value, stateOf, onChange }: Props) {
+/** One chip per day that can be picked, today first. Closed days keep a red dot so they stand out. */
+const alwaysOpen = (): DayState => "open";
+
+export function DateStrip({ dates, value, stateOf = alwaysOpen, onChange }: Props) {
   const strip = useRef<HTMLDivElement>(null);
 
   useEffect(() => {

@@ -1,6 +1,6 @@
 # T32 Buy and renew a membership
 
-Status: todo · Stories: `MEM-02`, `MEM-04` · Depends on: T23, T31
+Status: done · Stories: `MEM-02`, `MEM-04` · Depends on: T23, T31
 
 ## Goal
 A customer picks a venue's plan and a start date, pays by transfer like a booking, and can renew early from "My bookings and memberships".
