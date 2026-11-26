@@ -1,18 +1,31 @@
 import { createRouter } from "@tanstack/react-router";
+import { createQueryClient } from "@turftap/ui";
 
+import { installApiTransport } from "./lib/api/transport";
+import { signOut } from "./lib/auth/session";
 import { routeTree } from "./routeTree.gen";
 
-export function createAppRouter() {
-  return createRouter({
+/** The router and query client, wired so a refused sign-in sends the customer back to sign in. */
+export function createApp() {
+  installApiTransport();
+  const queryClient = createQueryClient({
+    onUnauthorized: () => {
+      signOut();
+      queryClient.clear();
+      const { pathname, href } = router.state.location;
+      if (pathname !== "/sign-in") void router.navigate({ to: "/sign-in", search: { back: href } });
+    },
+  });
+  const router = createRouter({
     routeTree,
     defaultPreload: "intent",
-    // Filled in by <RouterProvider context> in main.tsx.
-    context: { queryClient: undefined! },
+    context: { queryClient },
   });
+  return { router, queryClient };
 }
 
 declare module "@tanstack/react-router" {
   interface Register {
-    router: ReturnType<typeof createAppRouter>;
+    router: ReturnType<typeof createApp>["router"];
   }
 }

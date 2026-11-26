@@ -18,4 +18,7 @@ globalThis.Request = class extends NodeRequest {
 // jsdom can't scroll; the router scrolls to the top after each page change.
 window.scrollTo = () => {};
 
-afterEach(() => cleanup());
+afterEach(() => {
+  cleanup();
+  sessionStorage.clear();
+});

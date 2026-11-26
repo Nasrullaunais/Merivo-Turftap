@@ -53,6 +53,14 @@ Code shared by **both** apps goes in `packages/ui` (theme, components, `ApiError
 - Switching tenant drops all cached data, because cached replies belong to the old tenant.
 - Menu items, search and route guards all read one permission list: `config/routePermissions.ts`.
 
+## Sign-in in the portal
+
+- Customers browse without signing in. A page that needs the customer (`/book` today) sends them to `/sign-in?back=<that page>`, and they return there afterwards. `back` is only ever a page of the portal.
+- Until Auth0 exists (T42) it is the same test form as the console: `fake:<phone>` in `sessionStorage`.
+- After the phone, `GET /v1/customers` returns the customer's own record at this tenant. None yet: they are asked for their name once and `POST /v1/customers` creates it (`POR-03`). Someone who booked through the Assistant already has a record, so they go straight back.
+- `useMyCustomer()` in `lib/customer/` is how any page reads that record.
+- A 401 signs out, drops cached data and opens `/sign-in`, which returns to the page they were on.
+
 ## Text and look
 
 - Every piece of text lives in `i18n/en/<area>.ts`. Sinhala and Tamil are added later as `si` and `ta` with `satisfies Catalog<typeof en>`, so a missing key fails the type check.
