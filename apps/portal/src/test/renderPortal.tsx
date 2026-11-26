@@ -1,18 +1,16 @@
 import { QueryClientProvider } from "@tanstack/react-query";
 import { RouterProvider } from "@tanstack/react-router";
 import { render } from "@testing-library/react";
-import { createQueryClient } from "@turftap/ui";
 
-import { createAppRouter } from "../router";
+import { createApp } from "../router";
 
 /** The whole portal, opened at `path`, as a customer's browser would. */
 export function renderPortal(path = "/") {
   window.history.replaceState(null, "", path);
-  const queryClient = createQueryClient();
-  const router = createAppRouter();
+  const { router, queryClient } = createApp();
   render(
     <QueryClientProvider client={queryClient}>
-      <RouterProvider router={router} context={{ queryClient }} />
+      <RouterProvider router={router} />
     </QueryClientProvider>,
   );
   return router;

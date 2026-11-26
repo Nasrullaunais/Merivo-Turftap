@@ -2,7 +2,7 @@
 
 How the Customer Portal looks and moves. It follows [console-design.md](console-design.md) (principles, colour meanings, motion vocabulary, loading rules) and shares its tokens from `packages/ui/src/theme.css`. This page lists only what is different for customers on a phone.
 
-Status: written 2026-11-26 with T27 (the shell), approved. §5 added with T28, approved.
+Status: written 2026-11-26 with T27 (the shell), approved. §5 added with T28, approved. §6 added with T29, approved.
 
 ## 1. Phone first
 
@@ -57,3 +57,12 @@ The customer goes **venue → resource → day → how long → time → Book**,
 - **Merge motion**: picking, +, − and × run inside a View Transition (`lib/motion/viewTransition.ts`), which tags `<html data-glide>` with the kind of change. Each tile has its own `view-transition-name`, so tiles glide to new places, the tapped tile opens into the block, and merged tiles slide up into it. The top bar and the Book bar have names too and sit above the moving tiles. Taps go through during the motion. With reduced motion, or a browser without View Transitions, the change happens at once.
 - **A day with nothing to pick** shows one panel instead of the slots: red "Closed" with the Closed Date's reason, grey "Not open on this day", or grey "No more times today".
 - Changing day slides the new slots in from the side of the day picked.
+
+## 6. Signing in (T29)
+
+Sign-in comes only when it is needed: pressing **Book** on a time. One card, one question at a time, the field focused so the keyboard is already up.
+
+1. **Phone** (teal phone tile): "What's your phone number?", one large phone field, **Continue**. An amber note says it is the test sign-in until real codes arrive (T42).
+2. **Name** (pink person tile), only the first time this tenant sees the phone: "What's your name?", prefilled when the name is already known. Under it, the phone as people write it ("077 123 4567") and **Use another number**, which goes back to step 1.
+
+Each step rises in as the last one leaves. Between them a quiet "Signing you in" line shows while the record is looked up. Afterwards the customer lands back on the page they came from, with their chosen time still in the address.

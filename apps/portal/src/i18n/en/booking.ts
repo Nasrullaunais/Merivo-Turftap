@@ -1,5 +1,5 @@
 export default {
-  title: "Almost there",
-  body: "Next you'll sign in with your phone number and send the payment. Online booking opens soon.",
+  title: (name: string) => `You're signed in, ${name}`,
+  body: "Sending the payment comes next. Online booking opens soon.",
   back: "Back to times",
 };

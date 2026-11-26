@@ -37,6 +37,13 @@ const enabled = async (button: Promise<HTMLElement>) => {
   return found;
 };
 const bookBar = () => screen.getByRole("region", { name: "Book" });
+const signInAsked = () => screen.findByRole("heading", { name: "What's your phone number?" });
+/** The booking page sign-in returns to, with the chosen time in its address. */
+const bookingKept = (router: ReturnType<typeof renderPortal>) => {
+  const back = new URL(String(router.state.location.search.back), window.location.origin);
+  expect(back.pathname).toBe("/book");
+  return router.options.parseSearch(back.search);
+};
 
 const queryOf = (fetch: ReturnType<typeof mockApi>, path: string) =>
   fetch.mock.calls
@@ -143,8 +150,8 @@ describe("POR-02, BKG-01 free slots of a resource", () => {
 
     fireEvent.click(within(chosen).getByRole("button", { name: "Book" }));
 
-    expect(await screen.findByRole("heading", { name: "Almost there" })).toBeInTheDocument();
-    expect(router.state.location.search).toMatchObject({
+    expect(await signInAsked()).toBeInTheDocument();
+    expect(bookingKept(router)).toMatchObject({
       resourceId: court.id,
       startsAt: AT_18,
       count: 1,
@@ -180,8 +187,8 @@ describe("POR-02, BKG-01 free slots of a resource", () => {
 
     fireEvent.click(within(chosen).getByRole("button", { name: "Book" }));
 
-    await screen.findByRole("heading", { name: "Almost there" });
-    expect(router.state.location.search).toMatchObject({ startsAt: AT_18, count: 2 });
+    await signInAsked();
+    expect(bookingKept(router)).toMatchObject({ startsAt: AT_18, count: 2 });
   });
 
   it("minus_letsTheMergedHourGoAgain", async () => {

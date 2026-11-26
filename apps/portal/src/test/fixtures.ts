@@ -1,4 +1,4 @@
-import type { Resource, Slot, Venue } from "@turftap/contract/client";
+import type { Customer, Me, Resource, Slot, Venue } from "@turftap/contract/client";
 
 const EVERY_DAY = [1, 2, 3, 4, 5, 6, 7];
 const CREATED = "2026-11-01T00:00:00.000Z";
@@ -48,3 +48,20 @@ export const slot = (startsAt: string, rupees: number, free = true): Slot => ({
   price: { amount: rupees * 100, currency: "LKR" },
   free,
 });
+
+export const customer: Customer = {
+  id: 7,
+  phone: "+94771234567",
+  name: "Kasun Perera",
+  createdAt: CREATED,
+  updatedAt: CREATED,
+};
+
+/** The signed-in person, before any tenant knows their name. */
+export const me: Me = {
+  id: 3,
+  phone: customer.phone,
+  name: null,
+  isPlatformAdmin: false,
+  tenants: [],
+};

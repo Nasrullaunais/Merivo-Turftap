@@ -55,6 +55,10 @@ export const PhoneInput = z.string().transform((text, ctx) => {
   return z.NEVER;
 });
 
+/** A stored phone number the way people write it at home: "+94771234567" → "077 123 4567". */
+export const phoneShown = (phone: string) =>
+  parsePhoneNumberFromString(phone, DEFAULT_PHONE_COUNTRY)?.formatNational() ?? phone;
+
 /** A yes/no list filter. Query strings only carry text, so it travels as "true" or "false". */
 export const QueryBoolean = z.enum(["true", "false"]).transform((text) => text === "true");
 

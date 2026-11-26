@@ -1,6 +1,6 @@
 # T29 Portal sign-in and first-booking name
 
-Status: todo · Stories: `POR-03` · Depends on: T02, T27
+Status: done · Stories: `POR-03` · Depends on: T02, T27
 
 ## Goal
 A customer signs in when they book, gives their name once, and a customer record is created for this tenant. Someone who already booked through the Assistant with the same phone sees their earlier bookings.
