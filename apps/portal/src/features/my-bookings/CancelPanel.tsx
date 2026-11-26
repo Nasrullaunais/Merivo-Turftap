@@ -1,0 +1,68 @@
+import type { Booking } from "@turftap/contract/client";
+import { formatMoney } from "@turftap/ui";
+import { CircleX, LoaderCircle } from "lucide-react";
+import { useEffect, useRef } from "react";
+
+import m from "../../i18n/en/myBookings";
+import { useCancelBooking } from "./useCancelBooking";
+
+type Props = { booking: Booking; open: boolean; onKeep: () => void };
+
+/** BKG-06: asks before cancelling, folded open under the booking it is about. */
+export function CancelPanel({ booking, open, onKeep }: Props) {
+  const cancel = useCancelBooking(booking.id);
+  const keepButton = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (open) keepButton.current?.focus({ preventScroll: true });
+  }, [open]);
+
+  return (
+    <div data-card-quiet data-open={open} inert={!open} className="tt-collapse">
+      <div>
+        <section
+          aria-label={m.confirmCancel.title}
+          className="tt-tone-bad mx-3 mb-3 grid gap-3 rounded-xl bg-[color-mix(in_oklab,var(--tt-tone)_8%,var(--tt-panel))] p-4"
+        >
+          <div className="flex items-start gap-3">
+            <span
+              className="tt-tile size-9 rounded-xl"
+              style={{ "--tt-hue": "var(--tt-tone)" } as React.CSSProperties}
+            >
+              <CircleX size={18} aria-hidden />
+            </span>
+            <div className="grid gap-0.5">
+              <h4 className="font-semibold tracking-tight">{m.confirmCancel.title}</h4>
+              <p className="text-sm text-pretty text-muted">{m.confirmCancel.body}</p>
+              {booking.paid.amount > 0 && (
+                <p className="text-sm text-pretty text-muted">
+                  {m.confirmCancel.paid(formatMoney(booking.paid))}
+                </p>
+              )}
+            </div>
+          </div>
+          <div className="flex justify-end gap-2">
+            <button
+              ref={keepButton}
+              type="button"
+              onClick={onKeep}
+              disabled={cancel.isPending}
+              className="tt-t1 inline-flex h-9 items-center rounded-full px-4 text-sm font-medium hover:bg-[var(--tt-hover)] active:scale-[0.97] disabled:opacity-50"
+            >
+              {m.confirmCancel.keep}
+            </button>
+            <button
+              type="button"
+              onClick={() => cancel.mutate()}
+              disabled={cancel.isPending}
+              className="tt-t1 inline-flex h-9 items-center gap-1.5 rounded-full bg-[var(--tt-tone)] px-4 text-sm font-medium text-white hover:bg-[color-mix(in_oklab,var(--tt-tone)_88%,black)] active:scale-[0.97] disabled:opacity-80"
+            >
+              {cancel.isPending && <LoaderCircle size={15} aria-hidden className="animate-spin" />}
+              {m.confirmCancel.yes}
+            </button>
+          </div>
+        </section>
+      </div>
+    </div>
+  );
+}

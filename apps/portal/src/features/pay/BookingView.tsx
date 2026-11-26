@@ -13,7 +13,7 @@ import { TONE_CLASS } from "../../components/look";
 import m from "../../i18n/en/booking";
 import { Outcome } from "./Outcome";
 import { PaySteps } from "./PaySteps";
-import { useNow } from "./useNow";
+import { useNow } from "../../lib/time/useNow";
 
 const TICK_MS = 1000;
 

@@ -2,6 +2,7 @@ export default {
   loading: "Loading",
   address: (slug: string) => `${slug}.turftap.lk`,
   poweredBy: "Bookings by TurfTap",
+  nav: { label: "Main", venues: "Venues", myBookings: "My bookings" },
   notFound: {
     title: "We couldn't find this venue",
     body: "Check the address and try again.",

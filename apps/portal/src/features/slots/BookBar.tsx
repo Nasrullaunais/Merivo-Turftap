@@ -33,7 +33,7 @@ export function BookBar({ open, times, day, price, onBook, onClear }: Props) {
       inert={!open}
       data-open={open}
       style={{ viewTransitionName: "tt-book-bar" }}
-      className="fixed inset-x-0 bottom-0 z-20 translate-y-full px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] opacity-0 transition-[translate,opacity] duration-300 ease-[var(--tt-ease)] data-[open=true]:translate-y-0 data-[open=true]:opacity-100"
+      className="fixed inset-x-0 bottom-[var(--tt-nav-space)] z-20 translate-y-full px-3 pb-3 sm:pb-[max(0.75rem,env(safe-area-inset-bottom))] opacity-0 transition-[translate,opacity] duration-300 ease-[var(--tt-ease)] data-[open=true]:translate-y-0 data-[open=true]:opacity-100"
     >
       <div
         role="region"

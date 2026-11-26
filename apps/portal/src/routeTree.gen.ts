@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as BookRouteImport } from './routes/book'
+import { Route as MeRouteImport } from './routes/me'
 import { Route as SignInRouteImport } from './routes/sign-in'
 import { Route as BookingsBookingIdRouteImport } from './routes/bookings/$bookingId'
 import { Route as ResourcesResourceIdRouteImport } from './routes/resources/$resourceId'
@@ -24,6 +25,11 @@ const IndexRoute = IndexRouteImport.update({
 const BookRoute = BookRouteImport.update({
   id: '/book',
   path: '/book',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MeRoute = MeRouteImport.update({
+  id: '/me',
+  path: '/me',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SignInRoute = SignInRouteImport.update({
@@ -50,6 +56,7 @@ const VenuesVenueIdRoute = VenuesVenueIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/book': typeof BookRoute
+  '/me': typeof MeRoute
   '/sign-in': typeof SignInRoute
   '/bookings/$bookingId': typeof BookingsBookingIdRoute
   '/resources/$resourceId': typeof ResourcesResourceIdRoute
@@ -58,6 +65,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/book': typeof BookRoute
+  '/me': typeof MeRoute
   '/sign-in': typeof SignInRoute
   '/bookings/$bookingId': typeof BookingsBookingIdRoute
   '/resources/$resourceId': typeof ResourcesResourceIdRoute
@@ -67,6 +75,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/book': typeof BookRoute
+  '/me': typeof MeRoute
   '/sign-in': typeof SignInRoute
   '/bookings/$bookingId': typeof BookingsBookingIdRoute
   '/resources/$resourceId': typeof ResourcesResourceIdRoute
@@ -77,6 +86,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/book'
+    | '/me'
     | '/sign-in'
     | '/bookings/$bookingId'
     | '/resources/$resourceId'
@@ -85,6 +95,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/book'
+    | '/me'
     | '/sign-in'
     | '/bookings/$bookingId'
     | '/resources/$resourceId'
@@ -93,6 +104,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/book'
+    | '/me'
     | '/sign-in'
     | '/bookings/$bookingId'
     | '/resources/$resourceId'
@@ -102,6 +114,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   BookRoute: typeof BookRoute
+  MeRoute: typeof MeRoute
   SignInRoute: typeof SignInRoute
   BookingsBookingIdRoute: typeof BookingsBookingIdRoute
   ResourcesResourceIdRoute: typeof ResourcesResourceIdRoute
@@ -122,6 +135,13 @@ declare module '@tanstack/react-router' {
       path: '/book'
       fullPath: '/book'
       preLoaderRoute: typeof BookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/me': {
+      id: '/me'
+      path: '/me'
+      fullPath: '/me'
+      preLoaderRoute: typeof MeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/sign-in': {
@@ -158,6 +178,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   BookRoute: BookRoute,
+  MeRoute: MeRoute,
   SignInRoute: SignInRoute,
   BookingsBookingIdRoute: BookingsBookingIdRoute,
   ResourcesResourceIdRoute: ResourcesResourceIdRoute,
