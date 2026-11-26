@@ -20,7 +20,7 @@ import {
 import m from "../../../i18n/en/memberships";
 import { PageLayout } from "../../../layout/PageLayout";
 import { can } from "../../../lib/tenant/activeTenant";
-import { onVenueClock } from "../../../lib/time/venueClock";
+import { onVenueClock } from "@turftap/ui";
 
 export const Route = createFileRoute("/_signedIn/_tenant/memberships")({
   beforeLoad: ({ context }) => {

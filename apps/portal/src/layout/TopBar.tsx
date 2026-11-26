@@ -7,7 +7,10 @@ import m from "../i18n/en/shell";
 /** The tenant's name, always on top: customers see whose portal they are on (POR-01). */
 export function TopBar({ name }: { name?: string }) {
   return (
-    <header className="tt-glass sticky top-0 z-30 animate-tt-drop border-b border-[var(--tt-line)]">
+    <header
+      style={{ viewTransitionName: "tt-top-bar" }}
+      className="tt-glass sticky top-0 z-30 animate-tt-drop border-b border-[var(--tt-line)]"
+    >
       <div className="mx-auto flex h-16 max-w-5xl items-center px-4">
         {name ? (
           <Link

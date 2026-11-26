@@ -14,6 +14,7 @@ As a **Customer**, I want to book one or more back-to-back slots, so that I can 
 - Given someone else books the same slot a moment earlier, when I confirm, then I'm told the slot was just taken.
 - Given I already have a booking waiting for payment at this tenant, when I book again, then I'm told to pay for or cancel that one first.
 - I can book up to 30 days ahead.
+- Online I pick a start time, then make it longer one slot at a time: up to 3 hours on a court, up to 2 hours on a table. Longer bookings are made by Staff.
 - Given the venue is **Pay at Venue**, when the booking is made, then it's confirmed straight away and I pay at the venue.
 
 ## BKG-03 Booking expires without payment

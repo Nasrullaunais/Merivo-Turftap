@@ -58,7 +58,7 @@ Code shared by **both** apps goes in `packages/ui` (theme, components, `ApiError
 - Every piece of text lives in `i18n/en/<area>.ts`. Sinhala and Tamil are added later as `si` and `ta` with `satisfies Catalog<typeof en>`, so a missing key fails the type check.
 - Sentences built from pieces are one catalog function, so other languages can reorder words.
 - Money uses `formatMoney` from `packages/ui`. Dates and times are shown in the venue's time zone, never the browser's: the catalog function formats them with `Intl.DateTimeFormat({ timeZone })`.
-- A time staff type ("10:00 on 25 Dec") means the venue's clock. `instantInZone(date, time, venue.timeZone)` from `packages/ui` turns it into the instant the API wants. Console tests run in `America/New_York`, so using the browser's time zone by mistake fails them.
+- A time staff type ("10:00 on 25 Dec") means the venue's clock. `instantInZone(date, time, venue.timeZone)` from `packages/ui` turns it into the instant the API wants, and `onVenueClock(instant, timeZone)` gives the date and minute the venue's clock shows. Both apps' tests run in `America/New_York`, so using the browser's time zone by mistake fails them.
 - The Customer Portal's look is in [portal-design.md](portal-design.md). It shares the console's tokens and motion from `packages/ui/src/theme.css`.
 - The Staff Console's look, motion and loading rules are in [console-design.md](console-design.md): neutral backgrounds, teal accent, a hue per kind of thing and a tone per state. Booking states always show colour **and** an icon: waiting for payment, waiting for check, confirmed, blocked.
 - Icons come from `lucide-react` only.

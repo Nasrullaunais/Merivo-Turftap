@@ -1,6 +1,6 @@
 import { TONE_CLASS, type Tone } from "./look";
 import m from "../i18n/en/memberships";
-import { daysFrom } from "../lib/time/venueClock";
+import { daysFrom } from "@turftap/ui";
 
 // MEM-06 reminds the customer 3 days before the end; the bar turns amber from then on.
 const ENDING_SOON_DAYS = 3;

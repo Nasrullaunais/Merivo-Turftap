@@ -56,7 +56,7 @@ Status: `todo`, `doing`, `done`, `blocked` (waiting on a decision or an outside 
 | [T26](T26-membership-end-and-reminders.md) | Memberships end, and reminders | MEM-06 | T23 | done |
 | **F. Customer Portal** |||||
 | [T27](T27-portal-shell.md) | Portal shell, unknown address, phone layout | POR-01, POR-05 | | done |
-| [T28](T28-portal-browse.md) | Browse venues, resources and free slots | POR-02, BKG-01 | T05, T27 | todo |
+| [T28](T28-portal-browse.md) | Browse venues, resources and free slots | POR-02, BKG-01 | T05, T27 | done |
 | [T29](T29-portal-sign-in.md) | Portal sign-in and first-booking name | POR-03 | T02, T27 | todo |
 | [T30](T30-portal-book-and-pay.md) | Book, see how to pay, send receipt | BKG-02, PAY-01, PAY-02 | T11, T28, T29 | todo |
 | [T31](T31-portal-my-bookings.md) | My bookings and memberships | POR-04, BKG-06 | T30 | todo |

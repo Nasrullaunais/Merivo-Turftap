@@ -6,7 +6,7 @@ import { Section } from "../../components/Section";
 import { SkeletonRows } from "../../components/SkeletonRows";
 import m from "../../i18n/en/venues";
 import { useVenueToday } from "../../lib/time/useVenueToday";
-import { weekdayOf } from "../../lib/time/venueClock";
+import { weekdayOf } from "@turftap/ui";
 import { useVenue } from "./useVenue";
 
 const MINUTES_PER_DAY = 1440;

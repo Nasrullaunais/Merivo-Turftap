@@ -11,3 +11,6 @@ playwright-report/
 # Local agent tools and notes
 .claude/
 .scratch/
+
+# TanStack Router build cache
+.tanstack/

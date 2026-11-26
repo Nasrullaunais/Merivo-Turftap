@@ -1,6 +1,6 @@
 # T28 Browse venues, resources and free slots
 
-Status: todo · Stories: `POR-02`, `BKG-01` · Depends on: T05, T27
+Status: done · Stories: `POR-02`, `BKG-01` · Depends on: T05, T27
 
 ## Goal
 Without signing in, a customer sees the tenant's venues (cover photo first), a venue's resources with photos and prices, and the free slots of a resource on a chosen date.
