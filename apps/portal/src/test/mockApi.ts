@@ -1,7 +1,28 @@
 import { vi } from "vitest";
 
-/** Answers API calls by "METHOD /path" with the success envelope; anything else gets a 404. */
+const FAILURE = Symbol("failure");
+const IN_TURN = Symbol("inTurn");
+
+/** An error reply, shaped like the API's error envelope. */
+export const failure = (status: number, code: string, message = "Refused") => ({
+  [FAILURE]: true as const,
+  status,
+  code,
+  message,
+});
+
+/** One reply per call, in order; the last one repeats. */
+export const inTurn = (...replies: unknown[]) => ({ [IN_TURN]: replies });
+
+const has = (value: unknown, mark: symbol) =>
+  typeof value === "object" && value !== null && mark in value;
+
+/**
+ * Answers API calls by "METHOD /path" with the success envelope, or the error envelope for a
+ * `failure()`. Anything not listed gets a 404.
+ */
 export function mockApi(routes: Record<string, unknown>) {
+  const calls = new Map<string, number>();
   const fetch = vi.fn<typeof globalThis.fetch>(async (input) => {
     const request = input as Request;
     const key = `${request.method} ${new URL(request.url).pathname}`;
@@ -11,7 +32,16 @@ export function mockApi(routes: Record<string, unknown>) {
         { status: 404 },
       );
     }
-    return Response.json({ status: 200, message: "success", data: routes[key] });
+    const count = calls.get(key) ?? 0;
+    calls.set(key, count + 1);
+    const route = routes[key];
+    const replies = has(route, IN_TURN) ? (route as ReturnType<typeof inTurn>)[IN_TURN] : [route];
+    const reply = replies[Math.min(count, replies.length - 1)];
+    if (has(reply, FAILURE)) {
+      const { status, code, message } = reply as ReturnType<typeof failure>;
+      return Response.json({ status, code, message, traceId: "test" }, { status });
+    }
+    return Response.json({ status: 200, message: "success", data: reply });
   });
   vi.stubGlobal("fetch", fetch);
   return fetch;

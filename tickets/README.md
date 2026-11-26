@@ -55,7 +55,7 @@ Status: `todo`, `doing`, `done`, `blocked` (waiting on a decision or an outside 
 | [T25](T25-check-ins.md) | Check-ins (API + console) | MEM-05 | T23 | done |
 | [T26](T26-membership-end-and-reminders.md) | Memberships end, and reminders | MEM-06 | T23 | done |
 | **F. Customer Portal** |||||
-| [T27](T27-portal-shell.md) | Portal shell, unknown address, phone layout | POR-01, POR-05 | | todo |
+| [T27](T27-portal-shell.md) | Portal shell, unknown address, phone layout | POR-01, POR-05 | | done |
 | [T28](T28-portal-browse.md) | Browse venues, resources and free slots | POR-02, BKG-01 | T05, T27 | todo |
 | [T29](T29-portal-sign-in.md) | Portal sign-in and first-booking name | POR-03 | T02, T27 | todo |
 | [T30](T30-portal-book-and-pay.md) | Book, see how to pay, send receipt | BKG-02, PAY-01, PAY-02 | T11, T28, T29 | todo |
@@ -119,6 +119,8 @@ Settled in a grilling session with the user. Each answer is written here, then i
 | D-34 | A missed or retried reminder run | Mark each reminder sent | A "reminder sent" time on the membership. Each run reminds anything ending within the next 3 days not reminded yet, so a missed day catches up and nobody gets two |
 | D-35 | When do reminders go out? | 09:00 Colombo time | 09:00. Ending memberships still happens at 00:05 |
 | D-36 | Tell the customer when a membership has ended? | No, the reminder is enough | No |
+| D-37 | How does the portal read the tenant's name without sign-in? | `GET /v1/tenant`, a public read with no id | Yes: a singleton about the caller's tenant, open without sign-in, replying `{ slug, name }` |
+| D-38 | When does the portal learn a tenant is off? | In T27, for portal callers only | Now. Portal calls (with `X-Tenant-Slug`) to a tenant that is off get 403 `tt_plt_010`; an unknown address stays 404 `tt_plt_001`. The Assistant and staff change in T33 |
 
 ## Open questions for venue owners
 

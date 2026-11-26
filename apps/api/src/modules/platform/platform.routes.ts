@@ -1,5 +1,6 @@
 import {
   Me,
+  Tenant,
   WHATSAPP_NUMBER_SORT_FIELDS,
   WhatsAppNumber,
   WhatsAppNumberFilters,
@@ -11,8 +12,16 @@ import * as whatsappNumbersService from "./whatsapp-numbers.service";
 
 export const meResource = defineSingleton({
   name: "me",
+  about: "caller",
   schemas: { item: Me },
   service: { get: platformService.me },
+});
+
+export const tenantResource = defineSingleton({
+  name: "tenant",
+  about: "tenant",
+  schemas: { item: Tenant },
+  service: { get: platformService.tenant },
 });
 
 export const whatsappNumbersResource = defineResource({

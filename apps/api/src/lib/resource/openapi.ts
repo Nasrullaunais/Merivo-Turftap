@@ -141,7 +141,7 @@ export function describeSingleton(def: SingletonDefinition<z.ZodType>) {
       get: {
         tags: [def.name],
         operationId: `get${pascal(def.name)}`,
-        security: [{ bearerAuth: [] }],
+        security: def.about === "tenant" ? [{}, { bearerAuth: [] }] : [{ bearerAuth: [] }],
         responses: { 200: reply("Found", ref(def.schemas.item, `${def.name} item`)), ...ERRORS },
       },
     },

@@ -45,7 +45,7 @@ type AuthContext = Caller & { tenantId: number }; // what services receive
 |---|---|---|---|
 | Staff (console) | Auth0 token | `X-Tenant-Id` header | The user has a `staff` row in that tenant |
 | Platform Admin (console) | Auth0 token | `X-Tenant-Id` header, only for tenant pages | The user is flagged platform admin |
-| Customer (portal) | `Authorization: Bearer <Auth0 token>` | `X-Tenant-Slug` header, which the portal takes from its own web address | The tenant exists and is on. The `customers` row with the token's phone, if any; it is created on first booking (`POR-03`). |
+| Customer (portal) | `Authorization: Bearer <Auth0 token>` | `X-Tenant-Slug` header, which the portal takes from its own web address | The tenant exists (else 404 `tt_plt_001`) and is on (else 403 `tt_plt_010`, so the portal can show "not available"). The `customers` row with the token's phone, if any; it is created on first booking (`POR-03`). |
 | Assistant (n8n) | `Authorization: Assistant <ASSISTANT_API_KEY>`, compared in constant time | `X-Tenant-Id` header, which it learns from `GET /v1/whatsapp-numbers?phoneNumberId=` (the one call it makes without a tenant) | The tenant is on. `X-Customer-Phone: +94771234567` names the customer it acts for. |
 | Background job | n/a | The job's saved data | Jobs re-check that the tenant is on, and that any staff action is still allowed, when they run |
 

@@ -609,6 +609,11 @@ export type UpdateResource = {
     price?: PriceInput;
 };
 
+export type Tenant = {
+    slug: string;
+    name: string;
+};
+
 export type WhatsAppNumber = {
     id: number;
     tenantId: number;
@@ -647,6 +652,35 @@ export type GetMeResponses = {
 };
 
 export type GetMeResponse = GetMeResponses[keyof GetMeResponses];
+
+export type GetTenantData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/v1/tenant';
+};
+
+export type GetTenantErrors = {
+    /**
+     * Error
+     */
+    default: ErrorReply;
+};
+
+export type GetTenantError = GetTenantErrors[keyof GetTenantErrors];
+
+export type GetTenantResponses = {
+    /**
+     * Found
+     */
+    200: {
+        status: number;
+        message: string;
+        data: Tenant;
+    };
+};
+
+export type GetTenantResponse = GetTenantResponses[keyof GetTenantResponses];
 
 export type ListWhatsappNumbersData = {
     body?: never;

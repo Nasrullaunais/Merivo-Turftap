@@ -5,7 +5,7 @@ import { ArrowLeftRight, ChevronRight, ChevronsUpDown, LogOut } from "lucide-rea
 import { Fragment, useId, useState } from "react";
 import { Focusable } from "react-aria-components";
 
-import { BrandMark } from "../components/BrandMark";
+import { BrandMark } from "@turftap/ui";
 import { Collapse } from "../components/Collapse";
 import { HUE_CLASS, type Hue } from "../components/look";
 import { TopicTile } from "../components/TopicTile";

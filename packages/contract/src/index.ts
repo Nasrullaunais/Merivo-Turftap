@@ -16,5 +16,6 @@ export * from "./price-rules";
 export * from "./repeat-series";
 export * from "./resources";
 export * from "./staff";
+export * from "./tenant";
 export * from "./venues";
 export * from "./whatsapp-numbers";
