@@ -129,7 +129,7 @@ The AI-powered WhatsApp chat that customers use to book and pay.
 _Avoid_: Bot, chatbot, agent
 
 **Chat Offer**:
-What the Assistant puts to a customer before it books or cancels anything for them: the exact booking with its price, or the booking to cancel, with Yes and No to tap. When a customer with several things waiting for payment sends a Transfer Receipt, the Chat Offer is instead the list of those things, to pick the one it pays for. Nothing changes until the customer answers in a later message. A Chat Offer runs out after 10 minutes, or when a newer one replaces it.
+What the Assistant puts to a customer before it books or cancels anything for them: the exact booking with its price, or the booking to cancel, with Yes and No to tap. When a customer sends a Transfer Receipt, the Chat Offer asks what it pays for: Yes or No for the one thing waiting for payment, or, when several wait, the list of them to pick from. Nothing changes until the customer answers in a later message. A Chat Offer runs out after 10 minutes, or when a newer one replaces it.
 _Avoid_: Proposal, quote, pending action
 
 ## Payments

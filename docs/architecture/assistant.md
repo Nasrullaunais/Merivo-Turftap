@@ -13,15 +13,15 @@ flowchart TD
   off -- yes --> cust[GET /v1/customers?phone= → known or new]
   cust --> photo{Photo or PDF?}
   photo -- yes --> waiting{How many bookings or<br/>memberships await payment?}
-  waiting -- one --> receipt[Fixed step: fetch from Meta,<br/>POST /v1/files, POST /v1/payments]
-  waiting -- several --> pick[Save a receipt Chat Offer:<br/>which one is it for?]
+  waiting -- one --> pick[Save a receipt Chat Offer:<br/>is it for this one?]
+  waiting -- several --> pick2[Save a receipt Chat Offer:<br/>which one is it for?]
   waiting -- none --> agent
   photo -- no --> offer{Does this message say yes to,<br/>or pick from, the waiting Chat Offer?}
-  offer -- "yes, or a pick" --> write[Fixed step: book, cancel<br/>or send the receipt via the API]
+  offer -- "yes, or a pick" --> write[Fixed step: book, cancel, or fetch the<br/>receipt from Meta and send it via the API]
   offer -- no, or no offer --> agent
   write --> agent[AI agent, Gemini<br/>memory keyed by tenant + phone]
-  receipt --> agent
   pick --> agent
+  pick2 --> agent
   agent -- read tools --> tools[find free times,<br/>my bookings, my memberships]
   agent -- offer tools --> save[Check, price and save a Chat Offer]
   agent --> reply[Reply on WhatsApp, with the<br/>waiting Chat Offer's choices]
@@ -54,7 +54,7 @@ flowchart TD
 | `offer_booking` | `GET /v1/availability` for that one start time (free? exact price?) and `GET /v1/bookings?status=AWAITING_PAYMENT` (D-07), then saves a `book` Chat Offer. A new customer's name is required |
 | `offer_cancel` | `GET /v1/bookings/:id` (theirs? still cancellable?), then saves a `cancel` Chat Offer |
 
-- **Its answer** is one JSON object, read leniently by **Read Answer** (text around it or a broken object still gives a reply):
+- **Its answer** is one JSON object, read by **Read Answer**. Text around the object is ignored. An answer with no object, or no `reply`, is never sent, since it may be the AI's own notes: the customer gets the fixed sorry message with the venue's phone, or, if something was just booked or sent, its details, as **Sorry** sends them:
 
 ```json
 { "reply": "Text to send", "choices": ["7:00 pm", "8:00 pm"], "listButton": "", "customerName": null, "confirmOffer": false }
@@ -112,10 +112,10 @@ Story `AST-03`. A customer pays by bank transfer and sends the Transfer Receipt 
 | Waiting | What happens |
 |---|---|
 | None | Nothing is sent. The agent checks the customer's bookings and memberships and says why, for example that the venue is already checking their receipt |
-| One | Sent at once |
-| Several | **Save Receipt Offer** saves a `receipt` Chat Offer with the photo's Meta media id and each thing waiting. The agent asks which one; the reply's choices are those things, with ids `offer-pick-<offer id>-<n>`. A tap is exact; typed words ("the gym one", "2") go to **Offer Check**, which answers with the number, `NO` or `OTHER`. A pick sends it, through **Take Offer** as for bookings |
+| One | **Save Receipt Offer** saves a `receipt` Chat Offer with the photo's Meta media id and the one thing waiting. The agent asks if the photo is the receipt for it, with Yes and No (`offer-yes-<id>`, `offer-no-<id>`), read like a booking's (D-49). Yes sends it, through **Take Offer** as for bookings |
+| Several | The same Chat Offer, with each thing waiting. The agent asks which one; the reply's choices are those things, with ids `offer-pick-<offer id>-<n>`. A tap is exact; typed words ("the gym one", "2") go to **Offer Check**, which answers with the number, `NO` or `OTHER`. A pick sends it |
 
-**Sending it.** **Media Info** asks Meta where the media is (`GET <graph>/<media id>`), and **Download Media** fetches it with the same access token. A file over 5 MB isn't downloaded. **Upload Receipt** sends it to `POST /v1/files` (`purpose: RECEIPT`), and **Send Receipt** to `POST /v1/payments` (`kind: TRANSFER`). The API does every check, as for the portal: the file's type, the Payment Time Limit, and that it still waits for payment. Two photos sent at once are both uploaded, but only one becomes the payment; the other is refused with `tt_pay_010`.
+**Sending it.** **Media Info** asks Meta where the media is (`GET <graph>/<media id>`), and **Download Media** fetches it with the same access token. A file over 5 MB isn't downloaded. **Upload Receipt** sends it to `POST /v1/files` (`purpose: RECEIPT`), and **Send Receipt** to `POST /v1/payments` (`kind: TRANSFER`). The API does every check, as for the portal: the file's type, the Payment Time Limit, and that it still waits for payment. Nothing is downloaded before the customer confirms. Two photos sent at once save one Chat Offer each; the newer replaces the older, so only one can be sent.
 
 **Telling the customer.** **Word Outcome** tells the agent what happened, and the agent words it. On success, code adds what the receipt was sent for, and the amount, below the reply. If the agent then fails, **Sorry** still sends those lines.
 

@@ -107,18 +107,22 @@ For the photo: any screenshot as `receipt.png` works, and any PDF as `receipt.pd
 | # | Do | Expect |
 |---|---|---|
 | 34 | A new number with nothing waiting: `photo 94779990005 receipt.png` | "Nothing to pay for right now"; no payment in the console's Receipt checks (AST-03) |
-| 35 | Book in chat and tap Yes, then `photo <phone> receipt.png` | "Sent to the venue to check, a message comes once it's accepted", with the booking and amount below. The console's Receipt checks lists it; the booking shows the receipt sent |
+| 35 | Book in chat and tap Yes, then `photo <phone> receipt.png` | Asks if it's the receipt for that booking, with Yes and No and the footer "Receipt for <day> <time>". Nothing sent yet (D-49) |
+| 35a | Then tap Yes | "Sent to the venue to check, a message comes once it's accepted", with the booking and amount below. The console's Receipt checks lists it; the booking shows the receipt sent |
+| 35b | Repeat 35 on a new booking, tap No | "Not sent"; the booking still waits for payment |
+| 35c | Repeat 35, ask `how long does checking take?`, then type `ow` | The question is answered and Yes and No come again; then sent |
 | 36 | Send the same photo again | Nothing new is sent; it says the venue is already checking their receipt |
 | 37 | Book in chat, buy a membership on the portal with the same phone, then `photo <phone> receipt.png` | Asks which one, with both to tap and the footer "Which one is this receipt for?". Nothing sent yet |
 | 38 | Then type `it's for the gym one` | Sent for the membership only; the booking still waits for payment |
 | 39 | Repeat 37, ask `how long does checking take?`, then type `2` | The question is answered and the choices come again; then sent for the second one |
 | 40 | Repeat 37, tap a choice of an older receipt question | Nothing sent; asks again with the newer choices |
-| 41 | One waiting, `photo <phone> receipt.pdf` | Sent, as for a photo |
-| 42 | One waiting, a file over 5 MB: `{ printf '\xff\xd8\xff'; head -c 6000000 /dev/zero; } > big.jpg; photo <phone> big.jpg` | "Over 5 MB, send a screenshot"; nothing sent |
-| 43 | One waiting, a text file named as a photo: `echo hi > fake.png; photo <phone> fake.png` | Asks for a photo, screenshot or PDF; nothing sent |
-| 44 | One waiting, two photos at once: `photo <phone> receipt.png & photo <phone> receipt.pdf & wait` | One payment only; the other reply says it's already with the venue |
+| 41 | One waiting, `photo <phone> receipt.pdf`, tap Yes | Sent, as for a photo |
+| 42 | One waiting, a file over 5 MB: `{ printf '\xff\xd8\xff'; head -c 6000000 /dev/zero; } > big.jpg; photo <phone> big.jpg`, tap Yes | "Over 5 MB, send a screenshot"; nothing sent |
+| 43 | One waiting, a text file named as a photo: `echo hi > fake.png; photo <phone> fake.png`, tap Yes | Asks for a photo, screenshot or PDF; nothing sent |
+| 44 | One waiting, two photos at once: `photo <phone> receipt.png & photo <phone> receipt.pdf & wait`, then tap Yes on each reply | Two questions; one Yes sends it, the other says the button was already used. One payment only |
 | 45 | A voice note: change `type` to `audio` in `photo`'s body | Says it can't open voice notes, with the venue's phone |
 | 46 | Chat emulator: tap the paperclip and pick a photo | The photo shows as your message and gets the same answer as row 35 |
+| 47 | Make **Read Answer** get text with no JSON: in its code, put `const raw = 'I will call find_free_times';` in place of the line that reads the agent's output, run setup, send `hi`. Put it back and run setup | The fixed "Sorry, something went wrong" message with the venue's phone; the text itself is never sent |
 
 ## Afterwards
 

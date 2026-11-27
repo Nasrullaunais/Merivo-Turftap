@@ -132,7 +132,7 @@ Settled in a grilling session with the user. Each answer is written here, then i
 | D-46 | Tappable choices on WhatsApp | In T36 | Yes: up to 3 as buttons, 4 to 10 as a list, shown and tappable in the chat emulator |
 | D-47 | Booking or cancelling in chat: how is the customer's "yes" recognised, given the AI may only read (ADR 0006)? | Tapping Yes, or a typed yes judged by a small separate AI check | Yes. The agent's tool only saves a Chat Offer; a later message confirms it by the Yes button or a typed yes that the small check reads as accepting exactly that Chat Offer. A fixed step then books or cancels, and the agent words what happened |
 | D-48 | Where is "the price changed since it was shown" caught? | In the API | Yes: `POST /v1/bookings` takes an optional `price`; a different current price is refused with `tt_bkg_012` and nothing is booked |
-| D-49 | A photo in chat while exactly one thing waits for payment: attach it at once, or ask "is this your receipt for …?" first? | Attach at once | Yes, as `AST-03` says: no extra tap. A photo that isn't a receipt is rejected by staff, and the customer can send the right one |
+| D-49 | A photo in chat while exactly one thing waits for payment: attach it at once, or ask "is this your receipt for …?" first? | Attach at once | No, ask first, with Yes and No. Attached at once, any photo stops the payment time limit, holds the slot until staff look, and blocks sending the right receipt meanwhile |
 | D-50 | Bank apps often share receipts as PDF files: take those in chat too? | Yes, like photos | Yes: a JPG, PNG or PDF sent as a file counts, up to 5 MB, as on the portal |
 
 ## Open questions for venue owners
