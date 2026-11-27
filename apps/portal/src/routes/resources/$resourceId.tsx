@@ -41,7 +41,7 @@ function ResourcePage() {
       ) : (
         <BackLink to="/" />
       )}
-      <ResourceHeader resource={resource.data} />
+      <ResourceHeader resource={resource.data} venue={venue.data} />
       {justTaken && <JustTaken />}
       {resource.data && venue.data && (
         <SlotPicker

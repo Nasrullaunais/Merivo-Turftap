@@ -21,6 +21,12 @@ export default {
     loading: "Loading memberships",
     /** MEM-02, OQ-03: a Pay at Venue venue sells memberships only at the desk for now. */
     atDesk: "Buy at the desk",
+    bestValue: "Best value",
+    /** "LKR 200 a day", the price shared over the days a plan covers from today. */
+    perDay: (price: string) => `${price} a day`,
+    /** "From LKR 2,500", on the gym's card. */
+    from: (price: string) => `From ${price}`,
+    count: (plans: number) => (plans === 1 ? "1 plan" : `${plans} plans`),
   },
   ticket: {
     from: "From",
