@@ -466,6 +466,94 @@ select.field__input {
   touch-action: pan-y;
 }
 
+.choices {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  width: 100%;
+  min-width: 220px;
+}
+
+.choice {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 9px 13px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--raised);
+  color: var(--rx);
+  font: 600 13.5px var(--font-body);
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    border-color 0.15s,
+    transform 0.12s;
+}
+
+.choice:hover,
+.choice--open {
+  border-color: var(--rx);
+  background: linear-gradient(var(--rx-dim), var(--rx-dim)), var(--raised);
+}
+
+.choice:active {
+  transform: scale(0.98);
+}
+
+.rows {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transition:
+    grid-template-rows 0.22s ease,
+    opacity 0.22s ease;
+}
+
+.rows--open {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+
+.rows__inner {
+  min-height: 0;
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-radius: 10px;
+  background: var(--panel);
+}
+
+.rows--open .rows__inner {
+  border: 1px solid var(--line);
+}
+
+.row {
+  width: 100%;
+  padding: 10px 14px;
+  border: 0;
+  border-bottom: 1px solid var(--line-soft);
+  background: transparent;
+  color: var(--text);
+  font: 14px var(--font-body);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    color 0.15s;
+}
+
+.rows__inner li:last-child .row {
+  border-bottom: 0;
+}
+
+.row:hover {
+  background: var(--rx-dim);
+  color: var(--rx);
+}
+
 .note {
   align-self: center;
   max-width: 92%;

@@ -19,7 +19,7 @@
       "rules": { "react/only-export-components": "off" }
     },
     {
-      "files": ["apps/api/scripts/**", "n8n/setup.ts"],
+      "files": ["apps/api/scripts/**", "n8n/setup.ts", "n8n/check-prompt.ts"],
       "rules": { "no-console": "off" }
     }
   ]

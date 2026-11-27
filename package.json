@@ -9,7 +9,7 @@
   ],
   "scripts": {
     "dev": "bun run --filter '@turftap/api' --filter '@turftap/portal' --filter '@turftap/console' dev",
-    "check": "bun run lint && bun run format:check && bun run typecheck && bun run test",
+    "check": "bun run lint && bun run format:check && bun run typecheck && bun run test && bun run assistant:check",
     "lint": "oxlint --deny-warnings",
     "format": "prettier --write",
     "format:check": "prettier --check .",
@@ -28,7 +28,8 @@
     "admin:add": "bun run --filter '@turftap/api' admin:add",
     "assistant:setup": "bun n8n/setup.ts",
     "emulator": "bun run --filter '@turftap/chat-emulator' dev",
-    "assistant:export": "bun n8n/export.ts"
+    "assistant:export": "bun n8n/export.ts",
+    "assistant:check": "bun n8n/check-prompt.ts"
   },
   "devDependencies": {
     "oxlint": "^1.94.0",

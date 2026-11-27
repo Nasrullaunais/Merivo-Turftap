@@ -31,7 +31,7 @@
           "conditions": [
             {
               "id": "1f000000-0000-4000-8000-000000000027",
-              "leftValue": "={{ $json.body?.type === 'text' && typeof $json.body?.text?.body === 'string' && typeof $json.body?.to === 'string' }}",
+              "leftValue": "={{ typeof $json.body?.to === 'string' && ($json.body?.type === 'text' ? typeof $json.body?.text?.body === 'string' : $json.body?.type === 'interactive' && ['button', 'list'].includes($json.body?.interactive?.type) && typeof $json.body?.interactive?.body?.text === 'string') }}",
               "rightValue": "",
               "operator": {
                 "type": "boolean",
@@ -45,7 +45,7 @@
         "options": {}
       },
       "id": "1f000000-0000-4000-8000-000000000028",
-      "name": "Is Text?",
+      "name": "Can Send?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
@@ -56,9 +56,9 @@
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "INSERT INTO fake_meta_messages (message_id, phone_number_id, to_wa_id, body)\nVALUES ('wamid.fake-' || gen_random_uuid(), $1, $2, $3)\nRETURNING message_id AS \"messageId\", to_wa_id AS \"to\";",
+        "query": "INSERT INTO fake_meta_messages (message_id, phone_number_id, to_wa_id, body, interactive)\nVALUES ('wamid.fake-' || gen_random_uuid(), $1, $2, $3, $4::jsonb)\nRETURNING message_id AS \"messageId\", to_wa_id AS \"to\";",
         "options": {
-          "queryReplacement": "={{ [$json.params.phoneNumberId, $json.body.to, $json.body.text.body] }}"
+          "queryReplacement": "={{ [$json.params.phoneNumberId, $json.body.to, $json.body.type === 'text' ? $json.body.text.body : $json.body.interactive.body.text, $json.body.type === 'interactive' ? JSON.stringify($json.body.interactive) : null] }}"
         }
       },
       "id": "db000000-0000-4000-8000-000000000029",
@@ -94,7 +94,7 @@
     {
       "parameters": {
         "respondWith": "json",
-        "responseBody": "={{ { error: { message: '(#100) Pretend Meta only takes text messages so far', type: 'OAuthException', code: 100 } } }}",
+        "responseBody": "={{ { error: { message: '(#100) Pretend Meta only takes text, reply-button and list messages so far', type: 'OAuthException', code: 100 } } }}",
         "options": {
           "responseCode": 400
         }
@@ -128,7 +128,7 @@
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "SELECT id::int AS id, message_id AS \"messageId\", body AS text, sent_at AS \"sentAt\"\nFROM fake_meta_messages\nWHERE phone_number_id = $1 AND to_wa_id = $2 AND id > $3\nORDER BY id\nLIMIT 100;",
+        "query": "SELECT id::int AS id, message_id AS \"messageId\", body AS text, interactive, sent_at AS \"sentAt\"\nFROM fake_meta_messages\nWHERE phone_number_id = $1 AND to_wa_id = $2 AND id > $3\nORDER BY id\nLIMIT 100;",
         "options": {
           "queryReplacement": "={{ [String($json.body.phoneNumberId ?? ''), String($json.body.to ?? ''), Number($json.body.afterId ?? 0)] }}"
         }
@@ -170,14 +170,14 @@
       "main": [
         [
           {
-            "node": "Is Text?",
+            "node": "Can Send?",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Is Text?": {
+    "Can Send?": {
       "main": [
         [
           {

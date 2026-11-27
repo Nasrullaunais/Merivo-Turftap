@@ -2,8 +2,9 @@
 
 ## AST-01 Ask about free slots and prices
 As a **Customer**, I want to ask in my own words ("any court free tomorrow at 7?"), so that I can book without a website.
-- The Assistant replies in the language I write in (English, Sinhala or Tamil).
-- It only answers from TurfTap data. If it doesn't know, it says so.
+- The Assistant replies in the language I write in (English, Sinhala or Tamil), and in English letters when I type Sinhala or Tamil in English letters.
+- It only answers from TurfTap data. If it doesn't know, it says so and gives the venue's phone.
+- When I have to pick one of a few things, such as a time, I can tap a choice instead of typing.
 
 ## AST-02 Book through chat
 As a **Customer**, I want the Assistant to book for me after I confirm, so that booking takes a few messages.
@@ -21,6 +22,8 @@ As a **Customer**, I want to ask "what have I booked?" and cancel before the cut
 
 ## AST-05 First message from a new number
 As a **Customer** messaging for the first time, I want the Assistant to ask my name once, so that the venue knows who I am.
+- The Assistant answers my first question and asks my name in the same reply, in my language.
+- When I give my name in a later message, it's saved. If I don't, the Assistant keeps helping without asking again.
 
 ## AST-06 Hand over to a person
 As a **Customer**, I want to be told how to reach the venue when the Assistant can't help, so that I'm not stuck.
