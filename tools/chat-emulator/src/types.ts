@@ -7,6 +7,8 @@ export interface ChatMessage {
   time: string;
   /** Reply buttons or list rows the Assistant sent with the text. */
   choices?: Choices;
+  /** The small grey line under the text, like WhatsApp's message footer. */
+  footer?: string;
 }
 
 export interface Choice {
@@ -27,6 +29,7 @@ export interface Choices {
 export interface Interactive {
   type: "button" | "list";
   body: { text: string };
+  footer?: { text: string };
   action: {
     buttons?: { type: "reply"; reply: Choice }[];
     button?: string;

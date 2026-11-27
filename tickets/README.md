@@ -67,7 +67,7 @@ Status: `todo`, `doing`, `done`, `blocked` (waiting on a decision or an outside 
 | **H. Assistant (n8n)** |||||
 | [T35](T35-assistant-skeleton.md) | Assistant skeleton: tenant, customer, name, hand-over | AST-05, AST-06 | T02, T03 | done |
 | [T36](T36-assistant-free-slots.md) | Ask about free slots and prices, with tappable choices | AST-01, AST-05 | T35, T49 | done |
-| [T37](T37-assistant-book-and-cancel.md) | Book and cancel through chat | AST-02, AST-04 | T36, T07 | todo |
+| [T37](T37-assistant-book-and-cancel.md) | Book and cancel through chat | AST-02, AST-04 | T36, T07 | done |
 | [T38](T38-assistant-receipts.md) | Send a receipt in chat | AST-03 | T37, T11, T23 | todo |
 | **I. Real services and launch** |||||
 | [T39](T39-gemini-receipt-reader.md) | Gemini receipt reader adapter | PAY-03 | T12 | todo |
@@ -130,6 +130,8 @@ Settled in a grilling session with the user. Each answer is written here, then i
 | D-44 | A new number's first message: ask the name first, in English? | Answer and ask in the same reply | Yes: the AI answers, asks the name in the customer's language, and picks the name out of the next message. The fixed English name step from T35 goes |
 | D-45 | Sinhala or Tamil typed in English letters: how to reply? | Mirror the customer | Yes: same language and same letters as the customer |
 | D-46 | Tappable choices on WhatsApp | In T36 | Yes: up to 3 as buttons, 4 to 10 as a list, shown and tappable in the chat emulator |
+| D-47 | Booking or cancelling in chat: how is the customer's "yes" recognised, given the AI may only read (ADR 0006)? | Tapping Yes, or a typed yes judged by a small separate AI check | Yes. The agent's tool only saves a Chat Offer; a later message confirms it by the Yes button or a typed yes that the small check reads as accepting exactly that Chat Offer. A fixed step then books or cancels, and the agent words what happened |
+| D-48 | Where is "the price changed since it was shown" caught? | In the API | Yes: `POST /v1/bookings` takes an optional `price`; a different current price is refused with `tt_bkg_012` and nothing is booked |
 
 ## Open questions for venue owners
 
@@ -140,3 +142,4 @@ Business rules to confirm with real venue owners. A ticket that depends on one s
 | OQ-01 | A repeat series booking whose Advance wasn't paid in time: cancel it automatically and free the slot, or keep it, show "unpaid" on the calendar, and let staff decide? And by when must it be paid? | T47 | |
 | OQ-02 | At a Pay at Venue venue nothing is paid online, so the one-booking limit doesn't apply. Should customers still be limited (for example to one or two upcoming bookings) to stop no-shows? | T06 (that rule only) | |
 | OQ-03 | Memberships at a Pay at Venue venue: is a membership bought online active straight away and paid at the desk on the first visit, or can't it be bought online at all? | T23 (that rule only) | |
+| OQ-04 | A booking made close to its start gets the full Payment Time Limit, so its pay-by time can fall after the game starts (booked 8:47 pm Friday for 8:00 pm Saturday, with a 24-hour limit). Should the pay-by time be cut to the start time, or to some time before it, such as an hour? Or should such late bookings be Pay at Venue only? | Nothing yet (today's rule stays) | |

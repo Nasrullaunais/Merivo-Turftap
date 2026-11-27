@@ -94,6 +94,8 @@ export const CreateBooking = z
     resourceId: Id,
     startsAt: Timestamp,
     slots: z.number().int().min(1).max(MAX_SLOTS_PER_BOOKING).default(1),
+    /** The price the customer was shown. If the price is now different, nothing is booked. */
+    price: Money.optional(),
     walkIn: WalkIn.optional(),
   })
   .meta({ id: "CreateBooking" });

@@ -127,7 +127,12 @@ async function quoteFor(auth: AuthContext, input: CreateBooking, now: Date) {
   const end = minute + input.slots * resource.slotMinutes;
   const slot = availabilityService.quote(day, minute, end, now);
   if (slot.startsAt.getTime() !== input.startsAt.getTime()) throw bookingErrors.notBookable();
-  if (slot.free) return { resource, venue, slot };
+  if (slot.free) {
+    const shown = input.price;
+    if (shown && (shown.amount !== slot.price.amount || shown.currency !== slot.price.currency))
+      throw bookingErrors.priceChanged(slot.price);
+    return { resource, venue, slot };
+  }
   const freeButForBookings = availabilityService.quote({ ...day, booked: [] }, minute, end, now);
   throw freeButForBookings.free ? bookingErrors.slotTaken() : bookingErrors.notBookable();
 }

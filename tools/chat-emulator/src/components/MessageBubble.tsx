@@ -28,6 +28,7 @@ export function MessageBubble({ msg, onTap }: Props) {
       <span className="line__tag mono">{LABEL[msg.role]}</span>
       <div className="bubble">
         <p className="bubble__text">{richText(msg.text)}</p>
+        {msg.footer && <p className="bubble__footer">{msg.footer}</p>}
         <time className="bubble__time mono">{msg.time}</time>
       </div>
       {msg.choices && <ChoiceButtons choices={msg.choices} onTap={onTap} />}

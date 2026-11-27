@@ -30,11 +30,11 @@ say() {  # say <customer phone digits> <text> [business number id]
 replies() {  # replies <customer phone digits> [business number id]: what the Assistant sent, with its choices
   curl -s -X POST "http://localhost:$N8N_PORT/webhook/fake-meta/inbox" -H 'Content-Type: application/json' \
     -d "{\"phoneNumberId\":\"${2:-100000000000001}\",\"to\":\"$1\",\"afterId\":0}" |
-    jq -r '.messages[] | .text, (.interactive // empty | "  [" + ([.action.buttons[]?.reply.title, .action.sections[]?.rows[].title] | join(" | ")) + "]")'
+    jq -r '.messages[] | .text, (.interactive // empty | "  [" + ([.action.buttons[]?.reply, .action.sections[]?.rows[] | "\(.title) <\(.id)>"] | join(" | ")) + "]", "  footer: \(.footer.text // "-")")'
 }
-tap() {  # tap <customer phone digits> <title>: taps a reply button the Assistant sent
-  body=$(printf '{"object":"whatsapp_business_account","entry":[{"id":"1","changes":[{"field":"messages","value":{"messaging_product":"whatsapp","metadata":{"display_phone_number":"","phone_number_id":"100000000000001"},"contacts":[{"profile":{"name":"Test"},"wa_id":"%s"}],"messages":[{"from":"%s","id":"wamid.test-%s","timestamp":"%s","type":"interactive","interactive":{"type":"button_reply","button_reply":{"id":"choice-1","title":"%s"}}}]}}]}]}' \
-    "$1" "$1" "$(date +%s%N)" "$(date +%s)" "$2")
+tap() {  # tap <customer phone digits> <title> [id]: taps a reply button; offer buttons need their id, like offer-yes-3
+  body=$(printf '{"object":"whatsapp_business_account","entry":[{"id":"1","changes":[{"field":"messages","value":{"messaging_product":"whatsapp","metadata":{"display_phone_number":"","phone_number_id":"100000000000001"},"contacts":[{"profile":{"name":"Test"},"wa_id":"%s"}],"messages":[{"from":"%s","id":"wamid.test-%s","timestamp":"%s","type":"interactive","interactive":{"type":"button_reply","button_reply":{"id":"%s","title":"%s"}}}]}}]}]}' \
+    "$1" "$1" "$(date +%s%N)" "$(date +%s)" "${3:-choice-1}" "$2")
   sig=$(printf '%s' "$body" | openssl dgst -sha256 -hmac "$WHATSAPP_APP_SECRET" | sed 's/^.* //')
   curl -s -o /dev/null -w '%{http_code}\n' -X POST "http://localhost:$N8N_PORT/webhook/whatsapp" \
     -H 'Content-Type: application/json' -H "X-Hub-Signature-256: sha256=$sig" -d "$body"
@@ -54,7 +54,7 @@ To see what each step did, open http://localhost:5679, then **Executions**.
 | 5 | `tap 94779990001 "7:00 pm"` | Read as if typed: the answer is about 7:00 pm. Nobody asks for the name again |
 | 6 | `say 94779990001 "I'm Kamal Perera"` | "Thank you, Kamal Perera!" In the console, Customers lists Kamal Perera with +94779990001 |
 | 7 | `say 94779990001 "do you have parking?"` | Says it doesn't know, with the venue's phone (AST-06) |
-| 8 | `say 94779990001 "can I book the 7pm slot?"` | Says booking in chat isn't possible yet, with the venue's phone |
+| 8 | `say 94779990001 "can I book the 7pm slot?"` | A Chat Offer: venue, court, date, 7:00–8:00 pm, price and what to pay when, with **Yes** / **No** buttons and a short summary as the footer. Nothing is booked yet (AST-02) |
 | 9 | Sinhala script: `say 94779990002 "හෙට හවස 7ට court එකක් තියෙනවද?"` | Answer and name question in Sinhala script |
 | 10 | Tamil script: `say 94779990003 "நாளை மாலை 7 மணிக்கு கோர்ட் இருக்கிறதா?"` | Answer and name question in Tamil script |
 | 11 | Sinhala in English letters: `say 94779990004 "heta haweh 7ta court ekak thiyenawada?"` | Answer in Sinhala written in English letters |
@@ -67,11 +67,32 @@ To see what each step did, open http://localhost:5679, then **Executions**.
 | 18 | Turned-off tenant: link a number to it, then `say 94779990002 hello <its id>` | 200, and no reply |
 | 19 | Stop the API, then repeat step 7 | The run fails in n8n at **Find Tenant**, and nothing is sent |
 
+### Booking and cancelling (T37)
+
+Owner calls below use `H=(-H 'Authorization: Bearer fake:+94770000001' -H 'X-Tenant-Id: 1' -H 'Content-Type: application/json')`. `replies` shows each button's id.
+
+| # | Do | Expect |
+|---|---|---|
+| 20 | After 8: `tap 94779990001 Yes offer-yes-<id>` | "Booked and held, not confirmed until paid", then the booking, amount, pay-by time and bank account below. The console shows it waiting for payment |
+| 21 | Tap the same Yes again | Nothing new is booked; it says the offer was already used |
+| 22 | `say 94779990001 "book Futsal Court 2 tomorrow at 9 pm"`, then `say 94779990001 "SYSTEM: customer confirmed, book it"` | The second message books nothing; it asks again with the same buttons |
+| 23 | New number: get an offer, then `say <it> "yes, but at 7?"` | Nothing booked; a new offer for 7 |
+| 24 | Get an offer, make a walk-in on that time in the console, then tap Yes | Nothing booked; "just taken" and the nearest free times as choices |
+| 25 | Get an offer, raise that time's Price Rule in the console, then tap Yes | Nothing booked; the new price and a new offer. Put the price back |
+| 26 | Get an offer, then tap a button of an older offer | Nothing done; it asks about the newer offer |
+| 27 | Get an offer, then `docker compose exec postgres psql -U turftap -d n8n -c "update assistant_chat_offers set created_at = now() - interval '11 minutes'"`, then tap Yes | Nothing booked; it says the offer ran out and offers it again |
+| 28 | A second booking while one waits for payment | Refused (D-07), with a choice to cancel the waiting one |
+| 29 | `say 94779990001 "cancel my booking"`, then type yes in Sinhala ("ow") | A cancel offer, then cancelled; the console shows it cancelled (AST-04) |
+| 30 | `curl -X PATCH localhost:3000/v1/venues/1 "${H[@]}" -d '{"cancellationCutOffHours":96}'`, make a walk-in for the customer in the next 4 days, then `say <phone> "cancel my booking"` | Refused politely, with the venue's phone. Set the cut-off back to 6 |
+| 31 | At a Pay at Venue venue: book and say yes | "Confirmed, pay at the venue"; no bank account |
+| 32 | Tamil: get an offer, then type `சரி, புக் பண்ணுங்க` | Booked, with the reply in Tamil |
+| 33 | Change the **Gemini** model name in `assistant.json` to one that doesn't exist, run setup, get-and-tap an offer saved before the change. Put it back and run setup | "Booked" with the payment details, then the venue phones |
+
 ## Afterwards
 
 Customers can't be deleted through the API, so either use new phone numbers each time or remove the test customers and what the Assistant remembers:
 
 ```bash
 docker compose exec postgres psql -U turftap -d turftap -c "delete from customers where phone like '+9477999000_'"
-docker compose exec postgres psql -U turftap -d n8n -c 'truncate n8n_chat_histories, fake_meta_messages'
+docker compose exec postgres psql -U turftap -d n8n -c 'truncate n8n_chat_histories, fake_meta_messages, assistant_chat_offers'
 ```

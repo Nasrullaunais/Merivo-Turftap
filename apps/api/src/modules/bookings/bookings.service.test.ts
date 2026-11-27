@@ -122,6 +122,33 @@ describe("BKG-02 book online", () => {
       expect(booking.price).toEqual(rupees(1_000 + 3 * 2_000));
     });
 
+    it("create_refusesAndBooksNothing_whenThePriceShownHasChanged", async () => {
+      const { resourceId } = await setUp();
+      const date = inDays(3);
+      const weekday = new Date(`${date}T12:00:00Z`).getUTCDay() || 7;
+      await priceRulesService.create(
+        owner(),
+        priceRuleInput(resourceId, { weekdays: [weekday], price: rupees(4_000) }),
+      );
+      const customer = await newCustomer();
+      const startsAt = at(date, "18:00");
+      await expect(
+        bookingsService.create(customer, { resourceId, startsAt, slots: 1, price: rupees(2_000) }),
+      ).rejects.toMatchObject({ code: "tt_bkg_012", message: expect.stringContaining("4,000") });
+      expect(await book(resourceId, startsAt, 1, customer)).toMatchObject({ price: rupees(4_000) });
+    });
+
+    it("create_books_whenThePriceShownStillHolds", async () => {
+      const { resourceId } = await setUp();
+      const booking = await bookingsService.create(await newCustomer(), {
+        resourceId,
+        startsAt: at(inDays(2), "10:00"),
+        slots: 2,
+        price: rupees(4_000),
+      });
+      expect(booking).toMatchObject({ status: "AWAITING_PAYMENT", price: rupees(4_000) });
+    });
+
     it("create_roundsTheAdvanceUpToWholeRupees", async () => {
       const { resourceId } = await setUp({ advancePercent: 33 }, 2_010);
       const booking = await book(resourceId, at(inDays(2), "10:00"));

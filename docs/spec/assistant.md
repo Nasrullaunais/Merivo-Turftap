@@ -9,7 +9,9 @@ As a **Customer**, I want to ask in my own words ("any court free tomorrow at 7?
 ## AST-02 Book through chat
 As a **Customer**, I want the Assistant to book for me after I confirm, so that booking takes a few messages.
 - The Assistant repeats the venue, resource, date, time and price, then waits for "yes". Only then is the booking made.
-- After booking it sends the bank details, amount and time limit.
+- I can say yes by tapping Yes or by typing it in my language. A question or a change ("yes, but at 7?") isn't a yes.
+- If the time was just taken or the price has changed, nothing is booked: I'm told, and offered the free times or the new price.
+- After booking it sends the bank details, amount and time limit. At a Pay at Venue venue, it says the booking is confirmed and I pay there.
 
 ## AST-03 Send a receipt in chat
 As a **Customer**, I want to send my transfer photo in the chat, so that I don't have to open a website.
