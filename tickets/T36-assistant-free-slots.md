@@ -1,6 +1,6 @@
 # T36 Ask about free slots and prices
 
-Status: todo · Stories: `AST-01`, `AST-05` (changed) · Depends on: T35, T49 · Decisions: **D-44**, **D-45**, **D-46**
+Status: done · Stories: `AST-01`, `AST-05` (changed) · Depends on: T35, T49 · Decisions: **D-44**, **D-45**, **D-46**
 
 ## Goal
 A customer asks in their own words ("any court free tomorrow at 7?", "heta 7ta court ekak thiyenawada?") in English, Sinhala or Tamil, and the Assistant answers only from TurfTap data, with tappable choices where they save typing.

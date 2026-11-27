@@ -1,0 +1,163 @@
+{
+  "id": "turftapAstTools1",
+  "name": "TurfTap Assistant Tools",
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "tool"
+            },
+            {
+              "name": "tenantId"
+            },
+            {
+              "name": "phone"
+            },
+            {
+              "name": "names"
+            },
+            {
+              "name": "date"
+            },
+            {
+              "name": "venueId"
+            },
+            {
+              "name": "type"
+            },
+            {
+              "name": "from"
+            },
+            {
+              "name": "to"
+            }
+          ]
+        }
+      },
+      "id": "b7000000-0000-4000-8000-000000000001",
+      "name": "Tool Call",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Which API list each tool reads. Only what the agent filled in goes into the query.\nconst MAX_PAGE_SIZE = 100;\nconst MY_LIST_SIZE = 20;\nconst LOCAL_TIME = /^([01]\\d|2[0-4]):[0-5]\\d$/;\nconst input = $json;\nconst optional = (value) => String(value ?? '').trim();\n\nif (input.tool === 'find_free_times') {\n  const query = { date: optional(input.date), free: true, size: MAX_PAGE_SIZE };\n  if (Number(input.venueId) > 0) query.venueId = Number(input.venueId);\n  if (optional(input.type)) query.type = optional(input.type);\n  if (LOCAL_TIME.test(optional(input.from))) query.from = optional(input.from);\n  if (LOCAL_TIME.test(optional(input.to))) query.to = optional(input.to);\n  return { json: { path: 'availability', query } };\n}\nif (input.tool === 'my_bookings') {\n  return { json: { path: 'bookings', query: { from: new Date().toISOString(), size: MY_LIST_SIZE, sort: 'startsAt,asc' } } };\n}\nif (input.tool === 'my_memberships') {\n  return { json: { path: 'memberships', query: { size: MY_LIST_SIZE, sort: 'startsOn,desc' } } };\n}\nthrow new Error('Unknown tool: ' + input.tool);"
+      },
+      "id": "b7000000-0000-4000-8000-000000000002",
+      "name": "Build Query",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        220,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.TURFTAP_API_URL }}/v1/{{ $json.path }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "specifyQuery": "json",
+        "jsonQuery": "={{ JSON.stringify($json.query) }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Tenant-Id",
+              "value": "={{ $('Tool Call').item.json.tenantId }}"
+            },
+            {
+              "name": "X-Customer-Phone",
+              "value": "={{ $('Tool Call').item.json.phone }}"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true
+            }
+          },
+          "timeout": 10000
+        }
+      },
+      "id": "b7000000-0000-4000-8000-000000000003",
+      "name": "Ask API",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        440,
+        0
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "turftapApiKey001",
+          "name": "TurfTap API (Assistant key)"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// What the agent reads: Sri Lankan times and \"LKR 2,500\", never UTC or cents.\nconst call = $('Tool Call').item.json;\nconst names = JSON.parse(call.names);\nconst DEFAULT_TIME_ZONE = 'Asia/Colombo';\nconst BOOKING_WORDS = {\n  AWAITING_PAYMENT: 'waiting for payment',\n  AWAITING_CHECK: 'receipt sent, the venue is checking it',\n  CONFIRMED: 'confirmed',\n  EXPIRED: 'expired, as it was not paid in time',\n  CANCELLED: 'cancelled',\n};\nconst MEMBERSHIP_WORDS = { ...BOOKING_WORDS, ACTIVE: 'active', ENDED: 'ended' };\n\nconst money = (m) => m.currency + ' ' + (m.amount / 100).toLocaleString('en-US', { maximumFractionDigits: 2 });\nconst zoneOf = (venueId) => names.venues[venueId]?.timeZone ?? DEFAULT_TIME_ZONE;\nconst time = (iso, timeZone) => new Date(iso).toLocaleTimeString('en-GB', { timeZone, hour: 'numeric', minute: '2-digit', hour12: true });\nconst day = (iso, timeZone) => new Date(iso).toLocaleDateString('en-GB', { timeZone, weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });\nconst localDay = (isoDate) => day(isoDate + 'T12:00:00Z', 'UTC');\nconst venueName = (venueId) => names.venues[venueId]?.name ?? 'a venue that is closed for now';\nconst resourceName = (resourceId) => {\n  const resource = names.resources[resourceId];\n  return resource ? resource.name + ' at ' + venueName(resource.venueId) : 'a resource no longer listed';\n};\nconst toPay = (item) =>\n  item.status === 'AWAITING_PAYMENT' && item.expiresAt\n    ? ': send ' + money(item.amountDue) + ' by ' + time(item.expiresAt, zoneOf(item.venueId)) + ' on ' + day(item.expiresAt, zoneOf(item.venueId))\n    : item.balance.amount > 0 && (item.status === 'CONFIRMED' || item.status === 'ACTIVE')\n      ? ', ' + money(item.balance) + ' still to pay at the venue'\n      : '';\n\nfunction answer() {\n  if ($json.error || !$json.body) return 'The check failed. Tell the customer you can\\'t check right now.';\n  const { statusCode, body } = $json;\n  if (statusCode >= 400) {\n    const why = (body.errors ?? []).map((e) => e.field + ': ' + e.message).join('; ') || body.message;\n    return 'The check was refused (' + why + ').' + (statusCode >= 500 ? \" Tell the customer you can't check right now.\" : '');\n  }\n  const { content, totalElements } = body.data;\n\n  if (call.tool === 'find_free_times') {\n    const date = localDay(call.date);\n    if (content.length === 0) return 'Nothing is free on ' + date + ' for this search.';\n    const byResource = new Map();\n    for (const slot of content) byResource.set(slot.resourceId, [...(byResource.get(slot.resourceId) ?? []), slot]);\n    const lines = ['Free start times on ' + date + ' (each price is for one slot from that time):'];\n    for (const [resourceId, slots] of byResource) {\n      const resource = names.resources[resourceId];\n      lines.push(resourceName(resourceId) + (resource ? ', ' + resource.slotMinutes + '-minute slots:' : ':'));\n      const byPrice = new Map();\n      for (const slot of slots) {\n        const price = money(slot.price);\n        byPrice.set(price, [...(byPrice.get(price) ?? []), time(slot.startsAt, zoneOf(resource?.venueId))]);\n      }\n      for (const [price, times] of byPrice) lines.push('• ' + price + ': ' + times.join(', '));\n    }\n    if (totalElements > content.length) {\n      lines.push('Only the first ' + content.length + ' of ' + totalElements + ' free start times are listed. Ask about a narrower time or one venue for the rest.');\n    }\n    return lines.join('\\n');\n  }\n\n  if (call.tool === 'my_bookings') {\n    if (content.length === 0) return 'The customer has no upcoming bookings.';\n    const lines = content.map((b) => {\n      const zone = zoneOf(b.venueId);\n      return '• ' + resourceName(b.resourceId) + ', ' + day(b.startsAt, zone) + ', ' + time(b.startsAt, zone) + ' to ' + time(b.endsAt, zone) +\n        ', ' + money(b.price) + ': ' + BOOKING_WORDS[b.status] + toPay(b);\n    });\n    return ['The customer\\'s upcoming bookings:', ...lines].join('\\n');\n  }\n\n  if (content.length === 0) return 'The customer has no memberships.';\n  const lines = content.map((m) =>\n    '• ' + m.planName + ' at ' + venueName(m.venueId) + ', ' + localDay(m.startsOn) + ' to ' + localDay(m.endsOn) +\n      ', ' + money(m.price) + ': ' + MEMBERSHIP_WORDS[m.status] + toPay(m));\n  return ['The customer\\'s memberships, newest first:', ...lines].join('\\n');\n}\n\nreturn { json: { result: answer() } };"
+      },
+      "id": "b7000000-0000-4000-8000-000000000004",
+      "name": "Word Answer",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        660,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Tool Call": {
+      "main": [
+        [
+          {
+            "node": "Build Query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Query": {
+      "main": [
+        [
+          {
+            "node": "Ask API",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ask API": {
+      "main": [
+        [
+          {
+            "node": "Word Answer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveDataSuccessExecution": "all",
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "pinData": {}
+}

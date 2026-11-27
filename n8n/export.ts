@@ -2,7 +2,13 @@
 // Only what describes the workflow is kept; ids, dates and owners of this n8n install are dropped.
 import { $ } from "bun";
 
-const WORKFLOWS = { turftapAssistant: "assistant.json", turftapFakeMeta1: "fake-meta.json" };
+import { PROMPT_FILE, promptOf, WORKFLOW_FILE } from "./prompt";
+
+const WORKFLOWS = {
+  turftapAssistant: "assistant.json",
+  turftapAstTools1: "assistant-tools.json",
+  turftapFakeMeta1: "fake-meta.json",
+};
 const KEPT_FIELDS = ["id", "name", "nodes", "connections", "settings", "pinData"] as const;
 const TEMP_FILE = "export.tmp.json";
 
@@ -15,3 +21,5 @@ for (const [id, file] of Object.entries(WORKFLOWS)) {
   const kept = Object.fromEntries(KEPT_FIELDS.map((field) => [field, workflow[field]]));
   await Bun.write(`${import.meta.dir}/workflows/${file}`, JSON.stringify(kept, null, 2) + "\n");
 }
+
+await Bun.write(PROMPT_FILE, promptOf(await Bun.file(WORKFLOW_FILE).json()));

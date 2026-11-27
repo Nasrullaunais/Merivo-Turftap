@@ -66,7 +66,7 @@ Status: `todo`, `doing`, `done`, `blocked` (waiting on a decision or an outside 
 | [T33](T33-tenants-api.md) | Tenant scripts: create, turn off, list | PLA-01, PLA-03, PLA-04 | T04, T06 | done |
 | **H. Assistant (n8n)** |||||
 | [T35](T35-assistant-skeleton.md) | Assistant skeleton: tenant, customer, name, hand-over | AST-05, AST-06 | T02, T03 | done |
-| [T36](T36-assistant-free-slots.md) | Ask about free slots and prices, with tappable choices | AST-01, AST-05 | T35, T49 | todo |
+| [T36](T36-assistant-free-slots.md) | Ask about free slots and prices, with tappable choices | AST-01, AST-05 | T35, T49 | done |
 | [T37](T37-assistant-book-and-cancel.md) | Book and cancel through chat | AST-02, AST-04 | T36, T07 | todo |
 | [T38](T38-assistant-receipts.md) | Send a receipt in chat | AST-03 | T37, T11, T23 | todo |
 | **I. Real services and launch** |||||

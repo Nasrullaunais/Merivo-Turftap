@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 
-import { fetchInbox, sendMessage } from "./api";
+import { choicesOf, fetchInbox, sendMessage, sendTap } from "./api";
 import { Composer } from "./components/Composer";
 import { ControlPanel } from "./components/ControlPanel";
 import { Header } from "./components/Header";
@@ -8,7 +8,7 @@ import { MessageBubble } from "./components/MessageBubble";
 import { TypingIndicator } from "./components/TypingIndicator";
 import { useLocalStorage } from "./lib/useLocalStorage";
 import { nowStamp, uid } from "./lib/util";
-import type { ChatMessage, Settings } from "./types";
+import type { ChatMessage, Choice, Choices, Settings } from "./types";
 
 const POLL_INTERVAL_MS = 1500;
 const REPLY_WAIT_MS = 20_000;
@@ -79,6 +79,7 @@ export default function App() {
             id: uid(),
             role: "rx" as const,
             text: m.text,
+            choices: choicesOf(m.messageId, m.interactive),
             time: new Date(m.sentAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
           })),
         ]);
@@ -96,18 +97,11 @@ export default function App() {
     };
   }, [live, settings]);
 
-  async function send() {
-    const text = draft.trim();
-    if (!text) return;
-    if (!live) {
-      push({ role: "err", text: "Set the business number and your phone in settings first." });
-      setPanelOpen(true);
-      return;
-    }
-    setDraft("");
-    push({ role: "tx", text });
+  /** Shows what the customer sent, delivers it like Meta, and waits for the answer. */
+  async function deliver(shown: string, delivery: () => Promise<{ ok: boolean; status: number }>) {
+    push({ role: "tx", text: shown });
     try {
-      const res = await sendMessage(settings, text);
+      const res = await delivery();
       if (!res.ok) {
         push({ role: "err", text: `The Assistant refused the message (HTTP ${res.status}).` });
         return;
@@ -129,6 +123,22 @@ export default function App() {
     }
   }
 
+  function send() {
+    const text = draft.trim();
+    if (!text) return;
+    if (!live) {
+      push({ role: "err", text: "Set the business number and your phone in settings first." });
+      setPanelOpen(true);
+      return;
+    }
+    setDraft("");
+    void deliver(text, () => sendMessage(settings, text));
+  }
+
+  // WhatsApp shows a tapped button or list row as the customer's own message.
+  const tap = (choices: Choices, choice: Choice) =>
+    void deliver(choice.title, () => sendTap(settings, choices, choice));
+
   return (
     <div className="app">
       <Header
@@ -142,7 +152,7 @@ export default function App() {
       <main className="stream" ref={scrollRef}>
         <div className="stream__inner">
           {messages.map((m) => (
-            <MessageBubble key={m.id} msg={m} />
+            <MessageBubble key={m.id} msg={m} onTap={tap} />
           ))}
           {waiting && <TypingIndicator />}
         </div>

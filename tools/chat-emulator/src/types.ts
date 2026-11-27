@@ -5,6 +5,33 @@ export interface ChatMessage {
   role: Role;
   text: string;
   time: string;
+  /** Reply buttons or list rows the Assistant sent with the text. */
+  choices?: Choices;
+}
+
+export interface Choice {
+  id: string;
+  title: string;
+}
+
+export interface Choices {
+  kind: "button" | "list";
+  /** The id of the Assistant's message, which a tap replies to. */
+  messageId: string;
+  /** The label of the button that opens a list. */
+  listButton?: string;
+  options: Choice[];
+}
+
+/** Meta's `interactive` object, as the Assistant sent it. */
+export interface Interactive {
+  type: "button" | "list";
+  body: { text: string };
+  action: {
+    buttons?: { type: "reply"; reply: Choice }[];
+    button?: string;
+    sections?: { title?: string; rows: Choice[] }[];
+  };
 }
 
 export interface Settings {
@@ -19,5 +46,6 @@ export interface InboxMessage {
   id: number;
   messageId: string;
   text: string;
+  interactive: Interactive | null;
   sentAt: string;
 }

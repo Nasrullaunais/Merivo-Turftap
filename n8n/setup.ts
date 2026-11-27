@@ -1,8 +1,8 @@
-// Loads the Assistant into local n8n: its tables, credentials made from .env, and both workflows.
+// Loads the Assistant into local n8n: its tables, credentials made from .env, and its workflows.
 // Local only: it also loads pretend Meta. Run again after pulling workflow changes.
 import { $ } from "bun";
 
-const WORKFLOW_IDS = ["turftapAssistant", "turftapFakeMeta1"];
+const WORKFLOW_IDS = ["turftapAssistant", "turftapAstTools1", "turftapFakeMeta1"];
 const PRETEND_META_TOKEN = "pretend-meta-token";
 const CREDENTIALS_FILE = `${import.meta.dir}/.credentials.json`;
 
@@ -24,6 +24,12 @@ const credentials = [
     name: "WhatsApp Cloud API",
     type: "httpHeaderAuth",
     data: { name: "Authorization", value: `Bearer ${PRETEND_META_TOKEN}` },
+  },
+  {
+    id: "geminiApiKey0001",
+    name: "Gemini",
+    type: "googlePalmApi",
+    data: { host: "https://generativelanguage.googleapis.com", apiKey: setting("GEMINI_API_KEY") },
   },
   {
     id: "n8nOwnDatabase01",
