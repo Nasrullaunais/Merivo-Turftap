@@ -19,6 +19,7 @@ describe("bookings tenant isolation", () => {
   let tenantA: TestTenant;
   let tenantB: TestTenant;
   let resourceOfB: number;
+  let venueOfB: number;
   let bookingOfB: { id: number; customerId: number };
   const phone = uniquePhone();
   const date = addDays(todayIn("Asia/Colombo"), 2);
@@ -34,6 +35,7 @@ describe("bookings tenant isolation", () => {
     const venue = (
       await call("POST", "/v1/venues", asStaff(tenantB), venueInput({ openingHours: openAllWeek }))
     ).body.data;
+    venueOfB = venue.id;
     resourceOfB = (await call("POST", "/v1/resources", asStaff(tenantB), resourceInput(venue.id)))
       .body.data.id;
     // The same person is a customer of both tenants.
@@ -112,5 +114,32 @@ describe("bookings tenant isolation", () => {
       expect(reply).toMatchObject({ status: 404, body: { code: "tt_ven_003" } });
     }
     expect((await call("GET", path, { tenantSlug: tenantB.slug })).status).toBe(200);
+  });
+
+  it("availability_anotherTenantsResourcesNeverShowUp_withOrWithoutFilters", async () => {
+    const venueOfA = (
+      await call("POST", "/v1/venues", asStaff(tenantA), venueInput({ openingHours: openAllWeek }))
+    ).body.data.id;
+    const resourceOfA = (
+      await call("POST", "/v1/resources", asStaff(tenantA), resourceInput(venueOfA))
+    ).body.data.id;
+    const queries = [
+      `date=${date}`,
+      `date=${date}&type=FUTSAL_COURT&free=true`,
+      `date=${date}&venueId=${venueOfB}`,
+    ];
+    const callers = [asStaff(tenantA), asAssistant(tenantA, phone), { tenantSlug: tenantA.slug }];
+    for (const as of callers) {
+      for (const query of queries) {
+        const reply = await call("GET", `/v1/availability?${query}&size=100`, as);
+        const resourceIds = reply.body.data.content.map(
+          (slot: { resourceId: number }) => slot.resourceId,
+        );
+        expect(resourceIds).not.toContain(resourceOfB);
+        if (!query.includes("venueId")) expect(resourceIds).toContain(resourceOfA);
+      }
+    }
+    const ofB = await call("GET", `/v1/availability?date=${date}&size=100`, asStaff(tenantB));
+    expect(ofB.body.data.content[0].resourceId).toBe(resourceOfB);
   });
 });

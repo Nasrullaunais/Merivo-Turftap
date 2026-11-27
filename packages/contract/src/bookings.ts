@@ -4,12 +4,15 @@ import {
   CENTS_PER_RUPEE,
   Id,
   LocalDate,
+  LocalTime,
   Money,
   PhoneInput,
   PhoneNumber,
+  QueryBoolean,
   Timestamp,
 } from "./common";
 import { CustomerName } from "./customers";
+import { RESOURCE_TYPES } from "./resources";
 import { BankAccount, FULL_AMOUNT_PERCENT } from "./venues";
 
 export const BOOKING_STATUSES = [
@@ -120,6 +123,7 @@ export const BOOKING_SORT_FIELDS = ["startsAt", "createdAt"] as const;
 /** One start time of a resource, with the price of one slot from there. */
 export const Slot = z
   .object({
+    resourceId: Id,
     startsAt: Timestamp,
     endsAt: Timestamp,
     price: Money,
@@ -127,11 +131,18 @@ export const Slot = z
   })
   .meta({ id: "Slot" });
 
+/** Without `resourceId`, every bookable resource that matches `venueId` and `type`. */
 export const AvailabilityFilters = z.object({
-  resourceId: z.coerce.number().pipe(Id),
   /** The venue's local date. */
   date: LocalDate,
-  /** BKG-04: price and check this many back-to-back slots from each start. One if missing. */
+  resourceId: z.coerce.number().pipe(Id).optional(),
+  venueId: z.coerce.number().pipe(Id).optional(),
+  type: z.enum(RESOURCE_TYPES).optional(),
+  free: QueryBoolean.optional(),
+  /** Venue-local times: only slots that start at or after `from` and before `to`. */
+  from: LocalTime.optional(),
+  to: LocalTime.optional(),
+  /** BKG-04: price and check this many of each resource's slots back to back from each start. */
   slots: z.coerce.number().pipe(z.number().int().min(1).max(MAX_SLOTS_PER_BOOKING)).optional(),
 });
 

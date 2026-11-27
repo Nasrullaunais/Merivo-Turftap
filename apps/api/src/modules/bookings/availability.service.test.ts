@@ -1,8 +1,14 @@
 import { beforeAll, describe, expect, it } from "bun:test";
 
-import { type BookingStatus, minuteOfDay, type Slot } from "@turftap/contract";
+import {
+  type AvailabilityFilters,
+  type BookingStatus,
+  minuteOfDay,
+  type Slot,
+} from "@turftap/contract";
 
 import type { AuthContext } from "../../lib/auth/context";
+import type { PageRequest } from "../../lib/db";
 import { addDays, instantAt, todayIn, weekdayOf } from "../../lib/time";
 import {
   createTenant,
@@ -32,6 +38,7 @@ const clock = new Intl.DateTimeFormat("en-GB", {
   hour: "2-digit",
   minute: "2-digit",
 });
+const startTimes = (slots: Slot[]) => slots.map((slot) => clock.format(slot.startsAt));
 const rupees = (amount: number) => ({ amount: amount * 100, currency: "LKR" as const });
 
 type Setup = {
@@ -84,7 +91,6 @@ describe("BKG-01 free slots", () => {
         page: WHOLE_DAY,
       })
     ).content;
-  const startTimes = (slots: Slot[]) => slots.map((slot) => clock.format(slot.startsAt));
   const freeTimes = (slots: Slot[]) => startTimes(slots.filter((slot) => slot.free));
   const priceAt = (slots: Slot[], time: string) =>
     slots.find((slot) => clock.format(slot.startsAt) === time)?.price;
@@ -325,6 +331,171 @@ describe("BKG-01 free slots", () => {
       expect(freeTimes(slots).slice(0, 2)).toEqual(["01:30", "02:00"]);
       expect((await slotsOn(resourceId, dayBefore)).at(-1)).toMatchObject({ free: true });
     });
+  });
+});
+
+describe("BKG-01 free slots across resources", () => {
+  const date = inDays(2);
+  const hourly = { slotMinutes: 60, startIntervalMinutes: 60 } as const;
+  const halfHourly = { slotMinutes: 30, startIntervalMinutes: 30 } as const;
+
+  /** Two venues open 17:00 to 20:00: venue A has a court and a table, venue B a court. */
+  async function setUp(opens = "17:00", closes = "20:00") {
+    const tenant = await createTenant();
+    const owner = tenant.owner.auth;
+    const openingHours = ALL_WEEKDAYS.map((weekday) => ({ weekday, opens, closes }));
+    const venueA = (await venuesService.create(owner, venueInput({ openingHours }))).id;
+    const venueB = (await venuesService.create(owner, venueInput({ openingHours }))).id;
+    const add = async (venueId: number, overrides: Parameters<typeof resourceInput>[1]) =>
+      (await resourcesService.create(owner, resourceInput(venueId, overrides))).id;
+    const courtA = await add(venueA, hourly);
+    const tableA = await add(venueA, { ...halfHourly, type: "TABLE_TENNIS_TABLE" });
+    const courtB = await add(venueB, hourly);
+    return { tenant, owner, venueA, venueB, courtA, tableA, courtB };
+  }
+
+  const slotsOf = async (
+    auth: AuthContext,
+    filters: Partial<AvailabilityFilters> = {},
+    page: PageRequest<"startsAt"> = WHOLE_DAY,
+  ) => availabilityService.list(auth, { filters: { date, ...filters }, page });
+  const contentOf = async (...args: Parameters<typeof slotsOf>) => (await slotsOf(...args)).content;
+  const startsBy = (slots: Slot[]) =>
+    slots.map((slot) => `${clock.format(slot.startsAt)} ${slot.resourceId}`);
+  const resourcesIn = (slots: Slot[]) => [...new Set(slots.map((slot) => slot.resourceId))].sort();
+
+  it("noFilter_listsEveryResource_sortedByStartThenResource", async () => {
+    const { tenant, courtA, tableA, courtB } = await setUp();
+    expect(startsBy(await contentOf(tenant.publicAuth))).toEqual([
+      `17:00 ${courtA}`,
+      `17:00 ${tableA}`,
+      `17:00 ${courtB}`,
+      `17:30 ${tableA}`,
+      `18:00 ${courtA}`,
+      `18:00 ${tableA}`,
+      `18:00 ${courtB}`,
+      `18:30 ${tableA}`,
+      `19:00 ${courtA}`,
+      `19:00 ${tableA}`,
+      `19:00 ${courtB}`,
+      `19:30 ${tableA}`,
+    ]);
+  });
+
+  it("venueAndType_narrowTheList", async () => {
+    const { tenant, venueA, venueB, courtA, tableA, courtB } = await setUp();
+    const as = tenant.publicAuth;
+    expect(resourcesIn(await contentOf(as, { venueId: venueA }))).toEqual([courtA, tableA]);
+    expect(resourcesIn(await contentOf(as, { type: "FUTSAL_COURT" }))).toEqual([courtA, courtB]);
+    expect(resourcesIn(await contentOf(as, { venueId: venueB, type: "FUTSAL_COURT" }))).toEqual([
+      courtB,
+    ]);
+    expect(await contentOf(as, { venueId: venueB, type: "TABLE_TENNIS_TABLE" })).toEqual([]);
+  });
+
+  it("free_dropsBookedAndBlockedSlots", async () => {
+    const { tenant, owner, courtA, tableA, courtB } = await setUp();
+    const customerId = (
+      await customersService.create(owner, { name: "Nimal Perera", phone: uniquePhone() })
+    ).id;
+    await bookingsRepository.insert(tenant.id, {
+      venueId: (await resourcesService.get(owner, courtA)).venueId,
+      resourceId: courtA,
+      customerId,
+      startsAt: at(date, "17:00"),
+      endsAt: at(date, "18:00"),
+      status: "CONFIRMED",
+      source: "WALK_IN",
+      priceAmount: rupees(2_000).amount,
+      priceCurrency: "LKR",
+      amountDue: 0,
+      cancellationCutOffHours: 6,
+    });
+    await blockedTimesService.create(owner, {
+      resourceId: courtB,
+      startsAt: at(date, "18:00"),
+      endsAt: at(date, "19:00"),
+      reason: "Repairs",
+    });
+    const freeOnes = await contentOf(tenant.publicAuth, { free: true, from: "17:00", to: "19:00" });
+    expect(startsBy(freeOnes)).toEqual([
+      `17:00 ${tableA}`,
+      `17:00 ${courtB}`,
+      `17:30 ${tableA}`,
+      `18:00 ${courtA}`,
+      `18:00 ${tableA}`,
+      `18:30 ${tableA}`,
+    ]);
+    expect(freeOnes.every((slot) => slot.free)).toBe(true);
+  });
+
+  it("free_dropsSlotsInThePast", async () => {
+    const { tenant } = await setUp("00:00", "24:00");
+    const today = inDays(0);
+    const all = await contentOf(tenant.publicAuth, { date: today }, { ...WHOLE_DAY, size: 1000 });
+    const freeOnes = await contentOf(
+      tenant.publicAuth,
+      { date: today, free: true },
+      { ...WHOLE_DAY, size: 1000 },
+    );
+    expect(freeOnes.length).toBeLessThan(all.length);
+    expect(freeOnes.every((slot) => slot.startsAt > new Date())).toBe(true);
+  });
+
+  it("fromAndTo_keepSlotsStartingFromFromAndBeforeTo", async () => {
+    const { tenant, courtA, tableA, courtB } = await setUp();
+    expect(startsBy(await contentOf(tenant.publicAuth, { from: "18:00", to: "19:00" }))).toEqual([
+      `18:00 ${courtA}`,
+      `18:00 ${tableA}`,
+      `18:00 ${courtB}`,
+      `18:30 ${tableA}`,
+    ]);
+    expect(startsBy(await contentOf(tenant.publicAuth, { from: "19:30" }))).toEqual([
+      `19:30 ${tableA}`,
+    ]);
+  });
+
+  it("turnedOffResourceOrVenue_isLeftOut_evenForStaff", async () => {
+    const { tenant, owner, venueB, courtA, tableA } = await setUp();
+    await resourcesService.remove(owner, tableA);
+    await venuesService.remove(owner, venueB);
+    for (const as of [tenant.publicAuth, owner])
+      expect(resourcesIn(await contentOf(as))).toEqual([courtA]);
+  });
+
+  it("resourceId_listsThatResourceAsBefore_withItsId", async () => {
+    const { tenant, venueB, tableA } = await setUp();
+    const slots = await contentOf(tenant.publicAuth, { resourceId: tableA });
+    expect(startTimes(slots)).toEqual(["17:00", "17:30", "18:00", "18:30", "19:00", "19:30"]);
+    expect(resourcesIn(slots)).toEqual([tableA]);
+    expect(await contentOf(tenant.publicAuth, { resourceId: tableA, venueId: venueB })).toEqual([]);
+    expect(
+      await contentOf(tenant.publicAuth, { resourceId: tableA, type: "FUTSAL_COURT" }),
+    ).toEqual([]);
+  });
+
+  it("slots_countsEachResourcesOwnSlotLength", async () => {
+    const { tenant, venueA, courtA, tableA } = await setUp();
+    const slots = await contentOf(tenant.publicAuth, { venueId: venueA, slots: 2 });
+    const first = (resourceId: number) => slots.find((slot) => slot.resourceId === resourceId)!;
+    expect(first(courtA).endsAt).toEqual(at(date, "19:00"));
+    expect(first(tableA).endsAt).toEqual(at(date, "18:00"));
+    expect(startsBy(slots).filter((start) => start.endsWith(` ${courtA}`))).toEqual([
+      `17:00 ${courtA}`,
+      `18:00 ${courtA}`,
+    ]);
+  });
+
+  it("page_coversTheWholeCombinedList", async () => {
+    const { tenant, courtA, tableA, courtB } = await setUp();
+    const page = await slotsOf(tenant.publicAuth, {}, { ...WHOLE_DAY, size: 4, page: 1 });
+    expect(page).toMatchObject({ page: 1, size: 4, totalElements: 12, totalPages: 3 });
+    expect(startsBy(page.content)).toEqual([
+      `18:00 ${courtA}`,
+      `18:00 ${tableA}`,
+      `18:00 ${courtB}`,
+      `18:30 ${tableA}`,
+    ]);
   });
 });
 

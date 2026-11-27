@@ -72,6 +72,44 @@ export type UpdateCustomer = {
     name?: string;
 };
 
+export const ResourceType = {
+    FUTSAL_COURT: 'FUTSAL_COURT',
+    TABLE_TENNIS_TABLE: 'TABLE_TENNIS_TABLE',
+    POOL_TABLE: 'POOL_TABLE'
+} as const;
+
+export type ResourceType = typeof ResourceType[keyof typeof ResourceType];
+
+export type Resource = {
+    id: number;
+    venueId: number;
+    name: string;
+    type: ResourceType;
+    slotMinutes: number;
+    startIntervalMinutes: number;
+    price: Money;
+    active: boolean;
+    createdAt: string;
+    updatedAt: string;
+};
+
+export type CreateResource = {
+    venueId: number;
+    name: string;
+    type: ResourceType;
+    slotMinutes: 15 | 30 | 60;
+    startIntervalMinutes?: 15 | 30 | 60;
+    price: PriceInput;
+};
+
+export type UpdateResource = {
+    name?: string;
+    type?: ResourceType;
+    slotMinutes?: 15 | 30 | 60;
+    startIntervalMinutes?: 15 | 30 | 60;
+    price?: PriceInput;
+};
+
 /**
  * A weekday that is not listed is closed.
  */
@@ -191,6 +229,7 @@ export type UpdateBooking = {
 };
 
 export type Slot = {
+    resourceId: number;
     startsAt: string;
     endsAt: string;
     price: Money;
@@ -570,44 +609,6 @@ export type CreateRepeatSeries = {
 export type UpdateRepeatSeries = {
     status: 'ACTIVE' | 'CANCELLED';
     cancelReason?: string;
-};
-
-export const ResourceType = {
-    FUTSAL_COURT: 'FUTSAL_COURT',
-    TABLE_TENNIS_TABLE: 'TABLE_TENNIS_TABLE',
-    POOL_TABLE: 'POOL_TABLE'
-} as const;
-
-export type ResourceType = typeof ResourceType[keyof typeof ResourceType];
-
-export type Resource = {
-    id: number;
-    venueId: number;
-    name: string;
-    type: ResourceType;
-    slotMinutes: number;
-    startIntervalMinutes: number;
-    price: Money;
-    active: boolean;
-    createdAt: string;
-    updatedAt: string;
-};
-
-export type CreateResource = {
-    venueId: number;
-    name: string;
-    type: ResourceType;
-    slotMinutes: 15 | 30 | 60;
-    startIntervalMinutes?: 15 | 30 | 60;
-    price: PriceInput;
-};
-
-export type UpdateResource = {
-    name?: string;
-    type?: ResourceType;
-    slotMinutes?: 15 | 30 | 60;
-    startIntervalMinutes?: 15 | 30 | 60;
-    price?: PriceInput;
 };
 
 export type Tenant = {
@@ -2030,8 +2031,13 @@ export type ListAvailabilityData = {
         page?: number;
         size?: number;
         sort?: 'startsAt,asc' | 'startsAt,desc';
-        resourceId: number;
         date: string;
+        resourceId?: number;
+        venueId?: number;
+        type?: 'FUTSAL_COURT' | 'TABLE_TENNIS_TABLE' | 'POOL_TABLE';
+        free?: 'true' | 'false';
+        from?: string;
+        to?: string;
         slots?: number;
     };
     url: '/v1/availability';

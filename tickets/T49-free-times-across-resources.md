@@ -1,6 +1,6 @@
 # T49 Free times across resources
 
-Status: todo · Stories: `BKG-01` (changed), supports `AST-01` · Depends on: T05 · Decisions: **D-43**
+Status: done · Stories: `BKG-01` (changed), supports `AST-01` · Depends on: T05 · Decisions: **D-43**
 
 ## Goal
 One call answers "what's free on this date?" for a whole tenant, a venue or a sport, not just one resource. The Assistant (T36) needs it to answer "any court free tomorrow at 7?" in one step, and any future helper inside the platform can use the same call. The rules that decide what is free stay in one tested place: the API.

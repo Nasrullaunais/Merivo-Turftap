@@ -41,7 +41,7 @@ Status: `todo`, `doing`, `done`, `blocked` (waiting on a decision or an outside 
 | [T14](T14-live-updates-events.md) | Live updates (`events`) | BKG-05, PAY-07 (part) | T06 | done |
 | [T15](T15-repeat-series-api.md) | Repeat series API | BKG-09 | T10 | done |
 | [T16](T16-booking-reminders.md) | Booking reminders | BKG-10 | T10, T13 | done |
-| [T49](T49-free-times-across-resources.md) | Free times across resources (one call for a venue or sport) | BKG-01, AST-01 | T05 | todo |
+| [T49](T49-free-times-across-resources.md) | Free times across resources (one call for a venue or sport) | BKG-01, AST-01 | T05 | done |
 | [T47](T47-series-payment-collection.md) | Ask for series payments before each booking | BKG-09 | T15, T13, T46 | blocked (OQ-01) |
 | **D. Bookings and payments (Staff Console)** |||||
 | [T17](T17-console-booking-calendar.md) | Booking calendar | BKG-05 | T14 | done |

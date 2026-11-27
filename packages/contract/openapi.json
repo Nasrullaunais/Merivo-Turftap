@@ -286,6 +286,150 @@
           }
         }
       },
+      "ResourceType": {
+        "type": "string",
+        "enum": [
+          "FUTSAL_COURT",
+          "TABLE_TENNIS_TABLE",
+          "POOL_TABLE"
+        ]
+      },
+      "Resource": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991
+          },
+          "venueId": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991
+          },
+          "name": {
+            "type": "string"
+          },
+          "type": {
+            "$ref": "#/components/schemas/ResourceType"
+          },
+          "slotMinutes": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "startIntervalMinutes": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "price": {
+            "$ref": "#/components/schemas/Money"
+          },
+          "active": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+          }
+        },
+        "required": [
+          "id",
+          "venueId",
+          "name",
+          "type",
+          "slotMinutes",
+          "startIntervalMinutes",
+          "price",
+          "active",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "CreateResource": {
+        "type": "object",
+        "properties": {
+          "venueId": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80
+          },
+          "type": {
+            "$ref": "#/components/schemas/ResourceType"
+          },
+          "slotMinutes": {
+            "type": "number",
+            "enum": [
+              15,
+              30,
+              60
+            ]
+          },
+          "startIntervalMinutes": {
+            "default": 30,
+            "type": "number",
+            "enum": [
+              15,
+              30,
+              60
+            ]
+          },
+          "price": {
+            "$ref": "#/components/schemas/PriceInput"
+          }
+        },
+        "required": [
+          "venueId",
+          "name",
+          "type",
+          "slotMinutes",
+          "price"
+        ]
+      },
+      "UpdateResource": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80
+          },
+          "type": {
+            "$ref": "#/components/schemas/ResourceType"
+          },
+          "slotMinutes": {
+            "type": "number",
+            "enum": [
+              15,
+              30,
+              60
+            ]
+          },
+          "startIntervalMinutes": {
+            "type": "number",
+            "enum": [
+              15,
+              30,
+              60
+            ]
+          },
+          "price": {
+            "$ref": "#/components/schemas/PriceInput"
+          }
+        }
+      },
       "OpeningHours": {
         "type": "object",
         "properties": {
@@ -872,6 +1016,11 @@
       "Slot": {
         "type": "object",
         "properties": {
+          "resourceId": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991
+          },
           "startsAt": {
             "type": "string",
             "format": "date-time",
@@ -890,6 +1039,7 @@
           }
         },
         "required": [
+          "resourceId",
           "startsAt",
           "endsAt",
           "price",
@@ -2433,150 +2583,6 @@
         "required": [
           "status"
         ]
-      },
-      "ResourceType": {
-        "type": "string",
-        "enum": [
-          "FUTSAL_COURT",
-          "TABLE_TENNIS_TABLE",
-          "POOL_TABLE"
-        ]
-      },
-      "Resource": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "integer",
-            "exclusiveMinimum": 0,
-            "maximum": 9007199254740991
-          },
-          "venueId": {
-            "type": "integer",
-            "exclusiveMinimum": 0,
-            "maximum": 9007199254740991
-          },
-          "name": {
-            "type": "string"
-          },
-          "type": {
-            "$ref": "#/components/schemas/ResourceType"
-          },
-          "slotMinutes": {
-            "type": "integer",
-            "minimum": -9007199254740991,
-            "maximum": 9007199254740991
-          },
-          "startIntervalMinutes": {
-            "type": "integer",
-            "minimum": -9007199254740991,
-            "maximum": 9007199254740991
-          },
-          "price": {
-            "$ref": "#/components/schemas/Money"
-          },
-          "active": {
-            "type": "boolean"
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time",
-            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
-          },
-          "updatedAt": {
-            "type": "string",
-            "format": "date-time",
-            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
-          }
-        },
-        "required": [
-          "id",
-          "venueId",
-          "name",
-          "type",
-          "slotMinutes",
-          "startIntervalMinutes",
-          "price",
-          "active",
-          "createdAt",
-          "updatedAt"
-        ]
-      },
-      "CreateResource": {
-        "type": "object",
-        "properties": {
-          "venueId": {
-            "type": "integer",
-            "exclusiveMinimum": 0,
-            "maximum": 9007199254740991
-          },
-          "name": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 80
-          },
-          "type": {
-            "$ref": "#/components/schemas/ResourceType"
-          },
-          "slotMinutes": {
-            "type": "number",
-            "enum": [
-              15,
-              30,
-              60
-            ]
-          },
-          "startIntervalMinutes": {
-            "default": 30,
-            "type": "number",
-            "enum": [
-              15,
-              30,
-              60
-            ]
-          },
-          "price": {
-            "$ref": "#/components/schemas/PriceInput"
-          }
-        },
-        "required": [
-          "venueId",
-          "name",
-          "type",
-          "slotMinutes",
-          "price"
-        ]
-      },
-      "UpdateResource": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 80
-          },
-          "type": {
-            "$ref": "#/components/schemas/ResourceType"
-          },
-          "slotMinutes": {
-            "type": "number",
-            "enum": [
-              15,
-              30,
-              60
-            ]
-          },
-          "startIntervalMinutes": {
-            "type": "number",
-            "enum": [
-              15,
-              30,
-              60
-            ]
-          },
-          "price": {
-            "$ref": "#/components/schemas/PriceInput"
-          }
-        }
       },
       "Tenant": {
         "type": "object",
@@ -5920,14 +5926,6 @@
             }
           },
           {
-            "name": "resourceId",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
             "name": "date",
             "in": "query",
             "required": true,
@@ -5935,6 +5933,59 @@
               "type": "string",
               "format": "date",
               "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+            }
+          },
+          {
+            "name": "resourceId",
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "venueId",
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "FUTSAL_COURT",
+                "TABLE_TENNIS_TABLE",
+                "POOL_TABLE"
+              ]
+            }
+          },
+          {
+            "name": "free",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true",
+                "false"
+              ]
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "pattern": "^(([01]\\d|2[0-3]):[0-5]\\d|24:00)$"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "pattern": "^(([01]\\d|2[0-3]):[0-5]\\d|24:00)$"
             }
           },
           {
