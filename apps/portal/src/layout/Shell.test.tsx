@@ -24,7 +24,9 @@ describe("POR-01, POR-05 portal shell at phone width", () => {
 
     const topBar = await screen.findByRole("banner");
     expect(await within(topBar).findByText("Kick Off Sports")).toBeInTheDocument();
-    expect(await screen.findByRole("heading", { name: "Our venues" })).toBeInTheDocument();
+    expect(
+      await screen.findByRole("heading", { name: "What are you up for?" }),
+    ).toBeInTheDocument();
     expect(document.title).toBe("Kick Off Sports");
   });
 

@@ -3,7 +3,7 @@ import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { signInForTesting, signOut } from "../../lib/auth/session";
-import { customer, gym, membership, plan, tenant } from "../../test/fixtures";
+import { court, customer, gym, membership, plan, tenant } from "../../test/fixtures";
 import { failure, mockApi } from "../../test/mockApi";
 import { page, renderPortal } from "../../test/renderPortal";
 
@@ -88,8 +88,36 @@ describe("MEM-02 gym memberships on the venue page", () => {
     api({ "GET /v1/venues/3": { ...gym, hasGym: false } });
     renderPortal(`/venues/${gym.id}`);
 
-    expect(await screen.findByRole("heading", { name: "Choose what to book" })).toBeInTheDocument();
+    expect(await screen.findByText("Nothing here can be booked online yet.")).toBeInTheDocument();
     expect(screen.queryByRole("region", { name: "Gym memberships" })).not.toBeInTheDocument();
+  });
+
+  it("aGymNextToSports_hasItsOwnPage_withThePlans", async () => {
+    api({ "GET /v1/resources": page([{ ...court, venueId: gym.id }]) });
+    const router = renderPortal(`/venues/${gym.id}`);
+
+    const gymCard = await screen.findByRole("region", { name: "Join the gym" });
+    expect(screen.getByRole("region", { name: "Book a time" })).toBeInTheDocument();
+    expect(screen.queryByRole("region", { name: "Gym memberships" })).not.toBeInTheDocument();
+
+    fireEvent.click(within(gymCard).getByRole("link", { name: "Gym" }));
+    expect(await screen.findByRole("heading", { name: "Gym", level: 1 })).toBeInTheDocument();
+    expect(router.state.location.pathname).toBe(`/venues/${gym.id}/gym`);
+    const plans = await screen.findByRole("region", { name: "Gym memberships" });
+    expect(await within(plans).findByRole("link", { name: /Gym monthly/ })).toBeInTheDocument();
+  });
+
+  it("theCheapestPlanPerDay_isMarkedBestValue", async () => {
+    api();
+    renderPortal(`/venues/${gym.id}`);
+
+    const plans = await screen.findByRole("region", { name: "Gym memberships" });
+    const monthlyCard = await within(plans).findByRole("link", { name: /Gym monthly/ });
+    expect(monthlyCard).toHaveTextContent("Best value");
+    expect(monthlyCard).toHaveTextContent("LKR 200 a day");
+    const tenDays = within(plans).getByRole("link", { name: /Gym 10 days/ });
+    expect(tenDays).not.toHaveTextContent("Best value");
+    expect(tenDays).toHaveTextContent("LKR 250 a day");
   });
 });
 

@@ -50,6 +50,10 @@ _Avoid_: Branch, location, site, facility
 One thing inside a venue that can be booked by time, such as "Futsal Court 1" or "Pool Table 3".
 _Avoid_: Court, table, asset, facility, slot
 
+**Sport**:
+A venue's resources of one type shown together to customers, such as "Pool" for its pool tables. The portal lists a venue's sports first, then its resources of the chosen one.
+_Avoid_: Category, activity, resource type (on screens)
+
 **Gym**:
 The part of a venue that people enter with a membership instead of booking by time. A venue has a gym or not; only a venue with a gym sells Membership Plans and checks members in.
 _Avoid_: Fitness centre, facility

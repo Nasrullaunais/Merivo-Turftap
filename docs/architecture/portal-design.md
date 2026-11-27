@@ -40,13 +40,17 @@ Status pages: the badge pops, the rings spread, then the title, sentence, addres
 
 ## 5. Browsing and picking a time (T28)
 
-The customer goes **venue → resource → day → how long → time → Book**, one choice per step, all by tapping.
+The customer goes **venue → sport → court or table → day → how long → time → Book**, one choice per step, all by tapping. A step with only one choice is skipped. The gym is kept apart from what is booked by the hour: it has its own card and its own page (§9).
 
 | Page | Address | What it shows |
 |---|---|---|
-| Venues | `/` | One card per venue, cover photo first. The whole card is the link. |
-| Venue | `/venues/$venueId` | Cover photo, name, address, then a card per resource with its price range ("LKR 4,500 – LKR 6,000 per hour", counting its Price Rules). |
-| Resource | `/resources/$resourceId?date=` | A strip of days, then that day's slots. The chosen day is in the address, so Back keeps it. |
+| Venues | `/?offer=` | "What are you up for?", a row of chips to show only venues with one sport or the gym (in the address, so Back keeps it), then one picture card per venue: open status, name, address and a chip per sport and the gym. The card opens the venue; a chip goes straight to that sport (or its one court or table) or the gym. |
+| Venue | `/venues/$venueId` | A picture top with the open status, name, address and **Call**. Then **Book a time**: one card per sport with what is free today and its lowest price, counting Price Rules. Then **Join the gym**: one card that opens the gym's page. A gym with nothing to rent shows its plans right here. |
+| Sport | `/venues/$venueId/sports/$sport` | The sport's picture top, then "Pick a court" or "Pick a table": a card for each, with what is free today and its lowest price. A sport with one court or table goes straight to it. |
+| Resource | `/resources/$resourceId?date=` | A picture top with the price range ("LKR 4,500 – LKR 6,000 per 30 minutes"), a strip of days, then that day's slots. The chosen day is in the address, so Back keeps it. |
+
+- **Picture cards** (`components/PictureCard.tsx`, `PageHero.tsx`): the cover photo fades in over a drawing of the sport (`components/SportScene.tsx`), darkened at the bottom so the white words read. A venue without photos shows a drawing of each thing it offers side by side. On hover the card lifts, the picture zooms slightly and the arrow fills with teal, or orange for the gym.
+- **Pills on pictures** (`components/GlassPill.tsx`), on the venue's clock and refreshed every minute: "Open now · until 10 PM" (green), "Opens at 6 AM" (amber), "Closed now" (grey); for a sport or court "Free from 4:30 PM" (green), "Only 2 left today" (amber, at 3 or fewer), "Fully booked today" (red), "Book for another day" (grey).
 | Book | `/book` | The confirm step (§7). |
 
 - **Day strip**: today and the next 30 days (D-06), on the venue's clock. The chosen day is solid teal. A Closed Date has a red dot and a struck-through number; a weekday the venue doesn't open is struck through. Arrows to scroll it appear from 640px.
@@ -106,11 +110,11 @@ After **Book** the customer goes **confirm → transfer → send the receipt**, 
 
 ## 9. Buying and renewing a membership (T32)
 
-The customer goes **venue → plan → start day → Buy → transfer → send the receipt**, all by tapping.
+The customer goes **venue → gym → plan → start day → Buy → transfer → send the receipt**, all by tapping.
 
 | Page | Address | What it shows |
 |---|---|---|
-| Venue | `/venues/$venueId` | Under the resources, **Gym memberships**: one card per plan on sale, with the price and length ("LKR 6,000 · 1 month"). A gym with nothing to rent shows only these. |
+| Gym | `/venues/$venueId/gym` | The gym's picture top, then **Gym memberships**: one card per plan on sale, with the price, length and cost a day ("LKR 5,500 · 1 month · LKR 183 a day"). The cheapest a day is marked **Best value**. A venue whose only offer is the gym shows these on the venue page instead. |
 | Buy | `/plans/$planId?startsOn=` | "Start your membership": the start day, the membership drawn as a ticket, then a card with the price, the steps and **Buy membership**. Side by side from `lg`. Signing in comes first. |
 | Membership | `/memberships/$membershipId` | How to pay while it waits for payment; afterwards, where it stands. Counts as My bookings in the nav. |
 
