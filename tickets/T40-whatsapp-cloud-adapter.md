@@ -13,6 +13,7 @@ Login codes, staff invites and customer messages really go out on WhatsApp throu
 - Config: access token, the TurfTap number's phone number id, API version. Missing secret stops start-up.
 - A messaging port contract test the fake and this adapter both pass; the real run only when `TEST_WHATSAPP_*` is set.
 - A short how-to in `docs/architecture/deployment.md`: creating the Meta app, registering each template in `WHATSAPP_TEMPLATES`.
+- n8n on the server (moved here from T35): add it to `compose.prod.yaml`, its webhook behind Caddy and its editor behind basic auth, with the settings in `docs/architecture/assistant.md#settings` and `n8n/schema.sql` applied. Point the Meta app's webhook at it. Pretend Meta is never loaded there.
 
 ## Done when
 - A real login code arrives on your phone from a test number; `bun run check` passes without keys.
