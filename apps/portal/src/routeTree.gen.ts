@@ -14,6 +14,8 @@ import { Route as BookRouteImport } from './routes/book'
 import { Route as MeRouteImport } from './routes/me'
 import { Route as SignInRouteImport } from './routes/sign-in'
 import { Route as BookingsBookingIdRouteImport } from './routes/bookings/$bookingId'
+import { Route as MembershipsMembershipIdRouteImport } from './routes/memberships/$membershipId'
+import { Route as PlansPlanIdRouteImport } from './routes/plans/$planId'
 import { Route as ResourcesResourceIdRouteImport } from './routes/resources/$resourceId'
 import { Route as VenuesVenueIdRouteImport } from './routes/venues/$venueId'
 
@@ -42,6 +44,16 @@ const BookingsBookingIdRoute = BookingsBookingIdRouteImport.update({
   path: '/bookings/$bookingId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const MembershipsMembershipIdRoute = MembershipsMembershipIdRouteImport.update({
+  id: '/memberships/$membershipId',
+  path: '/memberships/$membershipId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PlansPlanIdRoute = PlansPlanIdRouteImport.update({
+  id: '/plans/$planId',
+  path: '/plans/$planId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ResourcesResourceIdRoute = ResourcesResourceIdRouteImport.update({
   id: '/resources/$resourceId',
   path: '/resources/$resourceId',
@@ -59,6 +71,8 @@ export interface FileRoutesByFullPath {
   '/me': typeof MeRoute
   '/sign-in': typeof SignInRoute
   '/bookings/$bookingId': typeof BookingsBookingIdRoute
+  '/memberships/$membershipId': typeof MembershipsMembershipIdRoute
+  '/plans/$planId': typeof PlansPlanIdRoute
   '/resources/$resourceId': typeof ResourcesResourceIdRoute
   '/venues/$venueId': typeof VenuesVenueIdRoute
 }
@@ -68,6 +82,8 @@ export interface FileRoutesByTo {
   '/me': typeof MeRoute
   '/sign-in': typeof SignInRoute
   '/bookings/$bookingId': typeof BookingsBookingIdRoute
+  '/memberships/$membershipId': typeof MembershipsMembershipIdRoute
+  '/plans/$planId': typeof PlansPlanIdRoute
   '/resources/$resourceId': typeof ResourcesResourceIdRoute
   '/venues/$venueId': typeof VenuesVenueIdRoute
 }
@@ -78,6 +94,8 @@ export interface FileRoutesById {
   '/me': typeof MeRoute
   '/sign-in': typeof SignInRoute
   '/bookings/$bookingId': typeof BookingsBookingIdRoute
+  '/memberships/$membershipId': typeof MembershipsMembershipIdRoute
+  '/plans/$planId': typeof PlansPlanIdRoute
   '/resources/$resourceId': typeof ResourcesResourceIdRoute
   '/venues/$venueId': typeof VenuesVenueIdRoute
 }
@@ -89,6 +107,8 @@ export interface FileRouteTypes {
     | '/me'
     | '/sign-in'
     | '/bookings/$bookingId'
+    | '/memberships/$membershipId'
+    | '/plans/$planId'
     | '/resources/$resourceId'
     | '/venues/$venueId'
   fileRoutesByTo: FileRoutesByTo
@@ -98,6 +118,8 @@ export interface FileRouteTypes {
     | '/me'
     | '/sign-in'
     | '/bookings/$bookingId'
+    | '/memberships/$membershipId'
+    | '/plans/$planId'
     | '/resources/$resourceId'
     | '/venues/$venueId'
   id:
@@ -107,6 +129,8 @@ export interface FileRouteTypes {
     | '/me'
     | '/sign-in'
     | '/bookings/$bookingId'
+    | '/memberships/$membershipId'
+    | '/plans/$planId'
     | '/resources/$resourceId'
     | '/venues/$venueId'
   fileRoutesById: FileRoutesById
@@ -117,6 +141,8 @@ export interface RootRouteChildren {
   MeRoute: typeof MeRoute
   SignInRoute: typeof SignInRoute
   BookingsBookingIdRoute: typeof BookingsBookingIdRoute
+  MembershipsMembershipIdRoute: typeof MembershipsMembershipIdRoute
+  PlansPlanIdRoute: typeof PlansPlanIdRoute
   ResourcesResourceIdRoute: typeof ResourcesResourceIdRoute
   VenuesVenueIdRoute: typeof VenuesVenueIdRoute
 }
@@ -158,6 +184,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BookingsBookingIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/memberships/$membershipId': {
+      id: '/memberships/$membershipId'
+      path: '/memberships/$membershipId'
+      fullPath: '/memberships/$membershipId'
+      preLoaderRoute: typeof MembershipsMembershipIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/plans/$planId': {
+      id: '/plans/$planId'
+      path: '/plans/$planId'
+      fullPath: '/plans/$planId'
+      preLoaderRoute: typeof PlansPlanIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/resources/$resourceId': {
       id: '/resources/$resourceId'
       path: '/resources/$resourceId'
@@ -181,6 +221,8 @@ const rootRouteChildren: RootRouteChildren = {
   MeRoute: MeRoute,
   SignInRoute: SignInRoute,
   BookingsBookingIdRoute: BookingsBookingIdRoute,
+  MembershipsMembershipIdRoute: MembershipsMembershipIdRoute,
+  PlansPlanIdRoute: PlansPlanIdRoute,
   ResourcesResourceIdRoute: ResourcesResourceIdRoute,
   VenuesVenueIdRoute: VenuesVenueIdRoute,
 }

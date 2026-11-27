@@ -1,4 +1,13 @@
-import type { Booking, Customer, Me, Resource, Slot, Venue } from "@turftap/contract/client";
+import type {
+  Booking,
+  Customer,
+  Me,
+  Membership,
+  MembershipPlan,
+  Resource,
+  Slot,
+  Venue,
+} from "@turftap/contract/client";
 
 const EVERY_DAY = [1, 2, 3, 4, 5, 6, 7];
 const CREATED = "2026-11-01T00:00:00.000Z";
@@ -95,6 +104,54 @@ export const booking: Booking = {
     accountName: "Kick Off Sports (Pvt) Ltd",
     accountNumber: "8001 2345 6789",
   },
+  createdAt: BOOKED_AT,
+  updatedAt: BOOKED_AT,
+};
+
+const BANK_ACCOUNT = booking.bankAccount;
+
+/** A venue with a gym and nothing to rent by the hour. */
+export const gym: Venue = {
+  ...venue,
+  id: 3,
+  name: "Peak Fitness",
+  description: "Weights and cardio",
+  hasGym: true,
+  bankAccount: BANK_ACCOUNT,
+};
+
+/** A 10-day plan at the gym: from 1 Dec it ends 10 Dec. */
+export const plan: MembershipPlan = {
+  id: 8,
+  venueId: gym.id,
+  name: "Gym 10 days",
+  lengthCount: 10,
+  lengthUnit: "DAYS",
+  price: { amount: 250_000, currency: "LKR" },
+  active: true,
+  createdAt: CREATED,
+  updatedAt: CREATED,
+};
+
+/** The 10-day plan from Tue 1 Dec, just bought online and waiting for the full price. */
+export const membership: Membership = {
+  id: 16,
+  venueId: gym.id,
+  planId: plan.id,
+  planName: plan.name,
+  customerId: customer.id,
+  customerName: customer.name,
+  customerPhone: customer.phone,
+  startsOn: "2026-12-01",
+  endsOn: "2026-12-10",
+  status: "AWAITING_PAYMENT",
+  price: plan.price,
+  amountDue: plan.price,
+  paid: { amount: 0, currency: "LKR" },
+  balance: plan.price,
+  expiresAt: booking.expiresAt,
+  cancelReason: null,
+  bankAccount: BANK_ACCOUNT,
   createdAt: BOOKED_AT,
   updatedAt: BOOKED_AT,
 };

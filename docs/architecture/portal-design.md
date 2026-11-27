@@ -2,7 +2,7 @@
 
 How the Customer Portal looks and moves. It follows [console-design.md](console-design.md) (principles, colour meanings, motion vocabulary, loading rules) and shares its tokens from `packages/ui/src/theme.css`. This page lists only what is different for customers on a phone.
 
-Status: written 2026-11-26 with T27 (the shell), approved. §5 added with T28, approved. §6 added with T29, approved. §7 added with T30, approved. §8 and the nav in §2 added with T31, approved.
+Status: written 2026-11-26 with T27 (the shell), approved. §5 added with T28, approved. §6 added with T29, approved. §7 added with T30, approved. §8 and the nav in §2 added with T31, approved. §9 added with T32, approved.
 
 ## 1. Phone first
 
@@ -101,5 +101,22 @@ After **Book** the customer goes **confirm → transfer → send the receipt**, 
   - Started, cancelled, expired and past bookings have no footer.
 - **Cancel**: a red question folds open inside the card: "Cancel this booking?", that the time goes back for others, what was paid ("Any refund is arranged with the venue"), **Keep it** (focused) and **Yes, cancel**. When it lands, the card glides down to **Cancelled or expired**, a quiet group at the end of Upcoming. If the server refuses, its message shows as a toast and the list reloads.
 - **Past** loads 20 at a time, latest first, with **Show older bookings**.
-- **Membership card**: the plan on a membership tile, the venue, "Thu 26 Nov → Fri 25 Dec" and the state pill; an active one has the days-used bar and "29 days left" (amber from 3 days left, as in the console). Renewing comes with T32.
+- **Membership card**: the plan on a membership tile, the venue, "Thu 26 Nov → Fri 25 Dec" and the state pill; an active one has the days-used bar and "29 days left" (amber from 3 days left, as in the console). The top part opens the membership's page (§9). Under a dashed line: waiting for payment has the time left, **Cancel** (the same red question, "Cancel this membership?") and **Send receipt**; waiting for receipt check says so; active has "Renew now and the next one starts Sat 26 Dec." and an orange **Renew**, or "Next one starts …" once renewed, or "Renew it at the desk" at a Pay at Venue venue (`MEM-04`).
 - Empty lists show one panel with an icon; Upcoming offers **See venues**.
+
+## 9. Buying and renewing a membership (T32)
+
+The customer goes **venue → plan → start day → Buy → transfer → send the receipt**, all by tapping.
+
+| Page | Address | What it shows |
+|---|---|---|
+| Venue | `/venues/$venueId` | Under the resources, **Gym memberships**: one card per plan on sale, with the price and length ("LKR 6,000 · 1 month"). A gym with nothing to rent shows only these. |
+| Buy | `/plans/$planId?startsOn=` | "Start your membership": the start day, the membership drawn as a ticket, then a card with the price, the steps and **Buy membership**. Side by side from `lg`. Signing in comes first. |
+| Membership | `/memberships/$membershipId` | How to pay while it waits for payment; afterwards, where it stands. Counts as My bookings in the nav. |
+
+- **Start day**: the day strip from §5, today and the next 30 days, today picked. The chosen day is in the address, so Back keeps it.
+- **Ticket** (`components/MembershipTicket.tsx`): the plan on an orange membership tile and the venue, then two calendar leaves, **From** and **To**, joined by an orange bar with the days it covers ("30 days"). The stub has the customer's name and, on the Membership page, the state. Picking another day pops the leaves to the new dates. The last day uses `membershipLastDay()` from the contract, the same rule as the API (D-28).
+- **Steps**: **Buy → Transfer → Receipt → Active**, with the Payment Time Limit on Transfer. A membership is always paid in full by transfer.
+- **Renewing** (`MEM-04`): with an active membership of the same plan, the title is "Renew your membership" and the day strip is replaced by "Starts Sat 26 Dec: the day after your current one ends, so there's no gap." **Renew** on the My bookings card opens this page.
+- **Instead of Buy**: an amber "This membership is waiting for payment" (blue "The venue is checking your receipt" while checked) with **Open that membership**, since one customer can't hold the same plan twice. At a Pay at Venue venue the plan cards carry a grey "Buy at the desk" pill and don't open, and the Buy page says "Buy this at the desk" (OQ-03).
+- **Membership page**: the same pay steps as §7, with the membership's ticket beside them. Afterwards one panel: blue "Receipt sent", green "Your membership is active" with its dates, grey "The time to pay ran out" or "This membership has ended" with **Buy again**, grey "This membership was cancelled".

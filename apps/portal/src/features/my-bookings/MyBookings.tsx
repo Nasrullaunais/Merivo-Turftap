@@ -1,6 +1,6 @@
 import { Skeleton } from "@heroui/react";
 import { Link } from "@tanstack/react-router";
-import type { Booking } from "@turftap/contract/client";
+import type { Booking, Membership } from "@turftap/contract/client";
 import {
   ArrowRight,
   BadgeCheck,
@@ -118,6 +118,7 @@ export function MyBookings({ show }: { show: Show }) {
                   key={membership.id}
                   membership={membership}
                   venue={venues.data.get(membership.venueId)}
+                  renewedFrom={nextStartOf(membership, memberships.data)}
                   now={now}
                   style={arrivalDelay(index, CARDS_START_MS)}
                 />
@@ -130,6 +131,18 @@ export function MyBookings({ show }: { show: Show }) {
 
 const isFinishedMembership = ({ status }: { status: string }) =>
   status === "EXPIRED" || status === "CANCELLED" || status === "ENDED";
+
+/** MEM-04: the start of the next membership of the same plan, once this one has been renewed. */
+const nextStartOf = (membership: Membership, all: Membership[]) =>
+  all
+    .filter(
+      (other) =>
+        other.planId === membership.planId &&
+        other.startsOn > membership.endsOn &&
+        !isFinishedMembership(other),
+    )
+    .map((other) => other.startsOn)
+    .sort()[0];
 
 /** Live bookings first; cancelled and expired ones wait quietly under their own heading. */
 function UpcomingList({

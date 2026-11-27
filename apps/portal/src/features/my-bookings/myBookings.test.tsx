@@ -290,3 +290,71 @@ describe("BKG-06 customer cancels", () => {
     );
   });
 });
+
+describe("MEM-02, MEM-04 memberships in my bookings", () => {
+  const unpaidMembership: Membership = {
+    ...membership,
+    id: 6,
+    status: "AWAITING_PAYMENT",
+    paid: { amount: 0, currency: "LKR" },
+    balance: membership.price,
+    expiresAt: booking.expiresAt,
+  };
+
+  it("active_offersToRenewFromTheDayAfterItEnds", async () => {
+    api({ "GET /v1/memberships": page([membership]) });
+    renderPortal(`${ME}?show=memberships`);
+
+    const card = within(await screen.findByRole("article", { name: "Gym monthly" }));
+    expect(card.getByText("Renew now and the next one starts Tue 15 Dec.")).toBeInTheDocument();
+    expect(card.getByRole("link", { name: "Renew" })).toHaveAttribute(
+      "href",
+      expect.stringContaining("/plans/1"),
+    );
+  });
+
+  it("alreadyRenewed_saysWhenTheNextOneStarts_insteadOfRenew", async () => {
+    const next = { ...unpaidMembership, startsOn: "2026-12-15", endsOn: "2027-01-14" };
+    api({ "GET /v1/memberships": page([next, membership]) });
+    renderPortal(`${ME}?show=memberships`);
+
+    const [, current] = await screen.findAllByRole("article", { name: "Gym monthly" });
+    expect(within(current!).getByText("Next one starts Tue 15 Dec")).toBeInTheDocument();
+    expect(within(current!).queryByRole("link", { name: "Renew" })).not.toBeInTheDocument();
+  });
+
+  it("waitingForPayment_sendsReceiptOnItsPage_orCancelsAfterAsking", async () => {
+    const waiting = { ...unpaidMembership, startsOn: "2026-12-01", endsOn: "2026-12-30" };
+    const cancelled = { ...waiting, status: "CANCELLED" as const, expiresAt: null };
+    const fetch = api({
+      "GET /v1/memberships": inTurn(page([waiting]), page([cancelled])),
+      "PATCH /v1/memberships/6": cancelled,
+    });
+    renderPortal(`${ME}?show=memberships`);
+
+    const card = within(await screen.findByRole("article", { name: "Gym monthly" }));
+    expect(card.getByRole("link", { name: "Send receipt" })).toHaveAttribute(
+      "href",
+      expect.stringContaining("/memberships/6"),
+    );
+    fireEvent.click(card.getByRole("button", { name: "Cancel" }));
+    expect(card.getByRole("region", { name: "Cancel this membership?" })).toBeInTheDocument();
+    fireEvent.click(card.getByRole("button", { name: "Yes, cancel" }));
+
+    await waitFor(async () =>
+      expect(
+        within(await screen.findByRole("article", { name: "Gym monthly" })).getByText("Cancelled"),
+      ).toBeInTheDocument(),
+    );
+    const [patch] = patchesTo(fetch, "/v1/memberships/6");
+    expect(await patch!.json()).toEqual({ status: "CANCELLED" });
+  });
+
+  it("active_cannotBeCancelledHere", async () => {
+    api({ "GET /v1/memberships": page([membership]) });
+    renderPortal(`${ME}?show=memberships`);
+
+    const card = within(await screen.findByRole("article", { name: "Gym monthly" }));
+    expect(card.queryByRole("button", { name: "Cancel" })).not.toBeInTheDocument();
+  });
+});

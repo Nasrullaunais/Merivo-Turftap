@@ -60,13 +60,15 @@ export default {
     lastDay: "Last day today",
     used: "Days used",
     startsIn: (days: number) => (days === 1 ? "Starts tomorrow" : `Starts in ${days} days`),
-    status: {
-      AWAITING_PAYMENT: "Waiting for payment",
-      AWAITING_CHECK: "Waiting for receipt check",
-      ACTIVE: "Active",
-      EXPIRED: "Expired",
-      CANCELLED: "Cancelled",
-      ENDED: "Ended",
+    renew: "Renew",
+    /** "Renew now and the next one starts Tue 15 Dec." */
+    renewFrom: (day: string) => `Renew now and the next one starts ${day}.`,
+    /** Already renewed: "Next one starts Tue 15 Dec" */
+    renewed: (day: string) => `Next one starts ${day}`,
+    renewAtDesk: "Renew it at the desk",
+    confirmCancel: {
+      title: "Cancel this membership?",
+      body: "You can buy it again later.",
     },
   },
 };

@@ -9,16 +9,25 @@ import slots from "../../i18n/en/slots";
 import { BankDetails } from "./BankDetails";
 import { Countdown } from "./Countdown";
 import { ReceiptPicker } from "./ReceiptPicker";
-import { useSendReceipt } from "./useSendReceipt";
+import { type PaysFor, useSendReceipt } from "./useSendReceipt";
 
-type Props = { booking: Booking; leftMs: number; venuePhone: string; timeZone: string };
+/** The parts of a booking or a membership that say what to pay, where and by when. */
+type Payable = Pick<Booking, "expiresAt" | "createdAt" | "price" | "amountDue" | "bankAccount">;
+
+type Props = {
+  payable: Payable;
+  paysFor: PaysFor;
+  leftMs: number;
+  venuePhone: string;
+  timeZone: string;
+};
 
 /** PAY-01, PAY-02: how much and by when, where to send it, then the receipt: in that order. */
-export function PaySteps({ booking, leftMs, venuePhone, timeZone }: Props) {
-  const send = useSendReceipt(booking.id);
-  const expiresAt = booking.expiresAt ?? booking.createdAt;
-  const totalMs = Date.parse(expiresAt) - Date.parse(booking.createdAt);
-  const atVenue = { ...booking.price, amount: booking.price.amount - booking.amountDue.amount };
+export function PaySteps({ payable, paysFor, leftMs, venuePhone, timeZone }: Props) {
+  const send = useSendReceipt(paysFor);
+  const expiresAt = payable.expiresAt ?? payable.createdAt;
+  const totalMs = Date.parse(expiresAt) - Date.parse(payable.createdAt);
+  const atVenue = { ...payable.price, amount: payable.price.amount - payable.amountDue.amount };
 
   return (
     <div className="grid gap-6">
@@ -26,7 +35,7 @@ export function PaySteps({ booking, leftMs, venuePhone, timeZone }: Props) {
         <Countdown leftMs={leftMs} totalMs={totalMs} />
         <div className="grid gap-1.5">
           <h1 className="text-2xl font-semibold tracking-tight text-balance">
-            {m.pay.title(formatMoney(booking.amountDue))}
+            {m.pay.title(formatMoney(payable.amountDue))}
           </h1>
           <p className="tt-tone-watch tt-tone-text flex items-center gap-1.5 text-sm font-medium">
             <CalendarClock size={15} aria-hidden />
@@ -39,13 +48,13 @@ export function PaySteps({ booking, leftMs, venuePhone, timeZone }: Props) {
       </header>
 
       <div className="animate-tt-rise [animation-delay:120ms]">
-        <Journey online at={1} />
+        <Journey online at={1} what={"bookingId" in paysFor ? "booking" : "membership"} />
       </div>
 
       <Step icon={Landmark} title={m.pay.transferStep} delayMs={160}>
         <BankDetails
-          amount={booking.amountDue}
-          bankAccount={booking.bankAccount}
+          amount={payable.amountDue}
+          bankAccount={payable.bankAccount}
           venuePhone={venuePhone}
         />
         {atVenue.amount > 0 && (

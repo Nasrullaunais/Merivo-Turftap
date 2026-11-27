@@ -34,6 +34,7 @@ export default {
     payThere: "Pay there",
     checking: "Checking",
     done: "done",
+    membership: { confirm: "Buy", booked: "Active" },
   },
   waiting: {
     title: "You have a booking waiting for payment",

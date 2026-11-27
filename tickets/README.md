@@ -60,7 +60,7 @@ Status: `todo`, `doing`, `done`, `blocked` (waiting on a decision or an outside 
 | [T29](T29-portal-sign-in.md) | Portal sign-in and first-booking name | POR-03 | T02, T27 | done |
 | [T30](T30-portal-book-and-pay.md) | Book, see how to pay, send receipt | BKG-02, PAY-01, PAY-02 | T11, T28, T29 | done |
 | [T31](T31-portal-my-bookings.md) | My bookings and memberships | POR-04, BKG-06 | T30 | done |
-| [T32](T32-portal-memberships.md) | Buy and renew a membership | MEM-02, MEM-04 | T23, T31 | todo |
+| [T32](T32-portal-memberships.md) | Buy and renew a membership | MEM-02, MEM-04 | T23, T31 | done |
 | **G. Platform admin** |||||
 | [T33](T33-tenants-api.md) | Tenant scripts: create, turn off, list | PLA-01, PLA-03, PLA-04 | T04, T06 | todo |
 | **H. Assistant (n8n)** |||||
