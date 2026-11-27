@@ -5,6 +5,8 @@ export const TURFTAP_NUMBER = "turftap";
 export const WHATSAPP_TEMPLATES = {
   /** Values: tenant name, role, console link. Sent from the TurfTap number (SIG-03). */
   staffInvite: "staff_invite",
+  /** Values: tenant name, console link. Sent from the TurfTap number to a new tenant's Owner (PLA-01). */
+  ownerWelcome: "owner_welcome",
   /** Values: venue name, resource name, start time in the venue's time zone (BKG-03). */
   bookingExpired: "booking_expired",
   /** Values: venue name, resource name, start time in the venue's time zone, reason (BKG-07). */

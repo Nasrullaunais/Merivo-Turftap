@@ -108,3 +108,28 @@ export async function deleteWhatsAppNumberOfTenant(tenantId: number) {
     .returning();
   return number;
 }
+
+export async function insertTenant(values: { slug: string; name: string }) {
+  const [tenant] = await db().insert(tenants).values(values).returning();
+  return tenant!;
+}
+
+export async function setTenantActive(slug: string, active: boolean) {
+  const [tenant] = await db()
+    .update(tenants)
+    .set({ active })
+    .where(eq(tenants.slug, slug))
+    .returning();
+  return tenant;
+}
+
+export function listTenants() {
+  return db()
+    .select()
+    .from(tenants)
+    .orderBy(asc(sql`lower(${tenants.name})`));
+}
+
+export async function makePlatformAdmin(userId: number) {
+  await db().update(users).set({ isPlatformAdmin: true }).where(eq(users.id, userId));
+}

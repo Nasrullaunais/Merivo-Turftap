@@ -60,7 +60,7 @@ Sign-in uses Auth0's passwordless SMS connection ([ADR 0008](../adr/0008-phone-l
 
 ## Platform Admin scripts
 
-In v1 a Platform Admin links WhatsApp numbers (`bun run whatsapp:link`, `bun run whatsapp:unlink`) by running scripts on the server, against the production database and settings ([platform-admin.md](../spec/platform-admin.md)). The scripts go through the same services as the API, so the same rules apply. On the server they run inside the API image, as the `deploy` user (see [On the server](#releases)): `TURFTAP_VERSION=$(cat .version) docker compose run --rm migrate bun scripts/whatsapp-link.ts <arguments>`.
+In v1 a Platform Admin creates tenants (`bun run tenant:create <slug> <name> <owner phone>`), turns them off and on (`tenant:off`, `tenant:on <slug>`), lists them (`tenants:list`), makes a user a Platform Admin (`admin:add <phone>`) and links WhatsApp numbers (`whatsapp:link`, `whatsapp:unlink`) by running scripts on the server, against the production database and settings ([platform-admin.md](../spec/platform-admin.md)). The scripts go through the same services as the API, so the same rules apply. On the server they run inside the API image, as the `deploy` user (see [On the server](#releases)): `TURFTAP_VERSION=$(cat .version) docker compose run --rm migrate bun scripts/whatsapp-link.ts <arguments>` (the file is the command's name with `-` for `:`, such as `scripts/tenant-create.ts`). The new Owner's welcome is queued; the running API sends it.
 
 ## Releases
 

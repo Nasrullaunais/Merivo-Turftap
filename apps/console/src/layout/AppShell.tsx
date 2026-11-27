@@ -5,6 +5,7 @@ import { type ReactNode, useEffect, useState } from "react";
 import m from "../i18n/en/shell";
 import { ShellContext } from "./shell-context";
 import { Sidebar } from "./Sidebar";
+import { TenantPaused } from "./TenantPaused";
 
 const RAIL_KEY = "turftap.sidebarFolded";
 const WIDE_SCREEN = "(min-width: 768px)";
@@ -52,7 +53,10 @@ export function AppShell({ tenant, canSwitchTenant, children }: Props) {
             </div>
           </>
         )}
-        <div className="min-w-0 flex-1 overflow-y-auto">{children}</div>
+        <div className="min-w-0 flex-1 overflow-y-auto">
+          {tenant && !tenant.active && <TenantPaused />}
+          {children}
+        </div>
       </div>
     </ShellContext>
   );

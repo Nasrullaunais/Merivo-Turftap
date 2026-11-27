@@ -13,7 +13,7 @@ The 6-digit code a user receives to sign in. It goes by WhatsApp first; a resend
 _Avoid_: OTP, PIN, verification code
 
 **Tenant**:
-A business that uses TurfTap, such as a sports company with one or more branches. All of its data is kept apart from every other tenant.
+A business that uses TurfTap, such as a sports company with one or more branches. All of its data is kept apart from every other tenant. A Platform Admin can turn a tenant off (for example when it stops paying): its staff can still look but not change anything, and its portal and Assistant close.
 _Avoid_: Client, organisation, company
 
 **Staff**:

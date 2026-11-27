@@ -2,7 +2,7 @@ import { act, cleanup, fireEvent, screen, waitFor, within } from "@testing-libra
 import { describe, expect, it, vi } from "vitest";
 
 import { signInForTesting } from "../lib/auth/session";
-import { mockApi } from "../test/mockApi";
+import { apiError, mockApi } from "../test/mockApi";
 import { renderApp } from "../test/renderApp";
 import { myTenant } from "../test/tenants";
 
@@ -77,5 +77,46 @@ describe("Staff Console shell (console-design.md §5)", () => {
     await act(() => router.navigate({ to: "/venues" }));
     await act(() => router.navigate({ to: "/membership-plans" }));
     expect(chevron()).toHaveAttribute("aria-expanded", "true");
+  });
+});
+
+describe("PLA-03 a tenant that TurfTap turned off", () => {
+  const PAUSED = "This business is paused";
+  const meWith = (active: boolean) => ({
+    ...me,
+    tenants: [myTenant({ id: 1, slug: "demo", name: "Demo Sports", role: "OWNER", active })],
+  });
+  const ok = (data: unknown) => Response.json({ status: 200, message: "success", data });
+
+  it("offTenant_showsThePausedBannerAndAnOnOneDoesNot", async () => {
+    signInForTesting(me.phone);
+    mockApi({ "GET /v1/me": meWith(false), "GET /v1/venues": page });
+    renderApp("/venues");
+    expect(await screen.findByRole("status")).toHaveTextContent(PAUSED);
+
+    cleanup();
+    await openConsole("/venues");
+    expect(screen.queryByText(PAUSED)).not.toBeInTheDocument();
+  });
+
+  it("saveRefusedBecauseTheTenantWasJustTurnedOff_bringsUpTheBanner", async () => {
+    signInForTesting(me.phone);
+    let active = true;
+    mockApi({
+      "GET /v1/me": () => ok(meWith(active)),
+      "GET /v1/venues": page,
+      "POST /v1/venues": () => {
+        active = false;
+        return apiError(403, "tt_plt_010", "This venue is not available right now");
+      },
+    });
+    renderApp("/venues");
+    fireEvent.click(await screen.findByRole("button", { name: "Add a venue" }));
+    fireEvent.change(screen.getByLabelText(/^Name/), { target: { value: "City Arena" } });
+    fireEvent.change(screen.getByLabelText(/^Address/), { target: { value: "Galle Road" } });
+    fireEvent.change(screen.getByLabelText(/^Phone number/), { target: { value: "0112345678" } });
+    expect(screen.queryByText(PAUSED)).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Add venue" }));
+    expect(await screen.findByText(PAUSED)).toBeInTheDocument();
   });
 });

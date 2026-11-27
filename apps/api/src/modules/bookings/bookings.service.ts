@@ -343,3 +343,8 @@ export async function update(auth: AuthContext, id: number, input: UpdateBooking
     return replyOf(cancelled, await detailsOfOne(auth, cancelled));
   });
 }
+
+/** PLA-04: how many real bookings each tenant has starting in [from, to). */
+export function countStartingBetweenAcrossTenants(from: Date, to: Date) {
+  return bookingsRepository.countStartingBetweenAcrossTenants(from, to);
+}

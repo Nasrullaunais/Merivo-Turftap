@@ -9,6 +9,8 @@ export const MyTenant = z
     id: Id,
     slug: z.string(),
     name: z.string(),
+    /** False once a Platform Admin turns the tenant off (PLA-03): staff can look but not change. */
+    active: z.boolean(),
     role: StaffRole,
     /** What this role may do here, so the console can hide what the API would refuse. */
     permissions: z.array(Permission),
