@@ -1,6 +1,6 @@
 # T35 Assistant skeleton: tenant, customer, name, hand-over
 
-Status: todo · Stories: `AST-05`, `AST-06` · Depends on: T02, T03 · Decision: **D-17**
+Status: done · Stories: `AST-05`, `AST-06` · Depends on: T02, T03 · Decision: **D-17**
 
 ## Goal
 The n8n workflow receives a WhatsApp message from Meta, finds the tenant and the customer, asks a new number for their name once, and replies with the venue's phone number when it can't help.
@@ -18,3 +18,8 @@ The n8n workflow receives a WhatsApp message from Meta, finds the tenant and the
 ## Done when
 - The manual checklist passes against local n8n with a fake Meta request (a `curl` sample in the checklist).
 - `bun run check` passes.
+
+## How it was built
+- Locally a second workflow, **pretend Meta**, stands in for Meta's send address, and the GenexoAI chat emulator (`tools/chat-emulator`) sends Meta-shaped, signed messages (**D-42**).
+- The workflow checks Meta's signature, answers 200 at once, then sends the reply separately.
+- n8n on the server moved to T40, since it does nothing there without the real WhatsApp connection.

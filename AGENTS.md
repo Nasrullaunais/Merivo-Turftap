@@ -2,7 +2,7 @@
 
 Multi-tenant booking platform for sports venues in Sri Lanka: courts and tables booked by the slot, gym memberships, payment by bank transfer. Customers use the Customer Portal or the WhatsApp Assistant. Staff use the Staff Console.
 
-Bun workspace: `apps/api` (Bun + Hono + Drizzle + Postgres), `apps/portal` and `apps/console` (React), `packages/contract` (Zod schemas + generated API client), `packages/ui` (shared UI), `n8n/workflows` (the Assistant).
+Bun workspace: `apps/api` (Bun + Hono + Drizzle + Postgres), `apps/portal` and `apps/console` (React), `packages/contract` (Zod schemas + generated API client), `packages/ui` (shared UI), `n8n/workflows` (the Assistant), `tools/chat-emulator` (a WhatsApp-style chat for testing the Assistant locally).
 
 ## Read before working
 
@@ -27,6 +27,8 @@ bun run dev              # API :3000, portal :5173 (?tenant=demo), console :5174
 bun run check            # lint, format, type check, all tests including architecture tests
 bun run gen              # after a contract or resource change: openapi.json + frontend client
 bun run db:generate      # after a *.tables.ts change: writes a migration to read and commit
+bun run assistant:setup  # load the Assistant into local n8n; bun run emulator to chat with it
+bun run assistant:export # after changing a workflow in the n8n editor
 bun run format <files>   # format the files you touched
 cd apps/api && bun test venues.service -t "create_"   # one file, tests named like this
 ```

@@ -14,3 +14,5 @@ playwright-report/
 
 # TanStack Router build cache
 .tanstack/
+n8n/.credentials.json
+n8n/export.tmp.json

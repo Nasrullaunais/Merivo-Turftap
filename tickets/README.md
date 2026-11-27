@@ -64,7 +64,7 @@ Status: `todo`, `doing`, `done`, `blocked` (waiting on a decision or an outside 
 | **G. Platform admin** |||||
 | [T33](T33-tenants-api.md) | Tenant scripts: create, turn off, list | PLA-01, PLA-03, PLA-04 | T04, T06 | done |
 | **H. Assistant (n8n)** |||||
-| [T35](T35-assistant-skeleton.md) | Assistant skeleton: tenant, customer, name, hand-over | AST-05, AST-06 | T02, T03 | todo |
+| [T35](T35-assistant-skeleton.md) | Assistant skeleton: tenant, customer, name, hand-over | AST-05, AST-06 | T02, T03 | done |
 | [T36](T36-assistant-free-slots.md) | Ask about free slots and prices | AST-01 | T35, T05 | todo |
 | [T37](T37-assistant-book-and-cancel.md) | Book and cancel through chat | AST-02, AST-04 | T36, T07 | todo |
 | [T38](T38-assistant-receipts.md) | Send a receipt in chat | AST-03 | T37, T11, T23 | todo |
@@ -124,6 +124,7 @@ Settled in a grilling session with the user. Each answer is written here, then i
 | D-39 | "Bookings this month" in the tenant list: which bookings? | Those starting this month, not expired or cancelled | Yes: start in the calendar month on Sri Lankan clocks; expired and cancelled ones left out |
 | D-40 | Refuse slugs the server itself uses (`console`, `api`, …)? | Yes, a short list | Yes: `www`, `api`, `console`, `admin`, `app`, `n8n`, `mail`, `status`, `help`, and 3 to 30 characters |
 | D-41 | How does the console show staff that their tenant is off? | A banner on every page, plus the error on save | Yes. `/v1/me` sends `active` per tenant; the Assistant now gets 403 `tt_plt_010` too, like the portal |
+| D-42 | There's no Meta locally: where do the Assistant's answers go, and how are they checked? | A pretend-Meta n8n workflow that keeps every answer | Yes, plus the GenexoAI chat emulator adapted to send Meta-shaped, signed messages and read the answers back (`tools/chat-emulator`). The Assistant answers Meta at once and sends separately, exactly as it will live |
 
 ## Open questions for venue owners
 

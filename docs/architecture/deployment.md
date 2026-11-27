@@ -10,7 +10,7 @@ One VPS (a rented server, OVH, Ubuntu 26.04) running Docker Compose from [`compo
 | `api` | One image of the backend. Also runs the pg-boss jobs. Not published on any port. |
 | `migrate` | The API image running `scripts/migrate.ts`. Started only by the release. |
 | `postgres` | Two databases: `turftap` (app) and `n8n`. Named volume. |
-| `n8n` | Not yet. Added with the first Assistant ticket (T35); its editor goes behind Caddy with basic auth. |
+| `n8n` | Not yet. Added when the Assistant goes live with the real WhatsApp connection (T40): its webhook goes behind Caddy, its editor behind basic auth, with the settings in [assistant.md](assistant.md#settings) and `n8n/schema.sql` applied to the `n8n` database. Pretend Meta is never loaded there. |
 
 Uploaded files are not on the server: they live in a Cloudflare R2 bucket ([ADR 0012](../adr/0012-files-in-cloudflare-r2.md)).
 

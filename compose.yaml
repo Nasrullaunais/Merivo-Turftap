@@ -44,10 +44,20 @@ services:
       DB_POSTGRESDB_PASSWORD: ${POSTGRES_PASSWORD:-turftap}
       GENERIC_TIMEZONE: Asia/Colombo
       N8N_SECURE_COOKIE: "false"
+      # The Assistant workflow reads these (docs/architecture/assistant.md#settings).
+      N8N_BLOCK_ENV_ACCESS_IN_NODE: "false"
+      NODE_FUNCTION_ALLOW_BUILTIN: crypto
+      TURFTAP_API_URL: http://host.docker.internal:${PORT:-3000}
+      WHATSAPP_GRAPH_URL: http://localhost:5678/webhook/fake-meta
+      WHATSAPP_APP_SECRET: ${WHATSAPP_APP_SECRET:?set WHATSAPP_APP_SECRET in .env}
+      WHATSAPP_VERIFY_TOKEN: ${WHATSAPP_VERIFY_TOKEN:?set WHATSAPP_VERIFY_TOKEN in .env}
+    extra_hosts:
+      - host.docker.internal:host-gateway
     ports:
       - "127.0.0.1:${N8N_PORT:-5679}:5678"
     volumes:
       - n8n-data:/home/node/.n8n
+      - ./n8n:/turftap
 
 volumes:
   postgres-data:
