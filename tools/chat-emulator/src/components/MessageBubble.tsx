@@ -27,7 +27,17 @@ export function MessageBubble({ msg, onTap }: Props) {
     <div className={"line line--" + msg.role}>
       <span className="line__tag mono">{LABEL[msg.role]}</span>
       <div className="bubble">
-        <p className="bubble__text">{richText(msg.text)}</p>
+        {msg.attachment &&
+          (msg.attachment.previewUrl ? (
+            <img
+              className="bubble__photo"
+              src={msg.attachment.previewUrl}
+              alt={msg.attachment.name}
+            />
+          ) : (
+            <p className="bubble__file mono">{msg.attachment.name}</p>
+          ))}
+        {msg.text && <p className="bubble__text">{richText(msg.text)}</p>}
         {msg.footer && <p className="bubble__footer">{msg.footer}</p>}
         <time className="bubble__time mono">{msg.time}</time>
       </div>

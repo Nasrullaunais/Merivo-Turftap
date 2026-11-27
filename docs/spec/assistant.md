@@ -15,8 +15,11 @@ As a **Customer**, I want the Assistant to book for me after I confirm, so that 
 
 ## AST-03 Send a receipt in chat
 As a **Customer**, I want to send my transfer photo in the chat, so that I don't have to open a website.
-- Given I have exactly one booking or membership waiting for payment, when I send a photo, then it's attached to that one.
-- Given I have several, when I send a photo, then the Assistant asks which one it's for.
+- A photo, a screenshot or a PDF (JPG, PNG or PDF, up to 5 MB) counts as the receipt, like on the portal.
+- Given I have exactly one booking or membership waiting for payment, when I send a photo, then the Assistant asks if it's the receipt for that one, with Yes and No to tap. Nothing is attached until I say yes.
+- Given I have several, when I send a photo, then the Assistant asks which one it's for, with each to tap. I can also say which in my own words.
+- Given I have none, when I send a photo, then nothing is attached and the Assistant tells me, for example that the venue is already checking my receipt.
+- After it's attached, the Assistant says the venue will check it and I'll get a message once it's accepted.
 
 ## AST-04 My bookings in chat
 As a **Customer**, I want to ask "what have I booked?" and cancel before the cut-off, so that I can manage bookings from WhatsApp.

@@ -68,7 +68,7 @@ Status: `todo`, `doing`, `done`, `blocked` (waiting on a decision or an outside 
 | [T35](T35-assistant-skeleton.md) | Assistant skeleton: tenant, customer, name, hand-over | AST-05, AST-06 | T02, T03 | done |
 | [T36](T36-assistant-free-slots.md) | Ask about free slots and prices, with tappable choices | AST-01, AST-05 | T35, T49 | done |
 | [T37](T37-assistant-book-and-cancel.md) | Book and cancel through chat | AST-02, AST-04 | T36, T07 | done |
-| [T38](T38-assistant-receipts.md) | Send a receipt in chat | AST-03 | T37, T11, T23 | todo |
+| [T38](T38-assistant-receipts.md) | Send a receipt in chat | AST-03 | T37, T11, T23 | done |
 | **I. Real services and launch** |||||
 | [T39](T39-gemini-receipt-reader.md) | Gemini receipt reader adapter | PAY-03 | T12 | todo |
 | [T40](T40-whatsapp-cloud-adapter.md) | WhatsApp Cloud adapter | SIG-01, SIG-03, AST-07 | T04 | todo |
@@ -132,6 +132,8 @@ Settled in a grilling session with the user. Each answer is written here, then i
 | D-46 | Tappable choices on WhatsApp | In T36 | Yes: up to 3 as buttons, 4 to 10 as a list, shown and tappable in the chat emulator |
 | D-47 | Booking or cancelling in chat: how is the customer's "yes" recognised, given the AI may only read (ADR 0006)? | Tapping Yes, or a typed yes judged by a small separate AI check | Yes. The agent's tool only saves a Chat Offer; a later message confirms it by the Yes button or a typed yes that the small check reads as accepting exactly that Chat Offer. A fixed step then books or cancels, and the agent words what happened |
 | D-48 | Where is "the price changed since it was shown" caught? | In the API | Yes: `POST /v1/bookings` takes an optional `price`; a different current price is refused with `tt_bkg_012` and nothing is booked |
+| D-49 | A photo in chat while exactly one thing waits for payment: attach it at once, or ask "is this your receipt for …?" first? | Attach at once | No, ask first, with Yes and No. Attached at once, any photo stops the payment time limit, holds the slot until staff look, and blocks sending the right receipt meanwhile |
+| D-50 | Bank apps often share receipts as PDF files: take those in chat too? | Yes, like photos | Yes: a JPG, PNG or PDF sent as a file counts, up to 5 MB, as on the portal |
 
 ## Open questions for venue owners
 

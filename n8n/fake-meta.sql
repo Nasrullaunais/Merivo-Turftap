@@ -12,3 +12,11 @@ CREATE TABLE IF NOT EXISTS fake_meta_messages (
 ALTER TABLE fake_meta_messages ADD COLUMN IF NOT EXISTS interactive jsonb;
 
 CREATE INDEX IF NOT EXISTS fake_meta_messages_chat ON fake_meta_messages (phone_number_id, to_wa_id, id);
+
+-- T38: photos and files a customer "sent", as base64. Meta keeps media for 30 days; this keeps it until truncated.
+CREATE TABLE IF NOT EXISTS fake_meta_media (
+  id text PRIMARY KEY,
+  mime_type text NOT NULL,
+  data text NOT NULL,
+  created_at timestamptz NOT NULL DEFAULT now()
+);

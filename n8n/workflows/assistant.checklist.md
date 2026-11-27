@@ -39,6 +39,18 @@ tap() {  # tap <customer phone digits> <title> [id]: taps a reply button; offer 
   curl -s -o /dev/null -w '%{http_code}\n' -X POST "http://localhost:$N8N_PORT/webhook/whatsapp" \
     -H 'Content-Type: application/json' -H "X-Hub-Signature-256: sha256=$sig" -d "$body"
 }
+photo() {  # photo <customer phone digits> <file> [caption]: a JPG or PNG goes as a photo, anything else as a file
+  mime=$(file -b --mime-type "$2"); kind=document; case "$mime" in image/*) kind=image;; esac
+  id=$(base64 -w0 "$2" | jq -Rs --arg m "$mime" '{mimeType: $m, data: .}' |
+    curl -s -X POST "http://localhost:$N8N_PORT/webhook/fake-meta/media" -H 'Content-Type: application/json' -d @- | jq -r .id)
+  body=$(jq -nc --arg wa "$1" --arg k "$kind" --arg id "$id" --arg m "$mime" --arg c "${3:-}" --arg n "$(date +%s%N)" --arg t "$(date +%s)" \
+    '{object: "whatsapp_business_account", entry: [{id: "1", changes: [{field: "messages", value: {messaging_product: "whatsapp",
+      metadata: {display_phone_number: "", phone_number_id: "100000000000001"}, contacts: [{profile: {name: "Test"}, wa_id: $wa}],
+      messages: [{from: $wa, id: ("wamid.test-" + $n), timestamp: $t, type: $k, ($k): {id: $id, mime_type: $m, caption: $c}}]}}]}]}')
+  sig=$(printf '%s' "$body" | openssl dgst -sha256 -hmac "$WHATSAPP_APP_SECRET" | sed 's/^.* //')
+  curl -s -o /dev/null -w '%{http_code}\n' -X POST "http://localhost:$N8N_PORT/webhook/whatsapp" \
+    -H 'Content-Type: application/json' -H "X-Hub-Signature-256: sha256=$sig" -d "$body"
+}
 ```
 
 To see what each step did, open http://localhost:5679, then **Executions**.
@@ -88,11 +100,35 @@ Owner calls below use `H=(-H 'Authorization: Bearer fake:+94770000001' -H 'X-Ten
 | 32 | Tamil: get an offer, then type `சரி, புக் பண்ணுங்க` | Booked, with the reply in Tamil |
 | 33 | Change the **Gemini** model name in `assistant.json` to one that doesn't exist, run setup, get-and-tap an offer saved before the change. Put it back and run setup | "Booked" with the payment details, then the venue phones |
 
+### Receipts (T38)
+
+For the photo: any screenshot as `receipt.png` works, and any PDF as `receipt.pdf`. Each case starts from a customer known to "demo" with what waits for payment set up through the chat (book and tap Yes, rows 8 and 20) or on the portal (memberships). `replies` shows each choice's id.
+
+| # | Do | Expect |
+|---|---|---|
+| 34 | A new number with nothing waiting: `photo 94779990005 receipt.png` | "Nothing to pay for right now"; no payment in the console's Receipt checks (AST-03) |
+| 35 | Book in chat and tap Yes, then `photo <phone> receipt.png` | Asks if it's the receipt for that booking, with Yes and No and the footer "Receipt for <day> <time>". Nothing sent yet (D-49) |
+| 35a | Then tap Yes | "Sent to the venue to check, a message comes once it's accepted", with the booking and amount below. The console's Receipt checks lists it; the booking shows the receipt sent |
+| 35b | Repeat 35 on a new booking, tap No | "Not sent"; the booking still waits for payment |
+| 35c | Repeat 35, ask `how long does checking take?`, then type `ow` | The question is answered and Yes and No come again; then sent |
+| 36 | Send the same photo again | Nothing new is sent; it says the venue is already checking their receipt |
+| 37 | Book in chat, buy a membership on the portal with the same phone, then `photo <phone> receipt.png` | Asks which one, with both to tap and the footer "Which one is this receipt for?". Nothing sent yet |
+| 38 | Then type `it's for the gym one` | Sent for the membership only; the booking still waits for payment |
+| 39 | Repeat 37, ask `how long does checking take?`, then type `2` | The question is answered and the choices come again; then sent for the second one |
+| 40 | Repeat 37, tap a choice of an older receipt question | Nothing sent; asks again with the newer choices |
+| 41 | One waiting, `photo <phone> receipt.pdf`, tap Yes | Sent, as for a photo |
+| 42 | One waiting, a file over 5 MB: `{ printf '\xff\xd8\xff'; head -c 6000000 /dev/zero; } > big.jpg; photo <phone> big.jpg`, tap Yes | "Over 5 MB, send a screenshot"; nothing sent |
+| 43 | One waiting, a text file named as a photo: `echo hi > fake.png; photo <phone> fake.png`, tap Yes | Asks for a photo, screenshot or PDF; nothing sent |
+| 44 | One waiting, two photos at once: `photo <phone> receipt.png & photo <phone> receipt.pdf & wait`, then tap Yes on each reply | Two questions; one Yes sends it, the other says the button was already used. One payment only |
+| 45 | A voice note: change `type` to `audio` in `photo`'s body | Says it can't open voice notes, with the venue's phone |
+| 46 | Chat emulator: tap the paperclip and pick a photo | The photo shows as your message and gets the same answer as row 35 |
+| 47 | Make **Read Answer** get text with no JSON: in its code, put `const raw = 'I will call find_free_times';` in place of the line that reads the agent's output, run setup, send `hi`. Put it back and run setup | The fixed "Sorry, something went wrong" message with the venue's phone; the text itself is never sent |
+
 ## Afterwards
 
 Customers can't be deleted through the API, so either use new phone numbers each time or remove the test customers and what the Assistant remembers:
 
 ```bash
 docker compose exec postgres psql -U turftap -d turftap -c "delete from customers where phone like '+9477999000_'"
-docker compose exec postgres psql -U turftap -d n8n -c 'truncate n8n_chat_histories, fake_meta_messages, assistant_chat_offers'
+docker compose exec postgres psql -U turftap -d n8n -c 'truncate n8n_chat_histories, fake_meta_messages, fake_meta_media, assistant_chat_offers'
 ```

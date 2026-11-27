@@ -6,28 +6,30 @@ The Assistant is an n8n workflow ([ADR 0006](../adr/0006-n8n-receives-chats.md))
 
 ```mermaid
 flowchart TD
-  wa[Meta webhook: message to a tenant's number] --> norm[Normalise: phone in +94 format, text, photo]
+  wa[Meta webhook: message to a tenant's number] --> norm[Normalise: phone in +94 format, text, photo or PDF]
   norm --> tenant[GET /v1/whatsapp-numbers?phoneNumberId= → tenant]
   tenant --> off{Tenant on?}
   off -- no --> stop[No reply]
   off -- yes --> cust[GET /v1/customers?phone= → known or new]
-  cust --> photo{Photo?}
+  cust --> photo{Photo or PDF?}
   photo -- yes --> waiting{How many bookings or<br/>memberships await payment?}
-  waiting -- one --> receipt[Fixed step: upload file, POST /v1/payments]
-  waiting -- several --> agent
-  photo -- no --> offer{Does this message say yes<br/>to the waiting Chat Offer?}
-  offer -- yes --> write[Fixed step: POST or PATCH via API]
+  waiting -- one --> pick[Save a receipt Chat Offer:<br/>is it for this one?]
+  waiting -- several --> pick2[Save a receipt Chat Offer:<br/>which one is it for?]
+  waiting -- none --> agent
+  photo -- no --> offer{Does this message say yes to,<br/>or pick from, the waiting Chat Offer?}
+  offer -- "yes, or a pick" --> write[Fixed step: book, cancel, or fetch the<br/>receipt from Meta and send it via the API]
   offer -- no, or no offer --> agent
   write --> agent[AI agent, Gemini<br/>memory keyed by tenant + phone]
+  pick --> agent
+  pick2 --> agent
   agent -- read tools --> tools[find free times,<br/>my bookings, my memberships]
   agent -- offer tools --> save[Check, price and save a Chat Offer]
-  agent --> reply[Reply on WhatsApp,<br/>with Yes / No when an offer waits]
-  receipt --> reply
+  agent --> reply[Reply on WhatsApp, with the<br/>waiting Chat Offer's choices]
 ```
 
 ## Rules
 
-- **The AI only reads (D-47).** Its tools call `GET` routes; the two offer tools also save a Chat Offer in n8n's database. Booking and cancelling happen in a fixed n8n step, only when a later message says yes to that exact Chat Offer (see [Booking and cancelling](#booking-and-cancelling)).
+- **The AI only reads (D-47).** Its tools call `GET` routes; the two offer tools also save a Chat Offer in n8n's database. Booking and cancelling happen in a fixed n8n step, only when a later message says yes to that exact Chat Offer (see [Booking and cancelling](#booking-and-cancelling)). Receipts are sent by a fixed step too (see [Receipts](#receipts)).
 - **Every API call** sends the assistant key plus `X-Tenant-Id` and `X-Customer-Phone` ([tenancy.md](tenancy.md)). The API applies the same rules as the portal. The Assistant gets no extra powers.
 - **Chat memory** uses n8n's Postgres chat memory in the **n8n database**, keyed by `tenantId:phone`, in `n8n_chat_histories` from [`n8n/schema.sql`](../../n8n/schema.sql). n8n's own table has no time, so ours adds `created_at`; before each answer, **Forget Old Chats** deletes every chat whose newest message is over 30 minutes old, so 30 minutes of silence starts a fresh chat. n8n never connects to the app database.
 - **AI model:** Gemini (the newest stable Flash), through the `Gemini` credential. The model name lives only in the workflow, so changing it is an n8n change only.
@@ -52,7 +54,7 @@ flowchart TD
 | `offer_booking` | `GET /v1/availability` for that one start time (free? exact price?) and `GET /v1/bookings?status=AWAITING_PAYMENT` (D-07), then saves a `book` Chat Offer. A new customer's name is required |
 | `offer_cancel` | `GET /v1/bookings/:id` (theirs? still cancellable?), then saves a `cancel` Chat Offer |
 
-- **Its answer** is one JSON object, read leniently by **Read Answer** (text around it or a broken object still gives a reply):
+- **Its answer** is one JSON object, read by **Read Answer**. Text around the object is ignored. An answer with no object, or no `reply`, is never sent, since it may be the AI's own notes: the customer gets the fixed sorry message with the venue's phone, or, if something was just booked or sent, its details, as **Sorry** sends them:
 
 ```json
 { "reply": "Text to send", "choices": ["7:00 pm", "8:00 pm"], "listButton": "", "customerName": null, "confirmOffer": false }
@@ -74,8 +76,8 @@ Stories `AST-02`, `AST-04`; decisions D-47, D-48. The agent never books or cance
 |---|---|
 | `id` | A new number for every offer, so the buttons of a replaced offer no longer match |
 | `session_id` | `tenantId:phone`, unique: one offer per chat, and a new one replaces the old |
-| `kind` | `book` or `cancel` |
-| `details` | What the fixed step sends to the API (`resourceId`, `startsAt`, `slots`, `price`, or `bookingId`), the summary the agent repeats, the footer, and a new customer's name |
+| `kind` | `book`, `cancel`, or `receipt` ([Receipts](#receipts)) |
+| `details` | What the fixed step sends to the API (`resourceId`, `startsAt`, `slots`, `price`, or `bookingId`), the summary the agent repeats, the footer, and a new customer's name. A `receipt` offer holds the photo's Meta media id and the `options` it may pay for |
 | `created_at` | An offer runs out after 10 minutes |
 
 **The yes.** Before the agent runs, **Find Offer** loads the chat's offer and **Decide** reads the message:
@@ -100,6 +102,30 @@ Stories `AST-02`, `AST-04`; decisions D-47, D-48. The agent never books or cance
 | Said no, ran out, or already used | Nothing changed; ask what they'd like |
 
 After a booking, code adds the exact details below the agent's reply in English: the booking, the amount due, the pay-by time and the venue's bank account. The agent doesn't repeat them, so no AI can get a digit wrong.
+
+## Receipts
+
+Story `AST-03`. A customer pays by bank transfer and sends the Transfer Receipt in the chat, as a photo, or as a JPG, PNG or PDF file (WhatsApp's `image` or `document` message). Any other file is not a receipt; the agent says it can't open it.
+
+**What it pays for.** **Decide** reads every photo or PDF as a receipt. **Find Waiting Bookings** and **Find Waiting Memberships** list the customer's `AWAITING_PAYMENT` ones (`GET /v1/bookings` and `GET /v1/memberships`, `status=AWAITING_PAYMENT`); one past its Payment Time Limit no longer counts.
+
+| Waiting | What happens |
+|---|---|
+| None | Nothing is sent. The agent checks the customer's bookings and memberships and says why, for example that the venue is already checking their receipt |
+| One | **Save Receipt Offer** saves a `receipt` Chat Offer with the photo's Meta media id and the one thing waiting. The agent asks if the photo is the receipt for it, with Yes and No (`offer-yes-<id>`, `offer-no-<id>`), read like a booking's (D-49). Yes sends it, through **Take Offer** as for bookings |
+| Several | The same Chat Offer, with each thing waiting. The agent asks which one; the reply's choices are those things, with ids `offer-pick-<offer id>-<n>`. A tap is exact; typed words ("the gym one", "2") go to **Offer Check**, which answers with the number, `NO` or `OTHER`. A pick sends it |
+
+**Sending it.** **Media Info** asks Meta where the media is (`GET <graph>/<media id>`), and **Download Media** fetches it with the same access token. A file over 5 MB isn't downloaded. **Upload Receipt** sends it to `POST /v1/files` (`purpose: RECEIPT`), and **Send Receipt** to `POST /v1/payments` (`kind: TRANSFER`). The API does every check, as for the portal: the file's type, the Payment Time Limit, and that it still waits for payment. Nothing is downloaded before the customer confirms. Two photos sent at once save one Chat Offer each; the newer replaces the older, so only one can be sent.
+
+**Telling the customer.** **Word Outcome** tells the agent what happened, and the agent words it. On success, code adds what the receipt was sent for, and the amount, below the reply. If the agent then fails, **Sorry** still sends those lines.
+
+| What happened | The agent is told to |
+|---|---|
+| Sent | Say the venue checks it next, that it won't expire meanwhile, and that a message comes once it's accepted |
+| Too late (`tt_pay_009`) | Say it expired; for a booking, offer free times again |
+| No longer waiting (`tt_pay_010`) | Check their bookings or memberships and say where it stands |
+| File refused, or over 5 MB | Ask for a screenshot, or a JPG, PNG or PDF of at most 5 MB |
+| Meta or the API failed | Say sorry, ask them to send it again soon, and give the venue's phone |
 
 ## Messages the backend sends
 
@@ -134,13 +160,13 @@ The Code steps also need `NODE_FUNCTION_ALLOW_BUILTIN=crypto` for the signature 
 
 ## Running it locally
 
-There's no Meta locally, so another workflow, **pretend Meta** ([`n8n/workflows/fake-meta.json`](../../n8n/workflows/fake-meta.json)), stands in for Meta's send address: `WHATSAPP_GRAPH_URL` points at it, it keeps every message the Assistant sends in `fake_meta_messages` (text, reply buttons and lists) and hands them back from `POST /webhook/fake-meta/inbox`. The Assistant itself runs exactly as it will live; only that address changes.
+There's no Meta locally, so another workflow, **pretend Meta** ([`n8n/workflows/fake-meta.json`](../../n8n/workflows/fake-meta.json)), stands in for Meta's Graph API: `WHATSAPP_GRAPH_URL` points at it, it keeps every message the Assistant sends in `fake_meta_messages` (text, reply buttons and lists) and hands them back from `POST /webhook/fake-meta/inbox`. For receipts it also keeps the photos and files a customer "sent" in `fake_meta_media`: `POST /webhook/fake-meta/media` with `{ mimeType, data }` (base64) stores one and answers its id, and the Assistant fetches it like Meta's media, with the access token. The Assistant itself runs exactly as it will live; only that address changes.
 
 ```bash
 bun run assistant:setup   # n8n tables, credentials made from .env, the workflows; run again after pulling changes
 bun run emulator          # WhatsApp-style chat on http://localhost:5175
 ```
 
-The **chat emulator** ([`tools/chat-emulator`](../../tools/chat-emulator), adapted from GenexoAI's) sends each message the way Meta does, signed with the app secret from `.env`, to the business number picked in its settings, and shows the answers from pretend Meta's inbox, with their reply buttons and lists. Tapping one sends the tap the way Meta does. It's a testing tool, so the portal and console rules don't apply to it.
+The **chat emulator** ([`tools/chat-emulator`](../../tools/chat-emulator), adapted from GenexoAI's) sends each message the way Meta does, signed with the app secret from `.env`, to the business number picked in its settings, and shows the answers from pretend Meta's inbox, with their reply buttons and lists. Tapping one sends the tap the way Meta does. The paperclip sends a photo or file, with the typed text as its caption. It's a testing tool, so the portal and console rules don't apply to it.
 
 n8n runs in Docker and reaches the API on your computer at `host.docker.internal`. If your computer runs the `ufw` firewall, let Docker's networks through to the API once: `sudo ufw allow in from 172.16.0.0/12 to any port 3000 proto tcp`.
