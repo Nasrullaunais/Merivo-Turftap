@@ -9,6 +9,8 @@ export interface ChatMessage {
   choices?: Choices;
   /** The small grey line under the text, like WhatsApp's message footer. */
   footer?: string;
+  /** A photo or file the customer sent; `previewUrl` shows a photo in the chat. */
+  attachment?: { name: string; previewUrl?: string };
 }
 
 export interface Choice {

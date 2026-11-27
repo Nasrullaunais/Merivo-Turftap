@@ -6,7 +6,7 @@ As a **Customer**, I want to see the venue's bank details and the exact amount a
 
 ## PAY-02 Send a Transfer Receipt
 As a **Customer**, I want to send a photo or screenshot of my bank transfer, so that the venue can confirm my booking.
-- On the portal: upload JPG, PNG or PDF up to 5 MB. Through the Assistant: send the photo in the chat.
+- On the portal: upload JPG, PNG or PDF up to 5 MB. Through the Assistant: send the photo, screenshot or PDF in the chat (`AST-03`).
 - Given a receipt arrives in time, when it's saved, then the booking waits for a receipt check and no longer expires.
 - Given the Payment Time Limit has passed, when a receipt arrives, then it is refused and the customer is asked to book again.
 - Staff can also send a receipt a customer gave them, for that customer's booking.

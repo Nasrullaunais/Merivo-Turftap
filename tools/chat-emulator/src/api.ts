@@ -3,6 +3,7 @@ import type { Choice, Choices, InboxMessage, Interactive, Settings } from "./typ
 // Both go through the Vite proxy to local n8n (vite.config.ts).
 const ASSISTANT_WEBHOOK = "/webhook/whatsapp";
 const INBOX_WEBHOOK = "/webhook/fake-meta/inbox";
+const MEDIA_WEBHOOK = "/webhook/fake-meta/media";
 
 /** Meta's customer id: the phone's digits without "+". */
 export const waIdOf = (phone: string) => phone.replace(/\D/g, "");
@@ -22,9 +23,19 @@ async function sign(body: string) {
   return "sha256=" + Array.from(mac, (b) => b.toString(16).padStart(2, "0")).join("");
 }
 
-/** What the customer sent: typed text, or a tap on one of the Assistant's buttons or list rows. */
+/** Meta's description of a photo or file a customer sent; the bytes are fetched by `id`. */
+interface Media {
+  id: string;
+  mime_type: string;
+  caption?: string;
+  filename?: string;
+}
+
+/** What the customer sent: typed text, a photo or file, or a tap on one of the Assistant's choices. */
 type Content =
   | { type: "text"; text: { body: string } }
+  | { type: "image"; image: Media }
+  | { type: "document"; document: Media }
   | {
       type: "interactive";
       context: { id: string };
@@ -85,6 +96,38 @@ export const sendTap = (settings: Settings, choices: Choices, choice: Choice) =>
         ? { type: "button_reply", button_reply: choice }
         : { type: "list_reply", list_reply: choice },
   });
+
+const base64Of = (file: File) =>
+  new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result).split(",")[1] ?? "");
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(file);
+  });
+
+/**
+ * Like WhatsApp: the file goes to pretend Meta first, then the message carries only its id.
+ * Photos go as `image`, anything else, a PDF say, as `document`.
+ */
+export async function sendMedia(settings: Settings, file: File, caption: string) {
+  const res = await fetch(MEDIA_WEBHOOK, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      mimeType: file.type || "application/octet-stream",
+      data: await base64Of(file),
+    }),
+  });
+  if (!res.ok) return { ok: false, status: res.status };
+  const { id } = (await res.json()) as { id: string };
+  const media: Media = { id, mime_type: file.type, ...(caption ? { caption } : {}) };
+  return deliver(
+    settings,
+    file.type.startsWith("image/")
+      ? { type: "image", image: media }
+      : { type: "document", document: { ...media, filename: file.name } },
+  );
+}
 
 /** The buttons or list rows of an Assistant message, if it had any. */
 export function choicesOf(messageId: string, interactive: Interactive | null): Choices | undefined {

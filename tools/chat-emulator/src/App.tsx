@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 
-import { choicesOf, fetchInbox, sendMessage, sendTap } from "./api";
+import { choicesOf, fetchInbox, sendMedia, sendMessage, sendTap } from "./api";
 import { Composer } from "./components/Composer";
 import { ControlPanel } from "./components/ControlPanel";
 import { Header } from "./components/Header";
@@ -99,8 +99,11 @@ export default function App() {
   }, [live, settings]);
 
   /** Shows what the customer sent, delivers it like Meta, and waits for the answer. */
-  async function deliver(shown: string, delivery: () => Promise<{ ok: boolean; status: number }>) {
-    push({ role: "tx", text: shown });
+  async function deliver(
+    shown: Pick<ChatMessage, "text" | "attachment">,
+    delivery: () => Promise<{ ok: boolean; status: number }>,
+  ) {
+    push({ role: "tx", ...shown });
     try {
       const res = await delivery();
       if (!res.ok) {
@@ -124,21 +127,33 @@ export default function App() {
     }
   }
 
+  function ready() {
+    if (live) return true;
+    push({ role: "err", text: "Set the business number and your phone in settings first." });
+    setPanelOpen(true);
+    return false;
+  }
+
   function send() {
     const text = draft.trim();
-    if (!text) return;
-    if (!live) {
-      push({ role: "err", text: "Set the business number and your phone in settings first." });
-      setPanelOpen(true);
-      return;
-    }
+    if (!text || !ready()) return;
     setDraft("");
-    void deliver(text, () => sendMessage(settings, text));
+    void deliver({ text }, () => sendMessage(settings, text));
+  }
+
+  function attach(file: File) {
+    if (!ready()) return;
+    const caption = draft.trim();
+    setDraft("");
+    const previewUrl = file.type.startsWith("image/") ? URL.createObjectURL(file) : undefined;
+    void deliver({ text: caption, attachment: { name: file.name, previewUrl } }, () =>
+      sendMedia(settings, file, caption),
+    );
   }
 
   // WhatsApp shows a tapped button or list row as the customer's own message.
   const tap = (choices: Choices, choice: Choice) =>
-    void deliver(choice.title, () => sendTap(settings, choices, choice));
+    void deliver({ text: choice.title }, () => sendTap(settings, choices, choice));
 
   return (
     <div className="app">
@@ -158,7 +173,7 @@ export default function App() {
           {waiting && <TypingIndicator />}
         </div>
       </main>
-      <Composer value={draft} onChange={setDraft} onSend={send} />
+      <Composer value={draft} onChange={setDraft} onSend={send} onAttach={attach} />
     </div>
   );
 }

@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 
-import { SendIcon } from "./Icons";
+import { PaperclipIcon, SendIcon } from "./Icons";
 
 const MAX_INPUT_HEIGHT_PX = 140;
 
@@ -8,10 +8,13 @@ interface Props {
   value: string;
   onChange: (value: string) => void;
   onSend: () => void;
+  /** A photo or file to send, with the typed text as its caption. */
+  onAttach: (file: File) => void;
 }
 
-export function Composer({ value, onChange, onSend }: Props) {
+export function Composer({ value, onChange, onSend, onAttach }: Props) {
   const ref = useRef<HTMLTextAreaElement>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const el = ref.current;
@@ -32,6 +35,25 @@ export function Composer({ value, onChange, onSend }: Props) {
   return (
     <footer className="composer">
       <div className="composer__row">
+        <input
+          ref={fileRef}
+          type="file"
+          hidden
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            e.target.value = "";
+            if (file) onAttach(file);
+          }}
+        />
+        <button
+          type="button"
+          className="composer__attach"
+          onClick={() => fileRef.current?.click()}
+          aria-label="Send a photo or file"
+          title="Send a photo or file; the text you typed goes as its caption"
+        >
+          <PaperclipIcon />
+        </button>
         <textarea
           ref={ref}
           className="composer__input"

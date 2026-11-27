@@ -163,6 +163,249 @@
         440,
         320
       ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "fake-meta/media",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "db380000-0000-4000-8000-000000000001",
+      "name": "Media Upload In",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        500
+      ],
+      "webhookId": "db380000-0000-4000-8000-000000000002"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "-- Local only: the chat emulator \"sends\" a photo or file here first, then delivers its id like Meta does.\nINSERT INTO fake_meta_media (id, mime_type, data)\nVALUES (floor(random() * 9e15 + 1e15)::bigint::text, $1, $2)\nRETURNING id;",
+        "options": {
+          "queryReplacement": "={{ [$json.body.mimeType, $json.body.data] }}"
+        }
+      },
+      "id": "db380000-0000-4000-8000-000000000003",
+      "name": "Keep Media",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        220,
+        500
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "n8nOwnDatabase01",
+          "name": "n8n database"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { id: $json.id } }}",
+        "options": {}
+      },
+      "id": "db380000-0000-4000-8000-000000000004",
+      "name": "Answer Upload",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        440,
+        500
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "GET",
+        "path": ":mediaId",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "db380000-0000-4000-8000-000000000005",
+      "name": "Media Info In",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        760
+      ],
+      "webhookId": "fake-meta"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT m.id, m.mime_type, encode(sha256(decode(m.data, 'base64')), 'hex') AS sha256,\n  length(decode(m.data, 'base64')) AS file_size\nFROM (SELECT 1) AS one\nLEFT JOIN fake_meta_media m ON m.id = $1;",
+        "options": {
+          "queryReplacement": "={{ [$json.params.mediaId] }}"
+        }
+      },
+      "id": "db380000-0000-4000-8000-000000000006",
+      "name": "Find Media",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        220,
+        760
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "n8nOwnDatabase01",
+          "name": "n8n database"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Like Meta's GET /<media id>: where to download it, for a caller with the access token.\nconst PRETEND_META_TOKEN = 'pretend-meta-token'; // n8n/setup.ts gives the Assistant this token\nconst signedIn = $('Media Info In').item.json.headers?.authorization === 'Bearer ' + PRETEND_META_TOKEN;\nif (!signedIn) return { json: { status: 401, body: { error: { message: 'Invalid OAuth access token', type: 'OAuthException', code: 190 } } } };\nif (!$json.id) return { json: { status: 404, body: { error: { message: 'Unsupported get request', type: 'OAuthException', code: 100 } } } };\nconst url = $env.WHATSAPP_GRAPH_URL + '/' + $json.id + '/file';\nreturn {\n  json: {\n    status: 200,\n    body: { messaging_product: 'whatsapp', url, mime_type: $json.mime_type, sha256: $json.sha256, file_size: String($json.file_size), id: $json.id },\n  },\n};"
+      },
+      "id": "db380000-0000-4000-8000-000000000007",
+      "name": "Media Reply",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        440,
+        760
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json.body }}",
+        "options": {
+          "responseCode": "={{ $json.status }}"
+        }
+      },
+      "id": "db380000-0000-4000-8000-000000000008",
+      "name": "Answer Media Info",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        660,
+        760
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "GET",
+        "path": ":mediaId/file",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "db380000-0000-4000-8000-000000000009",
+      "name": "File In",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        1020
+      ],
+      "webhookId": "fake-meta"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT m.id, m.mime_type, m.data\nFROM (SELECT 1) AS one\nLEFT JOIN fake_meta_media m ON m.id = $1;",
+        "options": {
+          "queryReplacement": "={{ [$json.params.mediaId] }}"
+        }
+      },
+      "id": "db380000-0000-4000-8000-000000000010",
+      "name": "Find File",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        220,
+        1020
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "n8nOwnDatabase01",
+          "name": "n8n database"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Like Meta's media download: the bytes, for a caller with the access token.\nconst PRETEND_META_TOKEN = 'pretend-meta-token'; // n8n/setup.ts gives the Assistant this token\nconst signedIn = $('File In').item.json.headers?.authorization === 'Bearer ' + PRETEND_META_TOKEN;\nif (!signedIn) return { json: { status: 401, body: { error: { message: 'Invalid OAuth access token', type: 'OAuthException', code: 190 } } } };\nif (!$json.id) return { json: { status: 404, body: { error: { message: 'Media not found', type: 'OAuthException', code: 100 } } } };\nconst binary = await this.helpers.prepareBinaryData(Buffer.from($json.data, 'base64'), 'media', $json.mime_type);\nreturn { json: { status: 200 }, binary: { data: binary } };"
+      },
+      "id": "db380000-0000-4000-8000-000000000011",
+      "name": "File Reply",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        440,
+        1020
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "db380000-0000-4000-8000-000000000012",
+              "leftValue": "={{ $json.status === 200 }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "db380000-0000-4000-8000-000000000013",
+      "name": "Found?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        660,
+        1020
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "binary",
+        "options": {}
+      },
+      "id": "db380000-0000-4000-8000-000000000014",
+      "name": "Answer File",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        880,
+        940
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json.body }}",
+        "options": {
+          "responseCode": "={{ $json.status }}"
+        }
+      },
+      "id": "db380000-0000-4000-8000-000000000015",
+      "name": "Refuse File",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        880,
+        1100
+      ]
     }
   ],
   "connections": {
@@ -222,6 +465,112 @@
         [
           {
             "node": "Answer Inbox",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Media Upload In": {
+      "main": [
+        [
+          {
+            "node": "Keep Media",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Keep Media": {
+      "main": [
+        [
+          {
+            "node": "Answer Upload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Media Info In": {
+      "main": [
+        [
+          {
+            "node": "Find Media",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find Media": {
+      "main": [
+        [
+          {
+            "node": "Media Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Media Reply": {
+      "main": [
+        [
+          {
+            "node": "Answer Media Info",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "File In": {
+      "main": [
+        [
+          {
+            "node": "Find File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find File": {
+      "main": [
+        [
+          {
+            "node": "File Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "File Reply": {
+      "main": [
+        [
+          {
+            "node": "Found?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Found?": {
+      "main": [
+        [
+          {
+            "node": "Answer File",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Refuse File",
             "type": "main",
             "index": 0
           }
