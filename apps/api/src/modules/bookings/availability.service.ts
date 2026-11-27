@@ -2,13 +2,17 @@ import {
   type AvailabilityFilters,
   BOOKING_HORIZON_DAYS,
   CENTS_PER_RUPEE,
+  MAX_PAGE_SIZE,
   minuteOfDay,
   type Money,
   type Page,
+  type Resource,
   type Slot,
+  type Venue,
 } from "@turftap/contract";
 
 import type { AuthContext } from "../../lib/auth/context";
+import type { PageRequest } from "../../lib/db";
 import type { ListQuery } from "../../lib/resource";
 import { addDays, instantAt, todayIn, weekdayOf } from "../../lib/time";
 import * as blockedTimesService from "../venues/blocked-times.service";
@@ -25,6 +29,7 @@ const MINUTES_PER_DAY = 24 * 60;
 
 /** Everything that decides which times one resource can be booked on one of the venue's dates. */
 export type Day = {
+  resourceId: number;
   date: string;
   timeZone: string;
   /** The resource and its venue are both active. */
@@ -46,6 +51,16 @@ export type Day = {
 export async function loadDay(auth: AuthContext, resourceId: number, date: string): Promise<Day> {
   const resource = await resourcesService.get(auth, resourceId);
   const venue = await venuesService.get(auth, resource.venueId);
+  return dayOf(auth, resource, venue, date);
+}
+
+async function dayOf(
+  auth: AuthContext,
+  resource: Resource,
+  venue: Venue,
+  date: string,
+): Promise<Day> {
+  const resourceId = resource.id;
   const weekday = weekdayOf(date);
   const opening = venue.openingHours.find((day) => day.weekday === weekday);
   const wholeDay = {
@@ -59,6 +74,7 @@ export async function loadDay(auth: AuthContext, resourceId: number, date: strin
     bookingsRepository.listHolding(auth.tenantId, resourceId, wholeDay),
   ]);
   return {
+    resourceId,
     date,
     timeZone: venue.timeZone,
     bookable: resource.active && venue.active,
@@ -124,17 +140,70 @@ export function quote(day: Day, start: number, end: number, now = new Date()): S
     ![...day.blocked, ...day.booked].some(
       (taken) => taken.startsAt < endsAt && taken.endsAt > startsAt,
     );
-  return { startsAt, endsAt, price: priceOf(day, start, end), free };
+  return { resourceId: day.resourceId, startsAt, endsAt, price: priceOf(day, start, end), free };
 }
 
+async function everyPage<T>(list: (page: PageRequest<"createdAt">) => Promise<Page<T>>) {
+  const items: T[] = [];
+  for (let page = 0; ; page++) {
+    const result = await list({
+      page,
+      size: MAX_PAGE_SIZE,
+      sort: { field: "createdAt", direction: "asc" },
+    });
+    items.push(...result.content);
+    if (page + 1 >= result.totalPages) return items;
+  }
+}
+
+/** With `resourceId`, that resource as before; otherwise every bookable one the caller may see. */
+async function resourcesFor(
+  auth: AuthContext,
+  { resourceId, venueId, type }: AvailabilityFilters,
+): Promise<{ resource: Resource; venue: Venue }[]> {
+  if (resourceId !== undefined) {
+    const resource = await resourcesService.get(auth, resourceId);
+    const venue = await venuesService.get(auth, resource.venueId);
+    const matches =
+      (venueId === undefined || venueId === venue.id) &&
+      (type === undefined || type === resource.type);
+    return matches ? [{ resource, venue }] : [];
+  }
+  const [resources, venues] = await Promise.all([
+    everyPage((page) => resourcesService.list(auth, { filters: { venueId, active: true }, page })),
+    everyPage((page) => venuesService.list(auth, { filters: { active: true }, page })),
+  ]);
+  const openVenues = new Map(venues.map((venue) => [venue.id, venue]));
+  return resources.flatMap((resource) => {
+    const venue = openVenues.get(resource.venueId);
+    return venue && (type === undefined || type === resource.type) ? [{ resource, venue }] : [];
+  });
+}
+
+function slotsOf(day: Day, { slots = 1, from, to, free }: AvailabilityFilters, now: Date) {
+  const length = slots * day.slotMinutes;
+  const first = from === undefined ? 0 : minuteOfDay(from);
+  const last = to === undefined ? MINUTES_PER_DAY : minuteOfDay(to);
+  return startMinutes(day, length)
+    .filter((start) => first <= start && start < last)
+    .map((start) => quote(day, start, start + length, now))
+    .filter((slot) => free === undefined || slot.free === free);
+}
+
+/** BKG-01: sorted by start, then resource, and paged over every resource at once. */
 export async function list(
   auth: AuthContext,
   { filters, page }: ListQuery<AvailabilityFilters, AvailabilitySort>,
 ): Promise<Page<Slot>> {
-  const day = await loadDay(auth, filters.resourceId, filters.date);
   const now = new Date();
-  const length = (filters.slots ?? 1) * day.slotMinutes;
-  const slots = startMinutes(day, length).map((start) => quote(day, start, start + length, now));
+  const days = await Promise.all(
+    (await resourcesFor(auth, filters)).map(({ resource, venue }) =>
+      dayOf(auth, resource, venue, filters.date),
+    ),
+  );
+  const slots = days
+    .flatMap((day) => slotsOf(day, filters, now))
+    .sort((a, b) => a.startsAt.getTime() - b.startsAt.getTime() || a.resourceId - b.resourceId);
   if (page.sort.direction === "desc") slots.reverse();
   const first = page.page * page.size;
   return {

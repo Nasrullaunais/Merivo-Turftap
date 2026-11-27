@@ -2,6 +2,8 @@
 
 ## BKG-01 See free slots
 As a **Customer** or **Staff**, I want to see which slots are free for a resource on a date, so that I can choose a time.
+- I can also ask for a whole venue, one Sport, or every resource at once, such as "any court free tomorrow at 7?". Each slot says which resource it is for; turned-off resources and venues are left out, and staff limited to some venues only see theirs.
+- I can ask for free slots only, and only those starting between two times.
 - Free means: inside opening hours, not on a closed date, not blocked, not already booked, and not in the past.
 - Bookings start on the resource's **Start Interval** (every 15, 30 or 60 minutes on the clock), whatever the opening time.
 - Each free slot shows its price. A booking that runs into a Price Rule pays each part at the price in force then.

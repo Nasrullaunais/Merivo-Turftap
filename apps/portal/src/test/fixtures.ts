@@ -52,6 +52,7 @@ const MS_PER_HOUR = 3_600_000;
 
 /** A one-hour slot from `startsAt`, priced in rupees. */
 export const slot = (startsAt: string, rupees: number, free = true): Slot => ({
+  resourceId: court.id,
   startsAt,
   endsAt: new Date(Date.parse(startsAt) + MS_PER_HOUR).toISOString(),
   price: { amount: rupees * 100, currency: "LKR" },

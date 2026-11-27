@@ -7,6 +7,7 @@ import {
   asStaff,
   call,
   createTenant,
+  limitToVenues,
   resourceInput,
   type TestTenant,
   uniquePhone,
@@ -22,6 +23,8 @@ const ALL_WEEK = [1, 2, 3, 4, 5, 6, 7].map((weekday) => ({
 describe("BKG-01 availability routes", () => {
   let tenant: TestTenant;
   let resourceId: number;
+  let tableId: number;
+  let otherVenueId: number;
   const date = addDays(todayIn("Asia/Colombo"), 2);
   const path = (query: object = { resourceId, date }) => {
     const pairs = Object.entries(query).map(([key, value]): [string, string] => [key, `${value}`]);
@@ -37,7 +40,18 @@ describe("BKG-01 availability routes", () => {
     resourceId = (
       await call("POST", "/v1/resources", asStaff(tenant), resourceInput(venue.body.data.id))
     ).body.data.id;
+    const otherVenue = await call("POST", "/v1/venues", asStaff(tenant), {
+      ...venueInput(),
+      openingHours: ALL_WEEK,
+    });
+    otherVenueId = otherVenue.body.data.id;
+    const table = resourceInput(otherVenueId, { type: "POOL_TABLE" });
+    tableId = (await call("POST", "/v1/resources", asStaff(tenant), table)).body.data.id;
   });
+
+  const resourcesIn = (reply: { body: { data: { content: { resourceId: number }[] } } }) => [
+    ...new Set(reply.body.data.content.map((slot) => slot.resourceId)),
+  ];
 
   it("list_isOpenWithoutSignIn_andSendsTimesAsUtcText", async () => {
     const reply = await call("GET", path(), { tenantSlug: tenant.slug });
@@ -46,6 +60,7 @@ describe("BKG-01 availability routes", () => {
       body: { status: 200, message: "success", data: { totalElements: 5 } },
     });
     expect(reply.body.data.content[0]).toEqual({
+      resourceId,
       startsAt: `${date}T12:30:00.000Z`,
       endsAt: `${date}T13:30:00.000Z`,
       price: { amount: 250_000, currency: "LKR" },
@@ -63,12 +78,74 @@ describe("BKG-01 availability routes", () => {
     for (const as of callers) expect((await call("GET", path(), as)).status).toBe(200);
   });
 
-  it("list_needsAResourceAndARealDate", async () => {
+  it("list_needsARealDate_andRefusesBadFilters", async () => {
     const as = { tenantSlug: tenant.slug };
-    for (const query of [{ date }, { resourceId }, { resourceId, date: "2026-02-30" }]) {
+    const badQueries = [
+      { resourceId },
+      { resourceId, date: "2026-02-30" },
+      { date, type: "TENNIS_COURT" },
+      { date, free: "yes" },
+      { date, from: "7pm" },
+      { date, to: "25:00" },
+    ];
+    for (const query of badQueries) {
       const reply = await call("GET", path(query), as);
       expect(reply.status).toBe(400);
     }
+  });
+
+  it("list_withoutAResource_listsEveryResource_forEveryCaller", async () => {
+    const callers = [
+      { tenantSlug: tenant.slug },
+      asCustomer(tenant, uniquePhone()),
+      asAssistant(tenant, uniquePhone()),
+      asStaff(tenant, tenant.frontDesk),
+    ];
+    for (const as of callers) {
+      const reply = await call("GET", path({ date }), as);
+      expect(reply.status).toBe(200);
+      expect(resourcesIn(reply)).toEqual([resourceId, tableId]);
+      expect(reply.body.data.totalElements).toBe(10);
+    }
+  });
+
+  it("list_filtersByVenueTypeFreeAndTime", async () => {
+    const as = asAssistant(tenant, uniquePhone());
+    const query = { date, type: "POOL_TABLE", free: true, from: "19:00", to: "20:00" };
+    const reply = await call("GET", path(query), as);
+    expect(reply.body.data.content).toMatchObject([
+      { resourceId: tableId, startsAt: `${date}T13:30:00.000Z`, free: true },
+      { resourceId: tableId, startsAt: `${date}T14:00:00.000Z`, free: true },
+    ]);
+    const atVenue = await call("GET", path({ date, venueId: otherVenueId }), as);
+    expect(resourcesIn(atVenue)).toEqual([tableId]);
+  });
+
+  it("list_staffLimitedToSomeVenues_seeOnlyThoseVenuesResources", async () => {
+    const limited = await createTenant();
+    const addResource = async () => {
+      const venue = await call("POST", "/v1/venues", asStaff(limited), {
+        ...venueInput(),
+        openingHours: ALL_WEEK,
+      });
+      const resource = resourceInput(venue.body.data.id);
+      return {
+        venueId: venue.body.data.id as number,
+        resourceId: (await call("POST", "/v1/resources", asStaff(limited), resource)).body.data
+          .id as number,
+      };
+    };
+    const mine = await addResource();
+    const notMine = await addResource();
+    await limitToVenues(limited, limited.manager, [mine.venueId]);
+    const as = asStaff(limited, limited.manager);
+
+    expect(resourcesIn(await call("GET", path({ date }), as))).toEqual([mine.resourceId]);
+    const otherVenue = await call("GET", path({ date, venueId: notMine.venueId }), as);
+    expect(otherVenue.body.data.content).toEqual([]);
+    const otherResource = await call("GET", path({ date, resourceId: notMine.resourceId }), as);
+    expect(otherResource).toMatchObject({ status: 404, body: { code: "tt_ven_003" } });
+    expect(resourcesIn(await call("GET", path({ date }), asStaff(limited)))).toHaveLength(2);
   });
 
   it("list_withSlots_quotesThatManyBackToBack_andRefusesABadCount", async () => {
