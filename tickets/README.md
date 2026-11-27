@@ -41,6 +41,7 @@ Status: `todo`, `doing`, `done`, `blocked` (waiting on a decision or an outside 
 | [T14](T14-live-updates-events.md) | Live updates (`events`) | BKG-05, PAY-07 (part) | T06 | done |
 | [T15](T15-repeat-series-api.md) | Repeat series API | BKG-09 | T10 | done |
 | [T16](T16-booking-reminders.md) | Booking reminders | BKG-10 | T10, T13 | done |
+| [T49](T49-free-times-across-resources.md) | Free times across resources (one call for a venue or sport) | BKG-01, AST-01 | T05 | todo |
 | [T47](T47-series-payment-collection.md) | Ask for series payments before each booking | BKG-09 | T15, T13, T46 | blocked (OQ-01) |
 | **D. Bookings and payments (Staff Console)** |||||
 | [T17](T17-console-booking-calendar.md) | Booking calendar | BKG-05 | T14 | done |
@@ -65,7 +66,7 @@ Status: `todo`, `doing`, `done`, `blocked` (waiting on a decision or an outside 
 | [T33](T33-tenants-api.md) | Tenant scripts: create, turn off, list | PLA-01, PLA-03, PLA-04 | T04, T06 | done |
 | **H. Assistant (n8n)** |||||
 | [T35](T35-assistant-skeleton.md) | Assistant skeleton: tenant, customer, name, hand-over | AST-05, AST-06 | T02, T03 | done |
-| [T36](T36-assistant-free-slots.md) | Ask about free slots and prices | AST-01 | T35, T05 | todo |
+| [T36](T36-assistant-free-slots.md) | Ask about free slots and prices, with tappable choices | AST-01, AST-05 | T35, T49 | todo |
 | [T37](T37-assistant-book-and-cancel.md) | Book and cancel through chat | AST-02, AST-04 | T36, T07 | todo |
 | [T38](T38-assistant-receipts.md) | Send a receipt in chat | AST-03 | T37, T11, T23 | todo |
 | **I. Real services and launch** |||||
@@ -125,6 +126,10 @@ Settled in a grilling session with the user. Each answer is written here, then i
 | D-40 | Refuse slugs the server itself uses (`console`, `api`, …)? | Yes, a short list | Yes: `www`, `api`, `console`, `admin`, `app`, `n8n`, `mail`, `status`, `help`, and 3 to 30 characters |
 | D-41 | How does the console show staff that their tenant is off? | A banner on every page, plus the error on save | Yes. `/v1/me` sends `active` per tenant; the Assistant now gets 403 `tt_plt_010` too, like the portal |
 | D-42 | There's no Meta locally: where do the Assistant's answers go, and how are they checked? | A pretend-Meta n8n workflow that keeps every answer | Yes, plus the GenexoAI chat emulator adapted to send Meta-shaped, signed messages and read the answers back (`tools/chat-emulator`). The Assistant answers Meta at once and sends separately, exactly as it will live |
+| D-43 | How does the Assistant find free times across many courts? The API answered one resource per call, in UTC and cents | A helper inside n8n | In the API (T49): `GET /v1/availability` takes a venue, a sport or nothing besides the date, so the rules stay tested in one place and future helpers inside the platform can use it. n8n only turns times and prices into Sri Lankan wording |
+| D-44 | A new number's first message: ask the name first, in English? | Answer and ask in the same reply | Yes: the AI answers, asks the name in the customer's language, and picks the name out of the next message. The fixed English name step from T35 goes |
+| D-45 | Sinhala or Tamil typed in English letters: how to reply? | Mirror the customer | Yes: same language and same letters as the customer |
+| D-46 | Tappable choices on WhatsApp | In T36 | Yes: up to 3 as buttons, 4 to 10 as a list, shown and tappable in the chat emulator |
 
 ## Open questions for venue owners
 
