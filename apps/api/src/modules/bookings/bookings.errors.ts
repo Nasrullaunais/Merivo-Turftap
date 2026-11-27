@@ -1,3 +1,5 @@
+import { CENTS_PER_RUPEE, type Money } from "@turftap/contract";
+
 import { BadRequest, constraintErrors, Conflict, NotFound } from "../../lib/errors";
 
 export const bookingErrors = {
@@ -32,6 +34,11 @@ export const bookingErrors = {
       dates,
     ),
   seriesNotFound: (id: number) => new NotFound("tt_bkg_010", `Repeat Series ${id} was not found`),
+  priceChanged: (price: Money) =>
+    new Conflict(
+      "tt_bkg_012",
+      `The price is now ${price.currency} ${(price.amount / CENTS_PER_RUPEE).toLocaleString("en-US")}. Please confirm the new price`,
+    ),
   seriesAllSkipped: () =>
     new BadRequest("tt_bkg_011", "Every week is skipped, so there is nothing to book", [
       { field: "skipDates", message: "Must leave at least one week" },

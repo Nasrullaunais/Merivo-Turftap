@@ -220,6 +220,7 @@ export type CreateBooking = {
     resourceId: number;
     startsAt: string;
     slots?: number;
+    price?: Money;
     walkIn?: WalkIn;
 };
 

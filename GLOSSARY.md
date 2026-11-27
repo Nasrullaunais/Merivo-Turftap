@@ -128,6 +128,10 @@ _Avoid_: Admin panel, dashboard, back office
 The AI-powered WhatsApp chat that customers use to book and pay.
 _Avoid_: Bot, chatbot, agent
 
+**Chat Offer**:
+What the Assistant puts to a customer before it books or cancels anything for them: the exact booking with its price, or the booking to cancel, with Yes and No to tap. Nothing changes until the customer says yes in a later message. A Chat Offer runs out after 10 minutes, or when a newer one replaces it.
+_Avoid_: Proposal, quote, pending action
+
 ## Payments
 
 **Payment**:

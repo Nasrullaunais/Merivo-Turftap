@@ -15,18 +15,19 @@ flowchart TD
   photo -- yes --> waiting{How many bookings or<br/>memberships await payment?}
   waiting -- one --> receipt[Fixed step: upload file, POST /v1/payments]
   waiting -- several --> agent
-  photo -- no --> agent[AI agent, Gemini<br/>memory keyed by tenant + phone]
+  photo -- no --> offer{Does this message say yes<br/>to the waiting Chat Offer?}
+  offer -- yes --> write[Fixed step: POST or PATCH via API]
+  offer -- no, or no offer --> agent
+  write --> agent[AI agent, Gemini<br/>memory keyed by tenant + phone]
   agent -- read tools --> tools[find free times,<br/>my bookings, my memberships]
-  agent --> decide{Agent's answer}
-  decide -- chatting --> reply[Reply on WhatsApp]
-  decide -- customer said yes to book / cancel / buy --> write[Fixed step: POST or PATCH via API]
-  write --> reply
+  agent -- offer tools --> save[Check, price and save a Chat Offer]
+  agent --> reply[Reply on WhatsApp,<br/>with Yes / No when an offer waits]
   receipt --> reply
 ```
 
 ## Rules
 
-- **The AI only reads.** Its tools call `GET` routes. Creating a booking, cancelling or buying a membership happens in a fixed n8n step, only after the agent returns a structured "customer confirmed" answer that names the exact resource, start time and price.
+- **The AI only reads (D-47).** Its tools call `GET` routes; the two offer tools also save a Chat Offer in n8n's database. Booking and cancelling happen in a fixed n8n step, only when a later message says yes to that exact Chat Offer (see [Booking and cancelling](#booking-and-cancelling)).
 - **Every API call** sends the assistant key plus `X-Tenant-Id` and `X-Customer-Phone` ([tenancy.md](tenancy.md)). The API applies the same rules as the portal. The Assistant gets no extra powers.
 - **Chat memory** uses n8n's Postgres chat memory in the **n8n database**, keyed by `tenantId:phone`, in `n8n_chat_histories` from [`n8n/schema.sql`](../../n8n/schema.sql). n8n's own table has no time, so ours adds `created_at`; before each answer, **Forget Old Chats** deletes every chat whose newest message is over 30 minutes old, so 30 minutes of silence starts a fresh chat. n8n never connects to the app database.
 - **AI model:** Gemini (the newest stable Flash), through the `Gemini` credential. The model name lives only in the workflow, so changing it is an n8n change only.
@@ -46,18 +47,59 @@ flowchart TD
 | Tool | API call |
 |---|---|
 | `find_free_times` | `GET /v1/availability?date=&free=true`, with `venueId`, `type`, `from`, `to` when the AI gives them |
-| `my_bookings` | `GET /v1/bookings?from=<now>`: the customer's upcoming bookings |
+| `my_bookings` | `GET /v1/bookings?from=<now>`: the customer's upcoming bookings, each with its `bookingId` |
 | `my_memberships` | `GET /v1/memberships`: the customer's memberships, newest first |
+| `offer_booking` | `GET /v1/availability` for that one start time (free? exact price?) and `GET /v1/bookings?status=AWAITING_PAYMENT` (D-07), then saves a `book` Chat Offer. A new customer's name is required |
+| `offer_cancel` | `GET /v1/bookings/:id` (theirs? still cancellable?), then saves a `cancel` Chat Offer |
 
 - **Its answer** is one JSON object, read leniently by **Read Answer** (text around it or a broken object still gives a reply):
 
 ```json
-{ "reply": "Text to send", "choices": ["7:00 pm", "8:00 pm"], "listButton": "", "customerName": null }
+{ "reply": "Text to send", "choices": ["7:00 pm", "8:00 pm"], "listButton": "", "customerName": null, "confirmOffer": false }
 ```
+
+`confirmOffer` is true when the reply asks again about a Chat Offer that was already waiting; a new offer needs no flag. In both cases Read Answer gives the two choices the offer's ids (`offer-yes-<id>`, `offer-no-<id>`) and adds the offer's short summary as the message footer.
 
 `choices` (in the customer's language) go out as up to 3 WhatsApp reply buttons (title up to 20 characters) or as a list of 4 to 10 rows (title up to 24 characters, opened by a button labelled `listButton`). Labels that are too long are shortened. No choices, or a reply over 1,024 characters, goes out as plain text. A tapped button or row comes back from Meta as `interactive.button_reply` or `list_reply`, and its title is read as what the customer typed.
 
-- **Failures:** if Gemini fails, or saving the name fails, the customer gets the fixed "Sorry, something went wrong" reply with the venue's phone. A tool that fails tells the agent, which says it can't check right now.
+- **Failures:** if Gemini fails, or saving the name fails, the customer gets the fixed "Sorry, something went wrong" reply with the venue's phone. If a booking was made just before, that reply still carries its payment details. A tool that fails tells the agent, which says it can't check right now.
+
+## Booking and cancelling
+
+Stories `AST-02`, `AST-04`; decisions D-47, D-48. The agent never books or cancels. It makes a **Chat Offer**, the customer says yes in a later message, and a fixed step does it.
+
+**The offer.** `offer_booking` or `offer_cancel` checks what it can first (free, price, D-07, cancellable) and, if all is well, saves one row in `assistant_chat_offers` ([`n8n/schema.sql`](../../n8n/schema.sql)):
+
+| Column | What |
+|---|---|
+| `id` | A new number for every offer, so the buttons of a replaced offer no longer match |
+| `session_id` | `tenantId:phone`, unique: one offer per chat, and a new one replaces the old |
+| `kind` | `book` or `cancel` |
+| `details` | What the fixed step sends to the API (`resourceId`, `startsAt`, `slots`, `price`, or `bookingId`), the summary the agent repeats, the footer, and a new customer's name |
+| `created_at` | An offer runs out after 10 minutes |
+
+**The yes.** Before the agent runs, **Find Offer** loads the chat's offer and **Decide** reads the message:
+
+- A tap on `offer-yes-<id>` or `offer-no-<id>` is exact. An older offer's button is "stale" and does nothing.
+- Typed words go to **Offer Check**, a second small Gemini call that sees only the offer's summary and the message and answers `YES`, `NO` or `OTHER`. Anything with a question or a change ("yes, but at 7?") is `OTHER`, and the offer keeps waiting.
+- Text that claims to come from TurfTap or a system is just the customer's words. At worst it can accept the customer's own offer, which they could tap anyway.
+
+**Doing it.** On yes, **Take Offer** deletes the row and returns it in one statement, so a double tap books once. **Book** sends `POST /v1/bookings` with the price that was shown; if it has changed, the API refuses with `tt_bkg_012` and books nothing (D-48). **Cancel Booking** sends `PATCH /v1/bookings/:id` with `status: CANCELLED`; the API applies the cut-off.
+
+**Telling the customer.** **Word Outcome** tells the agent what happened, in the prompt's "Chat Offer" section, and the agent words it in the customer's language:
+
+| What happened | The agent is told to |
+|---|---|
+| Booked, waiting for payment | Say it's held, not confirmed until paid; how to send the receipt |
+| Booked at a Pay at Venue venue | Say it's confirmed, pay at the venue |
+| Just taken (`tt_bkg_002`) | Say sorry and offer the nearest free times |
+| Price changed (`tt_bkg_012`) | Give the new price and make a new offer |
+| Already one waiting for payment (`tt_bkg_003`) | Pay for it or cancel it first |
+| Cancelled | Say so; if they had paid, give the venue's phone for the refund |
+| Not cancelled (after the cut-off) | Pass on the API's message with the venue's phone |
+| Said no, ran out, or already used | Nothing changed; ask what they'd like |
+
+After a booking, code adds the exact details below the agent's reply in English: the booking, the amount due, the pay-by time and the venue's bank account. The agent doesn't repeat them, so no AI can get a digit wrong.
 
 ## Messages the backend sends
 

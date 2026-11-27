@@ -14,3 +14,14 @@ CREATE TABLE IF NOT EXISTS n8n_chat_histories (
 );
 
 CREATE INDEX IF NOT EXISTS n8n_chat_histories_session ON n8n_chat_histories (session_id, created_at);
+
+-- T37 (D-47): the one Chat Offer per chat waiting for the customer's yes. `details` holds what the
+-- fixed step sends to the API and the summary shown; `message_id` is the message it was made in.
+CREATE TABLE IF NOT EXISTS assistant_chat_offers (
+  id serial PRIMARY KEY,
+  session_id varchar(255) NOT NULL UNIQUE,
+  kind text NOT NULL,
+  details jsonb NOT NULL,
+  message_id text NOT NULL,
+  created_at timestamptz NOT NULL DEFAULT now()
+);

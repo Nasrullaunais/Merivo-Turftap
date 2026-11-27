@@ -80,6 +80,7 @@ export default function App() {
             role: "rx" as const,
             text: m.text,
             choices: choicesOf(m.messageId, m.interactive),
+            footer: m.interactive?.footer?.text,
             time: new Date(m.sentAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
           })),
         ]);

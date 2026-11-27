@@ -32,6 +32,30 @@
             },
             {
               "name": "to"
+            },
+            {
+              "name": "resourceId"
+            },
+            {
+              "name": "startTime"
+            },
+            {
+              "name": "slots"
+            },
+            {
+              "name": "bookingId"
+            },
+            {
+              "name": "customerName"
+            },
+            {
+              "name": "customerKnown"
+            },
+            {
+              "name": "sessionId"
+            },
+            {
+              "name": "messageId"
             }
           ]
         }
@@ -54,7 +78,7 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        220,
+        440,
         0
       ]
     },
@@ -94,7 +118,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        440,
+        660,
         0
       ],
       "credentials": {
@@ -107,30 +131,364 @@
     },
     {
       "parameters": {
-        "jsCode": "// What the agent reads: Sri Lankan times and \"LKR 2,500\", never UTC or cents.\nconst call = $('Tool Call').item.json;\nconst names = JSON.parse(call.names);\nconst DEFAULT_TIME_ZONE = 'Asia/Colombo';\nconst BOOKING_WORDS = {\n  AWAITING_PAYMENT: 'waiting for payment',\n  AWAITING_CHECK: 'receipt sent, the venue is checking it',\n  CONFIRMED: 'confirmed',\n  EXPIRED: 'expired, as it was not paid in time',\n  CANCELLED: 'cancelled',\n};\nconst MEMBERSHIP_WORDS = { ...BOOKING_WORDS, ACTIVE: 'active', ENDED: 'ended' };\n\nconst money = (m) => m.currency + ' ' + (m.amount / 100).toLocaleString('en-US', { maximumFractionDigits: 2 });\nconst zoneOf = (venueId) => names.venues[venueId]?.timeZone ?? DEFAULT_TIME_ZONE;\nconst time = (iso, timeZone) => new Date(iso).toLocaleTimeString('en-GB', { timeZone, hour: 'numeric', minute: '2-digit', hour12: true });\nconst day = (iso, timeZone) => new Date(iso).toLocaleDateString('en-GB', { timeZone, weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });\nconst localDay = (isoDate) => day(isoDate + 'T12:00:00Z', 'UTC');\nconst venueName = (venueId) => names.venues[venueId]?.name ?? 'a venue that is closed for now';\nconst resourceName = (resourceId) => {\n  const resource = names.resources[resourceId];\n  return resource ? resource.name + ' at ' + venueName(resource.venueId) : 'a resource no longer listed';\n};\nconst toPay = (item) =>\n  item.status === 'AWAITING_PAYMENT' && item.expiresAt\n    ? ': send ' + money(item.amountDue) + ' by ' + time(item.expiresAt, zoneOf(item.venueId)) + ' on ' + day(item.expiresAt, zoneOf(item.venueId))\n    : item.balance.amount > 0 && (item.status === 'CONFIRMED' || item.status === 'ACTIVE')\n      ? ', ' + money(item.balance) + ' still to pay at the venue'\n      : '';\n\nfunction answer() {\n  if ($json.error || !$json.body) return 'The check failed. Tell the customer you can\\'t check right now.';\n  const { statusCode, body } = $json;\n  if (statusCode >= 400) {\n    const why = (body.errors ?? []).map((e) => e.field + ': ' + e.message).join('; ') || body.message;\n    return 'The check was refused (' + why + ').' + (statusCode >= 500 ? \" Tell the customer you can't check right now.\" : '');\n  }\n  const { content, totalElements } = body.data;\n\n  if (call.tool === 'find_free_times') {\n    const date = localDay(call.date);\n    if (content.length === 0) return 'Nothing is free on ' + date + ' for this search.';\n    const byResource = new Map();\n    for (const slot of content) byResource.set(slot.resourceId, [...(byResource.get(slot.resourceId) ?? []), slot]);\n    const lines = ['Free start times on ' + date + ' (each price is for one slot from that time):'];\n    for (const [resourceId, slots] of byResource) {\n      const resource = names.resources[resourceId];\n      lines.push(resourceName(resourceId) + (resource ? ', ' + resource.slotMinutes + '-minute slots:' : ':'));\n      const byPrice = new Map();\n      for (const slot of slots) {\n        const price = money(slot.price);\n        byPrice.set(price, [...(byPrice.get(price) ?? []), time(slot.startsAt, zoneOf(resource?.venueId))]);\n      }\n      for (const [price, times] of byPrice) lines.push('• ' + price + ': ' + times.join(', '));\n    }\n    if (totalElements > content.length) {\n      lines.push('Only the first ' + content.length + ' of ' + totalElements + ' free start times are listed. Ask about a narrower time or one venue for the rest.');\n    }\n    return lines.join('\\n');\n  }\n\n  if (call.tool === 'my_bookings') {\n    if (content.length === 0) return 'The customer has no upcoming bookings.';\n    const lines = content.map((b) => {\n      const zone = zoneOf(b.venueId);\n      return '• ' + resourceName(b.resourceId) + ', ' + day(b.startsAt, zone) + ', ' + time(b.startsAt, zone) + ' to ' + time(b.endsAt, zone) +\n        ', ' + money(b.price) + ': ' + BOOKING_WORDS[b.status] + toPay(b);\n    });\n    return ['The customer\\'s upcoming bookings:', ...lines].join('\\n');\n  }\n\n  if (content.length === 0) return 'The customer has no memberships.';\n  const lines = content.map((m) =>\n    '• ' + m.planName + ' at ' + venueName(m.venueId) + ', ' + localDay(m.startsOn) + ' to ' + localDay(m.endsOn) +\n      ', ' + money(m.price) + ': ' + MEMBERSHIP_WORDS[m.status] + toPay(m));\n  return ['The customer\\'s memberships, newest first:', ...lines].join('\\n');\n}\n\nreturn { json: { result: answer() } };"
+        "jsCode": "// What the agent reads: Sri Lankan times and \"LKR 2,500\", never UTC or cents.\nconst call = $('Tool Call').item.json;\nconst names = JSON.parse(call.names);\nconst DEFAULT_TIME_ZONE = 'Asia/Colombo';\nconst BOOKING_WORDS = {\n  AWAITING_PAYMENT: 'waiting for payment',\n  AWAITING_CHECK: 'receipt sent, the venue is checking it',\n  CONFIRMED: 'confirmed',\n  EXPIRED: 'expired, as it was not paid in time',\n  CANCELLED: 'cancelled',\n};\nconst MEMBERSHIP_WORDS = { ...BOOKING_WORDS, ACTIVE: 'active', ENDED: 'ended' };\n\nconst money = (m) => m.currency + ' ' + (m.amount / 100).toLocaleString('en-US', { maximumFractionDigits: 2 });\nconst zoneOf = (venueId) => names.venues[venueId]?.timeZone ?? DEFAULT_TIME_ZONE;\nconst time = (iso, timeZone) => new Date(iso).toLocaleTimeString('en-GB', { timeZone, hour: 'numeric', minute: '2-digit', hour12: true });\nconst day = (iso, timeZone) => new Date(iso).toLocaleDateString('en-GB', { timeZone, weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });\nconst localDay = (isoDate) => day(isoDate + 'T12:00:00Z', 'UTC');\nconst venueName = (venueId) => names.venues[venueId]?.name ?? 'a venue that is closed for now';\nconst resourceName = (resourceId) => {\n  const resource = names.resources[resourceId];\n  return resource ? resource.name + ' at ' + venueName(resource.venueId) : 'a resource no longer listed';\n};\nconst toPay = (item) =>\n  item.status === 'AWAITING_PAYMENT' && item.expiresAt\n    ? ': send ' + money(item.amountDue) + ' by ' + time(item.expiresAt, zoneOf(item.venueId)) + ' on ' + day(item.expiresAt, zoneOf(item.venueId))\n    : item.balance.amount > 0 && (item.status === 'CONFIRMED' || item.status === 'ACTIVE')\n      ? ', ' + money(item.balance) + ' still to pay at the venue'\n      : '';\n\nfunction answer() {\n  if ($json.error || !$json.body) return 'The check failed. Tell the customer you can\\'t check right now.';\n  const { statusCode, body } = $json;\n  if (statusCode >= 400) {\n    const why = (body.errors ?? []).map((e) => e.field + ': ' + e.message).join('; ') || body.message;\n    return 'The check was refused (' + why + ').' + (statusCode >= 500 ? \" Tell the customer you can't check right now.\" : '');\n  }\n  const { content, totalElements } = body.data;\n\n  if (call.tool === 'find_free_times') {\n    const date = localDay(call.date);\n    if (content.length === 0) return 'Nothing is free on ' + date + \" for this search. Don't say why: it may be booked, closed or past.\";\n    const byResource = new Map();\n    for (const slot of content) byResource.set(slot.resourceId, [...(byResource.get(slot.resourceId) ?? []), slot]);\n    const lines = ['Free start times on ' + date + ' (each price is for one slot from that time):'];\n    for (const [resourceId, slots] of byResource) {\n      const resource = names.resources[resourceId];\n      lines.push(resourceName(resourceId) + (resource ? ', ' + resource.slotMinutes + '-minute slots:' : ':'));\n      const byPrice = new Map();\n      for (const slot of slots) {\n        const price = money(slot.price);\n        byPrice.set(price, [...(byPrice.get(price) ?? []), time(slot.startsAt, zoneOf(resource?.venueId))]);\n      }\n      for (const [price, times] of byPrice) lines.push('• ' + price + ': ' + times.join(', '));\n    }\n    if (totalElements > content.length) {\n      lines.push('Only the first ' + content.length + ' of ' + totalElements + ' free start times are listed. Ask about a narrower time or one venue for the rest.');\n    }\n    return lines.join('\\n');\n  }\n\n  if (call.tool === 'my_bookings') {\n    if (content.length === 0) return 'The customer has no upcoming bookings.';\n    const lines = content.map((b) => {\n      const zone = zoneOf(b.venueId);\n      return '• bookingId ' + b.id + ': ' + resourceName(b.resourceId) + ', ' + day(b.startsAt, zone) + ', ' + time(b.startsAt, zone) + ' to ' + time(b.endsAt, zone) +\n        ', ' + money(b.price) + ': ' + BOOKING_WORDS[b.status] + toPay(b);\n    });\n    return ['The customer\\'s upcoming bookings:', ...lines].join('\\n');\n  }\n\n  if (content.length === 0) return 'The customer has no memberships.';\n  const lines = content.map((m) =>\n    '• ' + m.planName + ' at ' + venueName(m.venueId) + ', ' + localDay(m.startsOn) + ' to ' + localDay(m.endsOn) +\n      ', ' + money(m.price) + ': ' + MEMBERSHIP_WORDS[m.status] + toPay(m));\n  return ['The customer\\'s memberships, newest first:', ...lines].join('\\n');\n}\n\nreturn { json: { result: answer() } };\n"
       },
       "id": "b7000000-0000-4000-8000-000000000004",
       "name": "Word Answer",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        660,
+        880,
         0
       ]
+    },
+    {
+      "id": "b7000000-0000-4000-8000-000000000001",
+      "name": "Which Tool?",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        220,
+        0
+      ],
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "b7000000-0000-4000-8000-000000000002",
+                    "leftValue": "={{ $json.tool }}",
+                    "rightValue": "offer_booking",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "offer_booking"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "b7000000-0000-4000-8000-000000000003",
+                    "leftValue": "={{ $json.tool }}",
+                    "rightValue": "offer_cancel",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "offer_cancel"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra"
+        }
+      }
+    },
+    {
+      "id": "b7000000-0000-4000-8000-000000000004",
+      "name": "Check Booking Request",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        440,
+        -400
+      ],
+      "parameters": {
+        "jsCode": "// offer_booking: reads what the agent asked for, before asking the API about it.\nconst LOCAL_DATE = /^\\d{4}-\\d{2}-\\d{2}$/;\nconst LOCAL_TIME = /^([01]\\d|2[0-3]):[0-5]\\d$/;\nconst MAX_SLOTS = 96;\nconst MINUTES_PER_DAY = 24 * 60;\n\nconst call = $json;\nconst names = JSON.parse(call.names);\nconst resourceId = Number(call.resourceId);\nconst date = String(call.date ?? '').trim();\nconst startTime = String(call.startTime ?? '').trim().padStart(5, '0');\nconst slots = Number(call.slots) || 1;\nconst customerName = String(call.customerName ?? '').trim().replace(/\\s+/g, ' ');\n\nconst refuse = (why) => ({ json: { ok: false, result: 'No Chat Offer was made: ' + why } });\n\nif (!names.resources[resourceId]) return refuse('there is no resource ' + call.resourceId + '. Use a resourceId from \"What you know\".');\nif (!LOCAL_DATE.test(date)) return refuse('the date must be YYYY-MM-DD.');\nif (!LOCAL_TIME.test(startTime)) return refuse('startTime must be HH:MM on a 24-hour clock, such as 19:00.');\nif (!Number.isInteger(slots) || slots < 1 || slots > MAX_SLOTS) return refuse('slots must be a whole number from 1.');\nif (call.customerKnown !== 'true' && call.customerKnown !== true && customerName === '') {\n  return refuse('the customer is new. Ask for their name first, then call offer_booking again with customerName.');\n}\n\n// The API takes start times from `from` and before `to`; one minute later picks out exactly this one.\nconst [hours, minutes] = startTime.split(':').map(Number);\nconst next = Math.min(hours * 60 + minutes + 1, MINUTES_PER_DAY);\nconst to = next === MINUTES_PER_DAY ? '24:00' : String(Math.floor(next / 60)).padStart(2, '0') + ':' + String(next % 60).padStart(2, '0');\n\nreturn {\n  json: {\n    ok: true,\n    resourceId,\n    date,\n    startTime,\n    slots,\n    customerName,\n    query: { resourceId, date, from: startTime, to, slots },\n  },\n};\n"
+      }
+    },
+    {
+      "id": "b7000000-0000-4000-8000-000000000005",
+      "name": "Request OK?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        660,
+        -400
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "b7000000-0000-4000-8000-000000000006",
+              "leftValue": "={{ $json.ok }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "b7000000-0000-4000-8000-000000000007",
+      "name": "Ask Slot",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        880,
+        -480
+      ],
+      "parameters": {
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Tenant-Id",
+              "value": "={{ $('Tool Call').item.json.tenantId }}"
+            },
+            {
+              "name": "X-Customer-Phone",
+              "value": "={{ $('Tool Call').item.json.phone }}"
+            }
+          ]
+        },
+        "url": "={{ $env.TURFTAP_API_URL }}/v1/availability",
+        "sendQuery": true,
+        "specifyQuery": "json",
+        "jsonQuery": "={{ JSON.stringify($json.query) }}",
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true
+            }
+          },
+          "timeout": 10000
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "turftapApiKey001",
+          "name": "TurfTap API (Assistant key)"
+        }
+      }
+    },
+    {
+      "id": "b7000000-0000-4000-8000-000000000008",
+      "name": "Ask Waiting",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1100,
+        -480
+      ],
+      "parameters": {
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Tenant-Id",
+              "value": "={{ $('Tool Call').item.json.tenantId }}"
+            },
+            {
+              "name": "X-Customer-Phone",
+              "value": "={{ $('Tool Call').item.json.phone }}"
+            }
+          ]
+        },
+        "url": "={{ $env.TURFTAP_API_URL }}/v1/bookings",
+        "sendQuery": true,
+        "specifyQuery": "json",
+        "jsonQuery": "={{ JSON.stringify({ status: 'AWAITING_PAYMENT', size: 1 }) }}",
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true
+            }
+          },
+          "timeout": 10000
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "turftapApiKey001",
+          "name": "TurfTap API (Assistant key)"
+        }
+      }
+    },
+    {
+      "id": "b7000000-0000-4000-8000-000000000009",
+      "name": "Make Booking Offer",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1320,
+        -480
+      ],
+      "parameters": {
+        "jsCode": "// offer_booking: the exact booking and price from the API, as a Chat Offer, or why it can't be offered.\nconst CENTS_PER_RUPEE = 100;\nconst FULL_AMOUNT_PERCENT = 100;\nconst FOOTER_LIMIT = 60;\n\nconst call = $('Tool Call').item.json;\nconst request = $('Check Booking Request').item.json;\nconst names = JSON.parse(call.names);\nconst resource = names.resources[request.resourceId];\nconst venue = names.venues[resource.venueId];\n\nconst money = (m) => m.currency + ' ' + (m.amount / CENTS_PER_RUPEE).toLocaleString('en-US', { maximumFractionDigits: 2 });\nconst time = (iso) => new Date(iso).toLocaleTimeString('en-GB', { timeZone: venue.timeZone, hour: 'numeric', minute: '2-digit', hour12: true });\nconst day = (iso) => new Date(iso).toLocaleDateString('en-GB', { timeZone: venue.timeZone, weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });\nconst shortDay = (iso) => new Date(iso).toLocaleDateString('en-GB', { timeZone: venue.timeZone, weekday: 'short', day: 'numeric', month: 'short' });\nconst durationOf = (minutes) => (minutes % 60 === 0 ? minutes / 60 + ' hour' + (minutes === 60 ? '' : 's') : minutes + ' minutes');\nconst refuse = (why) => ({ json: { ok: false, result: 'No Chat Offer was made: ' + why } });\nconst failed = (reply) => reply.error || !reply.body || reply.statusCode >= 400;\n\nconst slotReply = $('Ask Slot').item.json;\nif (failed(slotReply)) {\n  const why = slotReply.body?.message ?? 'the check failed';\n  return refuse(why + '. If it is a technical failure, say you can\\'t check right now and give the way to reach a person.');\n}\nconst slot = slotReply.body.data.content[0];\nif (!slot) {\n  return refuse(\n    request.startTime + ' on ' + request.date + ' is not a start time of ' + resource.name +\n      ': it may be off its Start Interval, outside opening hours, in the past, closed that day or too far ahead. Use find_free_times.',\n  );\n}\nif (!slot.free) {\n  return refuse(\n    resource.name + ' is not free for all ' + durationOf(request.slots * resource.slotMinutes) + ' from ' + time(slot.startsAt) +\n      ' on ' + day(slot.startsAt) + '. Use find_free_times to offer other times.',\n  );\n}\n\n// D-07: one booking waiting for payment per customer, except at Pay at Venue venues.\nconst waitingReply = $('Ask Waiting').item.json;\nconst waiting = failed(waitingReply) ? [] : waitingReply.body.data.content;\nif (!venue.payAtVenue && waiting.length > 0) {\n  const other = waiting[0];\n  const otherResource = names.resources[other.resourceId];\n  return refuse(\n    'the customer already has a booking waiting for payment (bookingId ' + other.id + ', ' + (otherResource?.name ?? 'a resource') +\n      ', ' + day(other.startsAt) + ' at ' + time(other.startsAt) + '). Only one can wait for payment at a time: they pay for that one first, or cancel it (offer_cancel).',\n  );\n}\n\nconst amountDue = venue.payAtVenue\n  ? 0\n  : Math.ceil((slot.price.amount * venue.advancePercent) / (FULL_AMOUNT_PERCENT * CENTS_PER_RUPEE)) * CENTS_PER_RUPEE;\nconst paying = venue.payAtVenue\n  ? 'Pay at Venue: it is confirmed straight away and paid at the venue.'\n  : 'After the yes, ' + money({ amount: amountDue, currency: slot.price.currency }) +\n    (venue.advancePercent === FULL_AMOUNT_PERCENT ? '' : ' (the Advance)') + ' is due by bank transfer within ' +\n    durationOf(venue.paymentTimeLimitMinutes) + ', or the booking expires.';\nconst summary = resource.name + ' at ' + venue.name + ', ' + day(slot.startsAt) + ', ' + time(slot.startsAt) + ' to ' + time(slot.endsAt) + ', ' + money(slot.price);\nconst footer = (shortDay(slot.startsAt) + ' · ' + time(slot.startsAt) + '–' + time(slot.endsAt) + ' · ' + money(slot.price)).slice(0, FOOTER_LIMIT);\n\nreturn {\n  json: {\n    ok: true,\n    kind: 'book',\n    details: {\n      resourceId: request.resourceId,\n      startsAt: slot.startsAt,\n      slots: request.slots,\n      price: slot.price,\n      customerName: request.customerName || null,\n      summary,\n      footer,\n    },\n    result:\n      'Chat Offer made, waiting for the customer\\'s yes: ' + summary + '. ' + paying +\n      ' Now ask the customer, in their language, to confirm exactly this. Put the yes label first and the no label second in \"choices\"; they become the Yes and No buttons.',\n  },\n};\n"
+      }
+    },
+    {
+      "id": "b7000000-0000-4000-8000-000000000010",
+      "name": "Ask Booking",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        440,
+        -200
+      ],
+      "parameters": {
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Tenant-Id",
+              "value": "={{ $('Tool Call').item.json.tenantId }}"
+            },
+            {
+              "name": "X-Customer-Phone",
+              "value": "={{ $('Tool Call').item.json.phone }}"
+            }
+          ]
+        },
+        "url": "={{ $env.TURFTAP_API_URL }}/v1/bookings/{{ Number($('Tool Call').item.json.bookingId) || 0 }}",
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true
+            }
+          },
+          "timeout": 10000
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "turftapApiKey001",
+          "name": "TurfTap API (Assistant key)"
+        }
+      }
+    },
+    {
+      "id": "b7000000-0000-4000-8000-000000000011",
+      "name": "Make Cancel Offer",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1320,
+        -200
+      ],
+      "parameters": {
+        "jsCode": "// offer_cancel: one of the customer's own bookings as a Chat Offer to cancel it, or why it can't be.\nconst CENTS_PER_RUPEE = 100;\nconst MS_PER_HOUR = 60 * 60 * 1000;\nconst FOOTER_LIMIT = 60;\nconst DEFAULT_TIME_ZONE = 'Asia/Colombo';\n\nconst call = $('Tool Call').item.json;\nconst names = JSON.parse(call.names);\nconst reply = $json;\nconst refuse = (why) => ({ json: { ok: false, result: 'No Chat Offer was made: ' + why } });\n\nif (reply.error || !reply.body) return refuse(\"the check failed. Say you can't check right now and give the way to reach a person.\");\nif (reply.statusCode === 404 || reply.statusCode === 400) {\n  return refuse('the customer has no booking ' + call.bookingId + '. Use my_bookings to find the right bookingId.');\n}\nif (reply.statusCode >= 400) return refuse((reply.body.message ?? 'the check failed') + '.');\n\nconst booking = reply.body.data;\nconst resource = names.resources[booking.resourceId];\nconst venue = names.venues[booking.venueId];\nconst timeZone = venue?.timeZone ?? DEFAULT_TIME_ZONE;\nconst reach = venue ? 'call ' + venue.name + ' on ' + venue.phone : 'contact the venue';\nconst money = (m) => m.currency + ' ' + (m.amount / CENTS_PER_RUPEE).toLocaleString('en-US', { maximumFractionDigits: 2 });\nconst time = (iso) => new Date(iso).toLocaleTimeString('en-GB', { timeZone, hour: 'numeric', minute: '2-digit', hour12: true });\nconst day = (iso) => new Date(iso).toLocaleDateString('en-GB', { timeZone, weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });\nconst shortDay = (iso) => new Date(iso).toLocaleDateString('en-GB', { timeZone, weekday: 'short', day: 'numeric', month: 'short' });\n\nconst what = (resource?.name ?? 'a resource') + ' at ' + (venue?.name ?? 'a venue') + ', ' + day(booking.startsAt) + ', ' +\n  time(booking.startsAt) + ' to ' + time(booking.endsAt) + ', ' + money(booking.price);\nconst now = Date.now();\nconst startsAt = new Date(booking.startsAt).getTime();\n\nif (booking.status === 'CANCELLED' || booking.status === 'EXPIRED') {\n  return refuse('that booking (' + what + ') is already ' + booking.status.toLowerCase() + '.');\n}\nif (booking.status === 'AWAITING_CHECK') {\n  return refuse('the venue is checking the Transfer Receipt of that booking (' + what + '), so only the venue can cancel it now: ' + reach + '.');\n}\nif (startsAt <= now) return refuse('that booking (' + what + ') has already started.');\n// BKG-06: a booking still waiting for payment can be cancelled any time; a confirmed one only before the cut-off.\nif (booking.status === 'CONFIRMED' && now > startsAt - booking.cancellationCutOffHours * MS_PER_HOUR) {\n  return refuse(\n    \"it's too late to cancel that booking (\" + what + ') in this chat: the venue takes cancellations up to ' +\n      booking.cancellationCutOffHours + ' hours before the start. Tell the customer kindly and ' + reach + '.',\n  );\n}\n\nconst refund = booking.paid.amount > 0\n  ? ' The customer paid ' + money(booking.paid) + ' for it; a refund is up to the venue, so tell them to ' + reach + ' about it.'\n  : '';\nconst footer = ('Cancel · ' + shortDay(booking.startsAt) + ' · ' + time(booking.startsAt) + '–' + time(booking.endsAt)).slice(0, FOOTER_LIMIT);\n\nreturn {\n  json: {\n    ok: true,\n    kind: 'cancel',\n    details: { bookingId: booking.id, summary: 'cancel ' + what, footer },\n    result:\n      'Chat Offer made, waiting for the customer\\'s yes: cancel ' + what + '.' + refund +\n      ' Now ask the customer, in their language, to confirm cancelling exactly this. Put the yes label first and the no label second in \"choices\"; they become the Yes and No buttons.',\n  },\n};\n"
+      }
+    },
+    {
+      "id": "b7000000-0000-4000-8000-000000000012",
+      "name": "Offer Made?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1540,
+        -340
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "b7000000-0000-4000-8000-000000000013",
+              "leftValue": "={{ $json.ok }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "b7000000-0000-4000-8000-000000000014",
+      "name": "Save Offer",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1760,
+        -420
+      ],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "-- One Chat Offer per chat. A new one replaces the old under a new id, so the old one's buttons stop working.\nINSERT INTO assistant_chat_offers (session_id, kind, details, message_id)\nVALUES ($1, $2, $3::jsonb, $4)\nON CONFLICT (session_id) DO UPDATE SET id = nextval('assistant_chat_offers_id_seq'), kind = EXCLUDED.kind,\n  details = EXCLUDED.details, message_id = EXCLUDED.message_id, created_at = now()\nRETURNING id, $5::text AS result;",
+        "options": {
+          "queryReplacement": "={{ [$('Tool Call').item.json.sessionId, $json.kind, JSON.stringify($json.details), $('Tool Call').item.json.messageId, $json.result] }}"
+        }
+      },
+      "credentials": {
+        "postgres": {
+          "id": "n8nOwnDatabase01",
+          "name": "n8n database"
+        }
+      }
+    },
+    {
+      "id": "b7000000-0000-4000-8000-000000000015",
+      "name": "Tool Answer",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1980,
+        -340
+      ],
+      "parameters": {
+        "jsCode": "return { json: { result: $json.result } };"
+      }
     }
   ],
   "connections": {
-    "Tool Call": {
-      "main": [
-        [
-          {
-            "node": "Build Query",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Build Query": {
       "main": [
         [
@@ -147,6 +505,155 @@
         [
           {
             "node": "Word Answer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tool Call": {
+      "main": [
+        [
+          {
+            "node": "Which Tool?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Which Tool?": {
+      "main": [
+        [
+          {
+            "node": "Check Booking Request",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Ask Booking",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Build Query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Booking Request": {
+      "main": [
+        [
+          {
+            "node": "Request OK?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Request OK?": {
+      "main": [
+        [
+          {
+            "node": "Ask Slot",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Tool Answer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ask Slot": {
+      "main": [
+        [
+          {
+            "node": "Ask Waiting",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ask Waiting": {
+      "main": [
+        [
+          {
+            "node": "Make Booking Offer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Make Booking Offer": {
+      "main": [
+        [
+          {
+            "node": "Offer Made?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ask Booking": {
+      "main": [
+        [
+          {
+            "node": "Make Cancel Offer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Make Cancel Offer": {
+      "main": [
+        [
+          {
+            "node": "Offer Made?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Offer Made?": {
+      "main": [
+        [
+          {
+            "node": "Save Offer",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Tool Answer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Offer": {
+      "main": [
+        [
+          {
+            "node": "Tool Answer",
             "type": "main",
             "index": 0
           }
