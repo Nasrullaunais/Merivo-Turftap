@@ -19,7 +19,12 @@
     "db:migrate": "bun run --filter '@turftap/api' db:migrate",
     "db:seed": "bun run --filter '@turftap/api' db:seed",
     "whatsapp:link": "bun run --filter '@turftap/api' whatsapp:link",
-    "whatsapp:unlink": "bun run --filter '@turftap/api' whatsapp:unlink"
+    "whatsapp:unlink": "bun run --filter '@turftap/api' whatsapp:unlink",
+    "tenant:create": "bun run --filter '@turftap/api' tenant:create",
+    "tenant:off": "bun run --filter '@turftap/api' tenant:off",
+    "tenant:on": "bun run --filter '@turftap/api' tenant:on",
+    "tenants:list": "bun run --filter '@turftap/api' tenants:list",
+    "admin:add": "bun run --filter '@turftap/api' admin:add"
   },
   "devDependencies": {
     "oxlint": "^1.94.0",

@@ -357,6 +357,7 @@ export type MyTenant = {
     id: number;
     slug: string;
     name: string;
+    active: boolean;
     role: StaffRole;
     permissions: Array<Permission>;
 };

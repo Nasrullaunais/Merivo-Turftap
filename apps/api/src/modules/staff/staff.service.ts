@@ -7,7 +7,7 @@ import { type ListQuery, statusChangedMeanwhile } from "../../lib/resource";
 import * as usersService from "../platform/users.service";
 import * as venuesService from "../venues/venues.service";
 import { staffErrors } from "./staff.errors";
-import { staffInviteJob } from "./staff.jobs";
+import { ownerWelcomeJob, staffInviteJob } from "./staff.jobs";
 import * as staffRepository from "./staff.repository";
 import type { StaffRow } from "./staff.tables";
 
@@ -93,6 +93,19 @@ export function create(auth: AuthContext, input: CreateStaff) {
     await staffRepository.replaceVenues(auth.tenantId, row.id, access.venueIds);
     await staffInviteJob.queue({ tenantId: auth.tenantId, staffId: row.id });
     return toStaff(row, user, access.venueIds);
+  });
+}
+
+/** PLA-01: the first Owner of a new tenant, welcomed rather than invited. */
+export function addFirstOwner(tenantId: number, phone: string) {
+  return transaction(async () => {
+    const user = await usersService.findOrCreateUser(phone);
+    const row = await staffRepository.insert(tenantId, {
+      userId: user.id,
+      role: "OWNER",
+      allVenues: true,
+    });
+    await ownerWelcomeJob.queue({ tenantId, staffId: row.id });
   });
 }
 

@@ -10,7 +10,7 @@ import type { AppEnv } from "./lib/http/env";
 import { ok } from "./lib/http/envelope";
 import { onError, onNotFound } from "./lib/http/error-handler";
 import { requestContext } from "./lib/http/request-context";
-import { resolveCaller } from "./modules/platform/platform.service";
+import { refuseChangesWhenOff, resolveCaller } from "./modules/platform/platform.service";
 import { RESOURCES } from "./resources";
 
 // Jobs only get a queue and a worker if loaded before startJobs(); no route loads this one.
@@ -44,6 +44,7 @@ export function createApp() {
       tenantSlug: c.req.header("X-Tenant-Slug"),
       customerPhone: c.req.header("X-Customer-Phone"),
     });
+    if (c.req.method !== "GET") await refuseChangesWhenOff(caller);
     c.set("caller", caller);
     await next();
   });

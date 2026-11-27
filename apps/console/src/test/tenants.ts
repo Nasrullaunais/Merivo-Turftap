@@ -145,8 +145,11 @@ const PERMISSIONS: Record<StaffRole, Permission[]> = {
   ],
 };
 
-/** One entry of `tenants` in GET /v1/me. */
-export const myTenant = (fields: Omit<MyTenant, "permissions">): MyTenant => ({
+/** One entry of `tenants` in GET /v1/me, turned on unless `active` says otherwise. */
+export const myTenant = (
+  fields: Omit<MyTenant, "permissions" | "active"> & { active?: boolean },
+): MyTenant => ({
+  active: true,
   ...fields,
   permissions: PERMISSIONS[fields.role],
 });

@@ -200,11 +200,7 @@ describe("POR-03, AST-05 a customer and the Assistant reach only their own recor
       const as =
         actor === "customer" ? asCustomer(offTenant, phone) : asAssistant(offTenant, phone);
       const reply = await call("GET", "/v1/customers", as);
-      const refused =
-        actor === "customer"
-          ? { status: 403, body: { code: "tt_plt_010" } }
-          : { status: 404, body: { code: "tt_plt_001" } };
-      expect(reply).toMatchObject(refused);
+      expect(reply).toMatchObject({ status: 403, body: { code: "tt_plt_010" } });
     });
   }
 

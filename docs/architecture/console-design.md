@@ -170,6 +170,7 @@ Every page uses `PageLayout` from `layout/`. It owns:
 - **Wide screens are used.** A record page puts its main sections in a wide column and its short ones (opening hours, Closed Dates, Blocked Times) in a 400px column beside them (`TwoColumns`), from `xl` up. Below that they stack.
 - **Record header** (`RecordHeader`): a record page opens with a card holding the record's tile (solid, 56px) on a soft glow of its hue, its name and its details as icon + text pieces. Actions sit on its right.
 - **Arrival**: the content rises in once when the page opens (§6).
+- **Paused tenant** (`PLA-03`, D-41): while TurfTap has the tenant turned off, an amber box with a pause tile sits above every page: "This business is paused" and how to get it back. A save the API refuses for this reason brings it in at once.
 
 ## 6. Motion
 

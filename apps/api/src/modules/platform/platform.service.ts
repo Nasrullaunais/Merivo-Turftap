@@ -57,17 +57,20 @@ export async function resolveCaller(headers: CallerHeaders): Promise<Caller> {
   return staffCallers.get(`${token}|${tenantId}`, () => staffCaller(token, tenantId));
 }
 
-function onOrNotFound<T extends { active: boolean }>(tenant: T | undefined) {
-  if (!tenant?.active) throw platformErrors.tenantNotFound();
-  return tenant;
-}
-
-/** PLA-03: the portal tells an unknown address apart from a tenant that was turned off. */
-async function portalTenant(slug: string) {
-  const tenant = await platformRepository.findTenantBySlug(slug);
+/** PLA-03: an unknown tenant is told apart from one that was turned off. */
+function onTenant<T extends { active: boolean }>(tenant: T | undefined) {
   if (!tenant) throw platformErrors.tenantNotFound();
   if (!tenant.active) throw platformErrors.tenantOff();
   return tenant;
+}
+
+const portalTenant = async (slug: string) =>
+  onTenant(await platformRepository.findTenantBySlug(slug));
+
+/** PLA-03: staff of a tenant that is off can still look, but every change is refused. */
+export async function refuseChangesWhenOff(caller: Caller) {
+  if (caller.tenantId === undefined) return;
+  onTenant(await platformRepository.findTenantById(caller.tenantId));
 }
 
 async function publicCaller(slug?: string): Promise<Caller> {
@@ -100,7 +103,7 @@ async function assistantCaller(key: string, headers: CallerHeaders): Promise<Cal
   if (tenantId === undefined) return { actor: "assistant" };
   const phone = parseCustomerPhone(headers.customerPhone);
   await tenantsOn.get(String(tenantId), async () => {
-    onOrNotFound(await platformRepository.findTenantById(tenantId));
+    onTenant(await platformRepository.findTenantById(tenantId));
     return true;
   });
   return withCustomerRecord({ actor: "assistant", tenantId, phone });
@@ -155,9 +158,10 @@ export async function me(caller: Caller): Promise<Me> {
     phone: user.phone,
     name: user.name,
     isPlatformAdmin: user.isPlatformAdmin,
-    tenants: tenants.flatMap(({ id, slug, name }) => {
+    tenants: tenants.flatMap(({ id, slug, name, active }) => {
       const role = roles.get(id);
-      return role ? [{ id, slug, name, role, permissions: [...ROLE_PERMISSIONS[role]] }] : [];
+      if (!role) return [];
+      return [{ id, slug, name, active, role, permissions: [...ROLE_PERMISSIONS[role]] }];
     }),
   };
 }

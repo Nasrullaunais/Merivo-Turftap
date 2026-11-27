@@ -20,9 +20,11 @@ export const platformErrors = {
     new Conflict("tt_plt_008", "This tenant already has a WhatsApp number. Unlink it first"),
   noNumber: () => new NotFound("tt_plt_009", "This tenant has no WhatsApp number"),
   tenantOff: () => new Forbidden("tt_plt_010", "This venue is not available right now"),
+  slugTaken: () => new Conflict("tt_plt_011", "Another tenant already uses this web address"),
 };
 
 constraintErrors({
+  tenants_slug_unique: platformErrors.slugTaken,
   whatsapp_numbers_phone_number_id_unique: platformErrors.numberTaken,
   whatsapp_numbers_phone_unique: platformErrors.numberTaken,
   whatsapp_numbers_tenant_unique: platformErrors.tenantHasNumber,

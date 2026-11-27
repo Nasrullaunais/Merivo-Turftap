@@ -1,6 +1,6 @@
 # T33 Tenant scripts: create, turn off, list
 
-Status: todo · Stories: `PLA-01`, `PLA-03`, `PLA-04` · Depends on: T04, T06 · Decision: **D-25**
+Status: done · Stories: `PLA-01`, `PLA-03`, `PLA-04` · Depends on: T04, T06 · Decisions: **D-25**, **D-39**, **D-40**, **D-41**
 
 ## Goal
 A Platform Admin creates a tenant with its first Owner, turns a tenant off or on, and lists tenants with their status and bookings this month, by running scripts on the server (**D-25**).

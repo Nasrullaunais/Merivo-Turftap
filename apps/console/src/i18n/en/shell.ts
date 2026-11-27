@@ -23,4 +23,9 @@ export default {
   showPages: (section: string) => `${section} pages`,
   /** A count badge read aloud, such as "3 waiting". */
   waitingCount: (count: number) => `${count} waiting`,
+  /** PLA-03: the tenant was turned off by TurfTap. */
+  paused: {
+    title: "This business is paused",
+    detail: "You can look around, but changes can't be saved. Contact TurfTap to turn it back on.",
+  },
 };

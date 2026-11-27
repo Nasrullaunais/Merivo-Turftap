@@ -1345,6 +1345,9 @@
           "name": {
             "type": "string"
           },
+          "active": {
+            "type": "boolean"
+          },
           "role": {
             "$ref": "#/components/schemas/StaffRole"
           },
@@ -1359,6 +1362,7 @@
           "id",
           "slug",
           "name",
+          "active",
           "role",
           "permissions"
         ]

@@ -1,5 +1,5 @@
 import { type BookingFilters, type BookingStatus, HOLDING_STATUSES } from "@turftap/contract";
-import { and, eq, gt, inArray, lt, lte, ne, type SQL, sql } from "drizzle-orm";
+import { and, eq, gt, gte, inArray, lt, lte, ne, notInArray, type SQL, sql } from "drizzle-orm";
 
 import { db, pageOf, type PageRequest, sortBy } from "../../lib/db";
 import { priceOf } from "../../lib/db/columns";
@@ -189,4 +189,20 @@ export async function findFirstHolding(
     .orderBy(bookings.startsAt)
     .limit(1);
   return booking;
+}
+
+/** PLA-04: bookings starting in [from, to) per tenant, leaving out expired and cancelled ones. */
+export async function countStartingBetweenAcrossTenants(from: Date, to: Date) {
+  const rows = await db()
+    .select({ tenantId: bookings.tenantId, count: sql<number>`count(*)::int` })
+    .from(bookings)
+    .where(
+      and(
+        gte(bookings.startsAt, from),
+        lt(bookings.startsAt, to),
+        notInArray(bookings.status, ["EXPIRED", "CANCELLED"]),
+      ),
+    )
+    .groupBy(bookings.tenantId);
+  return new Map(rows.map((row) => [row.tenantId, row.count]));
 }
