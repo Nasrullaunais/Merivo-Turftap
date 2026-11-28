@@ -1,7 +1,7 @@
 /** The shared TurfTap number, for messages about TurfTap itself rather than one venue. */
 export const TURFTAP_NUMBER = "turftap";
 
-/** Template names as registered with Meta. A new template is added here and approved by Meta first. */
+/** Template names as registered with Meta. A new one also needs its wording in the WhatsApp adapter. */
 export const WHATSAPP_TEMPLATES = {
   /** Values: tenant name, role, console link. Sent from the TurfTap number (SIG-03). */
   staffInvite: "staff_invite",
@@ -39,6 +39,12 @@ export type OutgoingMessage =
   | { kind: "template"; from: string; to: string; template: string; values: string[] }
   | { kind: "login-code"; to: string; code: string };
 
+/** The channel refused the message, such as a template it doesn't know or a bad number. */
+export class MessageNotSent extends Error {
+  override name = "MessageNotSent";
+}
+
 export interface MessagingChannel {
+  /** Resolves once the channel has accepted the message; delivery to the phone comes later. */
   send(message: OutgoingMessage): Promise<void>;
 }

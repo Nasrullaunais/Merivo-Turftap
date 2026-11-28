@@ -21,7 +21,7 @@ apps/api/src/
 |---|---|---|---|
 | `AuthProvider` | Checks a sign-in token and returns the phone number | `auth0` | Yes |
 | `ObjectStorage` | Saves, reads and deletes files; makes short-lived download links | `s3`: Cloudflare R2 in production, SeaweedFS locally ([ADR 0012](../adr/0012-files-in-cloudflare-r2.md)) | Yes |
-| `MessagingChannel` | Sends a WhatsApp message (text, template or login code) from a given number | `whatsapp-cloud` (Meta) | Yes, records sent messages |
+| `MessagingChannel` | Sends a WhatsApp message (text, template or login code) from a given number. A refusal rejects with `MessageNotSent` | `whatsapp-cloud` (`MESSAGING_PROVIDER=whatsapp-cloud`, Meta's Cloud API with plain `fetch`) | Yes, records sent messages and refuses templates Meta wouldn't know |
 | `SmsChannel` | Sends an SMS (login codes when WhatsApp didn't work) | not chosen yet | Yes, records sent messages |
 | `ReceiptReader` | Reads amount, date, bank and reference from a receipt image or PDF. Never rejects: a failure reads as "unreadable" | `gemini` (`RECEIPT_READER=gemini`, model set by `RECEIPT_READER_MODEL`, low thinking) | Yes, returns set answers |
 | `PaymentProvider` | Online payments | none in v1 (interface only) | n/a |

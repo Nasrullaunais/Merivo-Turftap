@@ -3,6 +3,7 @@ import { z } from "zod";
 const DEFAULT_PORT = 3000;
 const DEFAULT_AUTH_CACHE_SECONDS = 300;
 const MIN_SECRET_LENGTH = 32;
+export const DEFAULT_WHATSAPP_GRAPH_URL = "https://graph.facebook.com/v27.0";
 
 const commaList = z.string().transform((text) =>
   text
@@ -34,7 +35,10 @@ const Env = z.object({
   S3_ACCESS_KEY_ID: z.string().optional(),
   S3_SECRET_ACCESS_KEY: z.string().optional(),
 
-  MESSAGING_PROVIDER: z.enum(["fake"]).default("fake"),
+  MESSAGING_PROVIDER: z.enum(["fake", "whatsapp-cloud"]).default("fake"),
+  WHATSAPP_GRAPH_URL: z.url().default(DEFAULT_WHATSAPP_GRAPH_URL),
+  WHATSAPP_ACCESS_TOKEN: z.string().optional(),
+  WHATSAPP_PHONE_NUMBER_ID: z.string().optional(),
   SMS_PROVIDER: z.enum(["fake"]).default("fake"),
   RECEIPT_READER: z.enum(["fake", "gemini"]).default("fake"),
   GEMINI_API_KEY: z.string().optional(),
@@ -85,7 +89,7 @@ export function loadConfig(source: Record<string, string | undefined> = process.
       assistantApiKey: env.ASSISTANT_API_KEY,
     },
     storage: storage(env),
-    messaging: { kind: env.MESSAGING_PROVIDER },
+    messaging: messaging(env),
     sms: { kind: env.SMS_PROVIDER },
     receiptReader: receiptReader(env),
   };
@@ -120,6 +124,21 @@ function storage(env: Env) {
     bucket: s3.S3_BUCKET,
     accessKeyId: s3.S3_ACCESS_KEY_ID,
     secretAccessKey: s3.S3_SECRET_ACCESS_KEY,
+  };
+}
+
+function messaging(env: Env) {
+  if (env.MESSAGING_PROVIDER === "fake") return { kind: "fake" as const };
+  const meta = required(
+    env,
+    ["WHATSAPP_ACCESS_TOKEN", "WHATSAPP_PHONE_NUMBER_ID"],
+    "MESSAGING_PROVIDER=whatsapp-cloud",
+  );
+  return {
+    kind: "whatsapp-cloud" as const,
+    graphUrl: env.WHATSAPP_GRAPH_URL,
+    accessToken: meta.WHATSAPP_ACCESS_TOKEN,
+    turftapPhoneNumberId: meta.WHATSAPP_PHONE_NUMBER_ID,
   };
 }
 

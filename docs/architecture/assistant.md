@@ -133,7 +133,7 @@ Confirmations, rejections, cancellations, reminders, login codes and staff invit
 
 Messages to a customer go through `notifyCustomer()` in the `notifications` module, called inside the transaction that saves the change. It queues a job, so nothing is sent if that change rolls back. When the job runs it sends a template from the tenant's number to the customer's current phone. A tenant that is off sends nothing. A tenant with no number linked sends nothing and a warning is logged with its tenant id (D-04).
 
-WhatsApp only allows free-form messages within 24 hours of the customer's last message. Outside that window, Meta requires **pre-approved message templates**. Every backend-sent message therefore has a template, registered with Meta per number; the template names are listed in `WHATSAPP_TEMPLATES` in `apps/api/src/ports/messaging-channel.ts`.
+WhatsApp only allows free-form messages within 24 hours of the customer's last message. Outside that window, Meta requires **pre-approved message templates**. Every backend-sent message therefore has a template, approved by Meta for TurfTap's WhatsApp Business Account, in English only for now. Their names are in `WHATSAPP_TEMPLATES` in `apps/api/src/ports/messaging-channel.ts`, and their wording in `apps/api/src/adapters/messaging-channel/whatsapp-cloud/whatsapp-cloud-templates.ts`. Login codes use Meta's own authentication template, `login_code`, with a button that copies the code. A new template is added to both files, then sent to Meta with `bun run whatsapp:templates` ([deployment](deployment.md#whatsapp)).
 
 ## Where the workflow lives
 

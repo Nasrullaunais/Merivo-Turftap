@@ -13,6 +13,7 @@
     "db:seed": "bun --env-file=../../.env scripts/seed.ts",
     "whatsapp:link": "bun --env-file=../../.env scripts/whatsapp-link.ts",
     "whatsapp:unlink": "bun --env-file=../../.env scripts/whatsapp-unlink.ts",
+    "whatsapp:templates": "bun --env-file=../../.env scripts/whatsapp-templates.ts",
     "tenant:create": "bun --env-file=../../.env scripts/tenant-create.ts",
     "tenant:off": "bun --env-file=../../.env scripts/tenant-off.ts",
     "tenant:on": "bun --env-file=../../.env scripts/tenant-on.ts",

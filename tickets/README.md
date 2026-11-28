@@ -71,7 +71,8 @@ Status: `todo`, `doing`, `done`, `blocked` (waiting on a decision or an outside 
 | [T38](T38-assistant-receipts.md) | Send a receipt in chat | AST-03 | T37, T11, T23 | done |
 | **I. Real services and launch** |||||
 | [T39](T39-gemini-receipt-reader.md) | Gemini receipt reader adapter | PAY-03 | T12 | done |
-| [T40](T40-whatsapp-cloud-adapter.md) | WhatsApp Cloud adapter | SIG-01, SIG-03, AST-07 | T04 | todo |
+| [T40](T40-whatsapp-cloud-adapter.md) | WhatsApp Cloud adapter | SIG-01, AST-07 | T04 | blocked (D-52: Meta business verification) |
+| [T50](T50-staff-share-sign-in-link.md) | Owners pass on the sign-in link themselves | SIG-03, PLA-01 | T40 | todo |
 | [T41](T41-sms-adapter.md) | SMS adapter | SIG-01 | | blocked (D-15) |
 | [T42](T42-auth0-in-frontends.md) | Auth0 sign-in in console and portal | SIG-01 | T29 | blocked (Auth0 tenant) |
 | [T43](T43-production-deployment.md) | Production deployment | | | doing (pipeline done; go-live waits on the domain and T40–T42) |
@@ -134,6 +135,8 @@ Settled in a grilling session with the user. Each answer is written here, then i
 | D-48 | Where is "the price changed since it was shown" caught? | In the API | Yes: `POST /v1/bookings` takes an optional `price`; a different current price is refused with `tt_bkg_012` and nothing is booked |
 | D-49 | A photo in chat while exactly one thing waits for payment: attach it at once, or ask "is this your receipt for …?" first? | Attach at once | No, ask first, with Yes and No. Attached at once, any photo stops the payment time limit, holds the slot until staff look, and blocks sending the right receipt meanwhile |
 | D-50 | Bank apps often share receipts as PDF files: take those in chat too? | Yes, like photos | Yes: a JPG, PNG or PDF sent as a file counts, up to 5 MB, as on the portal |
+| D-51 | Meta files "you now have access" WhatsApp messages (staff invite, new Owner welcome) under Marketing and rejected them as Utility twice. How do new staff hear about it? | Register them as Marketing | No WhatsApp message from TurfTap. After adding staff, the console offers to send the sign-in link from the Owner's own WhatsApp; the tenant script prints it for the first Owner (T50) |
+| D-52 | Meta won't create the login-code template, and blocks every message to customers, until "Merivo's Business" passes Business Verification. Can Merivo pass it? | (a fact only you know) | Not yet: Merivo isn't registered. Real WhatsApp sending waits for the registration; until then login codes can only go by SMS (T41). Also needed: a payment method on the WhatsApp Business Account and a full business profile (legal name, country, website) |
 
 ## Open questions for venue owners
 

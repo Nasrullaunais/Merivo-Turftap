@@ -1,7 +1,7 @@
 import { beforeAll, describe, expect, it } from "bun:test";
 
 import { transaction } from "../../lib/db";
-import type { WhatsAppTemplate } from "../../ports/messaging-channel";
+import { WHATSAPP_TEMPLATES } from "../../ports/messaging-channel";
 import {
   createTenant,
   linkWhatsAppNumber,
@@ -13,8 +13,7 @@ import {
 import * as customersService from "../customers/customers.service";
 import * as notificationsService from "./notifications.service";
 
-// No customer template exists until a booking ticket adds one.
-const TEMPLATE = "booking_test" as WhatsAppTemplate;
+const TEMPLATE = WHATSAPP_TEMPLATES.bookingReminder;
 
 describe("notifications tenant isolation", () => {
   let tenantA: TestTenant;

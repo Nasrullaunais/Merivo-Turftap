@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, mock, spyOn } from "bun:test";
 
 import { transaction } from "../../lib/db";
 import { logger } from "../../lib/logger";
-import type { WhatsAppTemplate } from "../../ports/messaging-channel";
+import { WHATSAPP_TEMPLATES } from "../../ports/messaging-channel";
 import {
   createTenant,
   linkWhatsAppNumber,
@@ -16,9 +16,8 @@ import {
 import * as customersService from "../customers/customers.service";
 import * as notificationsService from "./notifications.service";
 
-// No customer template exists until a booking ticket adds one.
-const TEMPLATE = "booking_test" as WhatsAppTemplate;
-const VALUES = ["Court 1", "Sat 6 Dec, 18:00"];
+const TEMPLATE = WHATSAPP_TEMPLATES.bookingReminder;
+const VALUES = ["Kick Off Arena", "Court 1", "Sat 6 Dec, 18:00"];
 
 const addCustomer = (tenant: TestTenant) =>
   customersService.create(tenant.frontDesk.auth, { name: "Nimal Perera", phone: uniquePhone() });

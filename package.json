@@ -21,6 +21,7 @@
     "db:seed": "bun run --filter '@turftap/api' db:seed",
     "whatsapp:link": "bun run --filter '@turftap/api' whatsapp:link",
     "whatsapp:unlink": "bun run --filter '@turftap/api' whatsapp:unlink",
+    "whatsapp:templates": "bun run --filter '@turftap/api' whatsapp:templates",
     "tenant:create": "bun run --filter '@turftap/api' tenant:create",
     "tenant:off": "bun run --filter '@turftap/api' tenant:off",
     "tenant:on": "bun run --filter '@turftap/api' tenant:on",
