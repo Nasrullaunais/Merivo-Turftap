@@ -204,7 +204,10 @@ describe("SIG-04 change or remove staff", () => {
       call("DELETE", `/v1/staff/${managerId}`, asStaff(tenant, tenant.owner)),
       call("DELETE", `/v1/staff/${ownerId}`, asStaff(tenant, tenant.manager)),
     ]);
-    expect(replies.map((reply) => reply.status).sort()).toEqual([200, 409]);
+    // The loser is refused as the last Owner, or as no longer staff if the other removal landed first.
+    const [won, refused] = replies.map((reply) => reply.status).sort();
+    expect(won).toBe(200);
+    expect([403, 409]).toContain(refused!);
     const { rows } = await db().execute(
       sql`select id from staff where tenant_id = ${tenant.id} and role = 'OWNER'`,
     );
