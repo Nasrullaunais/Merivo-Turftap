@@ -7,7 +7,6 @@ import { type ListQuery, statusChangedMeanwhile } from "../../lib/resource";
 import * as usersService from "../platform/users.service";
 import * as venuesService from "../venues/venues.service";
 import { staffErrors } from "./staff.errors";
-import { ownerWelcomeJob, staffInviteJob } from "./staff.jobs";
 import * as staffRepository from "./staff.repository";
 import type { StaffRow } from "./staff.tables";
 
@@ -80,7 +79,7 @@ export async function get(auth: AuthContext, id: number) {
   return staff!;
 }
 
-/** SIG-03: adds a person by phone, even one who has never signed in, and sends them an invite. */
+/** SIG-03: adds a person by phone, even one who has never signed in. The Owner tells them (D-51). */
 export function create(auth: AuthContext, input: CreateStaff) {
   return transaction(async () => {
     const access = await checkVenueAccess(auth, input.role, input, asksToLimit(input));
@@ -91,21 +90,15 @@ export function create(auth: AuthContext, input: CreateStaff) {
       allVenues: access.allVenues,
     });
     await staffRepository.replaceVenues(auth.tenantId, row.id, access.venueIds);
-    await staffInviteJob.queue({ tenantId: auth.tenantId, staffId: row.id });
     return toStaff(row, user, access.venueIds);
   });
 }
 
-/** PLA-01: the first Owner of a new tenant, welcomed rather than invited. */
+/** PLA-01: the first Owner of a new tenant. */
 export function addFirstOwner(tenantId: number, phone: string) {
   return transaction(async () => {
     const user = await usersService.findOrCreateUser(phone);
-    const row = await staffRepository.insert(tenantId, {
-      userId: user.id,
-      role: "OWNER",
-      allVenues: true,
-    });
-    await ownerWelcomeJob.queue({ tenantId, staffId: row.id });
+    await staffRepository.insert(tenantId, { userId: user.id, role: "OWNER", allVenues: true });
   });
 }
 

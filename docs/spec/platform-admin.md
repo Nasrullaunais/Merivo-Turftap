@@ -6,7 +6,7 @@ In v1 a Platform Admin does this work by running scripts on the server, not in t
 As a **Platform Admin**, I want to create a tenant with a name, web address (`<slug>.turftap.lk`) and its first Owner's phone number, so that a new business can start.
 - The slug uses only lowercase letters, numbers and single hyphens (not at the start or end), is 3 to 30 characters long, and must be unique.
 - Addresses the server itself uses are refused: `www`, `api`, `console`, `admin`, `app`, `n8n`, `mail`, `status`, `help` (D-40).
-- The Owner gets a WhatsApp message from the TurfTap number with the console link.
+- The script prints a link that opens WhatsApp with a message to the Owner holding the console link, for the Platform Admin to send (D-51).
 - Script: `bun run tenant:create <slug> <name> <owner phone>`. `bun run admin:add <phone>` makes a user a Platform Admin.
 
 ## PLA-02 Connect a WhatsApp number

@@ -72,7 +72,7 @@ Status: `todo`, `doing`, `done`, `blocked` (waiting on a decision or an outside 
 | **I. Real services and launch** |||||
 | [T39](T39-gemini-receipt-reader.md) | Gemini receipt reader adapter | PAY-03 | T12 | done |
 | [T40](T40-whatsapp-cloud-adapter.md) | WhatsApp Cloud adapter | SIG-01, AST-07 | T04 | blocked (D-52: Meta business verification) |
-| [T50](T50-staff-share-sign-in-link.md) | Owners pass on the sign-in link themselves | SIG-03, PLA-01 | T40 | todo |
+| [T50](T50-staff-share-sign-in-link.md) | Owners pass on the sign-in link themselves | SIG-03, PLA-01 | T40 | doing |
 | [T41](T41-sms-adapter.md) | SMS adapter | SIG-01 | | blocked (D-15) |
 | [T42](T42-auth0-in-frontends.md) | Auth0 sign-in in console and portal | SIG-01 | T29 | blocked (Auth0 tenant) |
 | [T43](T43-production-deployment.md) | Production deployment | | | doing (pipeline done; go-live waits on the domain and T40–T42) |

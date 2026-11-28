@@ -1,6 +1,6 @@
 # T50 Owners pass on the sign-in link themselves
 
-Status: todo · Stories: `SIG-03`, `PLA-01` · Depends on: T40
+Status: doing · Stories: `SIG-03`, `PLA-01` · Depends on: T40
 
 ## Goal
 New staff and a new tenant's first Owner learn where to sign in, without a WhatsApp template from TurfTap (D-51).

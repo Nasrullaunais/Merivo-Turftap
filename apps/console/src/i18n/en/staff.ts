@@ -15,8 +15,14 @@ export default {
   phoneInvalid: "Enter a phone number like 077 123 4567",
   roleLabel: "Role",
   submit: "Add",
-  added: (phone: string) =>
-    `${phone} was added. They'll get a WhatsApp message with the console link.`,
+  added: (phone: string, role: string) => `${phone} is added as ${role}.`,
+  tellThem: "Let them know where to sign in, from your own WhatsApp:",
+  signInMessage: (tenant: string, role: string, consoleUrl: string) =>
+    `Hi! I've added you to ${tenant} on TurfTap as ${role}. Sign in at ${consoleUrl} with this phone number.`,
+  sendOnWhatsApp: "Send on WhatsApp",
+  copyMessage: "Copy message",
+  copied: "Copied",
+  addAnother: "Add someone else",
   noName: "Hasn't signed in yet",
   roleFor: (who: string) => `Role for ${who}`,
   remove: "Remove",
