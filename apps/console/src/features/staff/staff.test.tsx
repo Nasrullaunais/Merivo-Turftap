@@ -45,6 +45,19 @@ function addStaff(phone: string, role: string) {
   fireEvent.click(screen.getByRole("button", { name: "Add" }));
 }
 
+async function addAManager() {
+  signInForTesting(OWNER_PHONE);
+  mockApi({
+    "GET /v1/me": meAs("OWNER"),
+    "GET /v1/staff": page([owner]),
+    "POST /v1/staff": () => created(added),
+  });
+  renderApp("/staff");
+  await screen.findByText("Demo Owner");
+  await openAddForm();
+  addStaff("077 000 1111", "Manager");
+}
+
 describe("SIG-03 invite staff from the Staff Console", () => {
   it("owner_addsSomeoneByPhoneWithARole", async () => {
     signInForTesting(OWNER_PHONE);
@@ -64,12 +77,44 @@ describe("SIG-03 invite staff from the Staff Console", () => {
     await openAddForm();
     addStaff("077 000 1111", "Manager");
     expect(await screen.findByRole("status")).toHaveTextContent(
-      "+94770001111 was added. They'll get a WhatsApp message with the console link.",
+      "+94770001111 is added as Manager.",
     );
     expect(sent).toEqual([
       { phone: "077 000 1111", role: "MANAGER", allVenues: true, venueIds: [] },
     ]);
     expect(await screen.findByText("Hasn't signed in yet")).toBeInTheDocument();
+  });
+
+  it("afterAdding_sendOnWhatsApp_opensAChatWithThemHoldingTheSignInLink", async () => {
+    await addAManager();
+    const link = await screen.findByRole("link", { name: "Send on WhatsApp" });
+    const message = `Hi! I've added you to Demo Sports on TurfTap as Manager. Sign in at ${window.location.origin} with this phone number.`;
+    expect(link).toHaveAttribute(
+      "href",
+      `https://wa.me/94770001111?text=${encodeURIComponent(message)}`,
+    );
+    expect(link).toHaveAttribute("target", "_blank");
+  });
+
+  it("afterAdding_copyMessage_putsTheSignInMessageOnTheClipboard", async () => {
+    let clipboard = "";
+    Object.defineProperty(navigator, "clipboard", {
+      configurable: true,
+      value: { writeText: async (text: string) => void (clipboard = text) },
+    });
+    await addAManager();
+    fireEvent.click(await screen.findByRole("button", { name: "Copy message" }));
+    expect(await screen.findByRole("button", { name: "Copied" })).toBeInTheDocument();
+    expect(clipboard).toBe(
+      `Hi! I've added you to Demo Sports on TurfTap as Manager. Sign in at ${window.location.origin} with this phone number.`,
+    );
+  });
+
+  it("afterAdding_addSomeoneElse_bringsBackAnEmptyForm", async () => {
+    await addAManager();
+    fireEvent.click(await screen.findByRole("button", { name: "Add someone else" }));
+    expect(await screen.findByLabelText(/Phone number/)).toHaveValue("");
+    expect(screen.queryByRole("link", { name: "Send on WhatsApp" })).not.toBeInTheDocument();
   });
 
   it("owner_isToldWhenTheyAreAlreadyStaff", async () => {

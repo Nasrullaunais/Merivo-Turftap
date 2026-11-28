@@ -1,9 +1,7 @@
 import { beforeAll, beforeEach, describe, expect, it } from "bun:test";
 import { sql } from "drizzle-orm";
 
-import { config } from "../../lib/config";
 import { db } from "../../lib/db";
-import { TURFTAP_NUMBER, WHATSAPP_TEMPLATES } from "../../ports/messaging-channel";
 import {
   asStaff,
   call,
@@ -12,27 +10,13 @@ import {
   type TestTenant,
   uniquePhone,
 } from "../../test/fixtures";
-import { testPorts } from "../../test/ports";
-import { sendStaffInvite } from "./staff.jobs";
 
 const localFormat = (phone: string) => `0${phone.slice("+94".length)}`;
-
-/** Runs the invite job queued for this staff row, as the job worker would. */
-async function runQueuedInvite(staffId: number) {
-  const { rows } = await db().execute(
-    sql`select data from pgboss.job where name = 'staff-invite' and (data->>'staffId')::int = ${staffId}`,
-  );
-  expect(rows).toHaveLength(1);
-  await sendStaffInvite(rows[0]!.data as { tenantId: number; staffId: number });
-}
 
 async function staffIdOf(tenant: TestTenant, who: TestStaff): Promise<number> {
   const reply = await call("GET", "/v1/staff?size=100", asStaff(tenant));
   return reply.body.data.content.find((row: { phone: string }) => row.phone === who.phone).id;
 }
-
-const invitesTo = (phone: string) =>
-  testPorts.messaging.sent.filter((message) => message.to === phone);
 
 describe("SIG-03 invite staff", () => {
   let tenant: TestTenant;
@@ -48,21 +32,6 @@ describe("SIG-03 invite staff", () => {
     });
     expect(reply.status).toBe(201);
     expect(reply.body.data).toMatchObject({ phone, role: "MANAGER", name: null });
-  });
-
-  it("create_sendsAWhatsAppInviteWithTheConsoleLinkFromTheTurfTapNumber", async () => {
-    const phone = uniquePhone();
-    const reply = await call("POST", "/v1/staff", asStaff(tenant), { phone, role: "FRONT_DESK" });
-    await runQueuedInvite(reply.body.data.id);
-    expect(invitesTo(phone)).toEqual([
-      {
-        kind: "template",
-        from: TURFTAP_NUMBER,
-        to: phone,
-        template: WHATSAPP_TEMPLATES.staffInvite,
-        values: [`Tenant ${tenant.slug}`, "Front Desk", config.consoleUrl],
-      },
-    ]);
   });
 
   it("create_letsSomeoneWhoNeverSignedInLandInTheTenantWithThatRole", async () => {
@@ -83,14 +52,6 @@ describe("SIG-03 invite staff", () => {
     expect(reply.body.code).toBe("tt_stf_002");
     const me = await call("GET", "/v1/me", { phone: tenant.manager.phone });
     expect(me.body.data.tenants).toEqual([expect.objectContaining({ role: "MANAGER" })]);
-  });
-
-  it("create_sendsNoInviteWhenTheyAreAlreadyStaff", async () => {
-    const phone = uniquePhone();
-    const first = await call("POST", "/v1/staff", asStaff(tenant), { phone, role: "MANAGER" });
-    await call("POST", "/v1/staff", asStaff(tenant), { phone, role: "MANAGER" });
-    await runQueuedInvite(first.body.data.id);
-    expect(invitesTo(phone)).toHaveLength(1);
   });
 
   it("create_isOnlyForOwners", async () => {

@@ -103,7 +103,7 @@ function StaffPage() {
           isFiltered={shown.length < all.length}
         />
       )}
-      {canAdd && (
+      {canAdd && tenant && (
         <FormModal
           isOpen={isAdding}
           onOpenChange={setAdding}
@@ -111,7 +111,7 @@ function StaffPage() {
           icon={UserPlus}
           title={m.addTitle}
         >
-          <AddStaffForm />
+          <AddStaffForm tenantName={tenant.name} />
         </FormModal>
       )}
     </PageLayout>

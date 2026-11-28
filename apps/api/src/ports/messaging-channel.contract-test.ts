@@ -21,8 +21,8 @@ export function messagingChannelContract(
         kind: "template",
         from: TURFTAP_NUMBER,
         to,
-        template: WHATSAPP_TEMPLATES.staffInvite,
-        values: ["Kick Off Arena", "Manager", "https://console.example.com"],
+        template: WHATSAPP_TEMPLATES.bookingReminder,
+        values: ["Kick Off Arena", "Court 1", "Sat 29 Nov, 19:00"],
       });
       await expect(sending).resolves.toBeUndefined();
     });

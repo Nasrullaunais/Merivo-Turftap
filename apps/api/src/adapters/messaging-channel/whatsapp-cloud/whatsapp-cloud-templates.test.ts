@@ -85,16 +85,16 @@ describe("whatsapp templates", () => {
 
   it("register_sendsOnlyTheMissingOnes_andGivesEachStatus", async () => {
     const { register, created } = metaHolding([
-      { name: "staff_invite", language: "en", status: "APPROVED" },
+      { name: "booking_cancelled", language: "en", status: "APPROVED" },
       { name: "booking_reminder", language: "en_US", status: "APPROVED" },
     ]);
     const results = await register();
 
     expect(created.map((template) => template.name).sort()).toEqual(
-      ALL_TEMPLATES.filter((name) => name !== "staff_invite").sort(),
+      ALL_TEMPLATES.filter((name) => name !== "booking_cancelled").sort(),
     );
     expect(created).toContainEqual({ name: "login_code", category: "AUTHENTICATION" });
-    expect(results).toContainEqual({ name: "staff_invite", status: "APPROVED" });
+    expect(results).toContainEqual({ name: "booking_cancelled", status: "APPROVED" });
     expect(results).toContainEqual({ name: "booking_reminder", status: "PENDING (just sent)" });
   });
 
@@ -111,17 +111,17 @@ describe("whatsapp templates", () => {
   });
 
   it("register_rejectedTemplate_sendsNewWordingOnlyOnceItChanged", async () => {
-    const currentWording = TEMPLATE_WORDING[WHATSAPP_TEMPLATES.ownerWelcome].text;
+    const currentWording = TEMPLATE_WORDING[WHATSAPP_TEMPLATES.bookingConfirmed].text;
     const { register, created, edited } = metaHolding([
       {
-        name: "staff_invite",
+        name: "booking_cancelled",
         language: "en",
         status: "REJECTED",
         body: "Hi! Old wording",
         reason: "INCORRECT_CATEGORY",
       },
       {
-        name: "owner_welcome",
+        name: "booking_confirmed",
         language: "en",
         status: "REJECTED",
         body: currentWording,
@@ -131,13 +131,19 @@ describe("whatsapp templates", () => {
     const results = await register();
 
     expect(edited).toEqual([
-      { name: "staff_invite", body: TEMPLATE_WORDING[WHATSAPP_TEMPLATES.staffInvite].text },
+      {
+        name: "booking_cancelled",
+        body: TEMPLATE_WORDING[WHATSAPP_TEMPLATES.bookingCancelled].text,
+      },
     ]);
-    expect(results).toContainEqual({ name: "staff_invite", status: "PENDING (new wording sent)" });
     expect(results).toContainEqual({
-      name: "owner_welcome",
+      name: "booking_cancelled",
+      status: "PENDING (new wording sent)",
+    });
+    expect(results).toContainEqual({
+      name: "booking_confirmed",
       status: "REJECTED: INCORRECT_CATEGORY",
     });
-    expect(created.map((template) => template.name)).not.toContain("owner_welcome");
+    expect(created.map((template) => template.name)).not.toContain("booking_confirmed");
   });
 });

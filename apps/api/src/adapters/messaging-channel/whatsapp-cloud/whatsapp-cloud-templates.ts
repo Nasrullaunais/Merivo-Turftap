@@ -13,14 +13,6 @@ const BOOKING = ["Kick Off Arena", "Court 1", "Sat 29 Nov, 19:00"];
 const MEMBERSHIP = ["Kick Off Arena", "Gym Monthly", "Mon, 1 Dec 2026"];
 
 export const TEMPLATE_WORDING: Record<WhatsAppTemplate, Wording> = {
-  [WHATSAPP_TEMPLATES.staffInvite]: {
-    text: "On TurfTap, {{1}} gave this phone number {{2}} access.\n\nTo sign in, open {{3}} and use this phone number.",
-    example: ["Kick Off Arena", "Manager", "https://console.example.com"],
-  },
-  [WHATSAPP_TEMPLATES.ownerWelcome]: {
-    text: "Your TurfTap account for {{1}} is set up, with this phone number as its Owner.\n\nTo sign in, open {{2}} and use this phone number.",
-    example: ["Kick Off Arena", "https://console.example.com"],
-  },
   [WHATSAPP_TEMPLATES.bookingExpired]: {
     text: "Your booking at {{1}}, {{2}} on {{3}}, was released because it wasn't paid in time. You're welcome to book again.",
     example: BOOKING,

@@ -1,15 +1,12 @@
 import { describe, expect, it } from "bun:test";
 
-import { eq, sql } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 
-import { config } from "../../lib/config";
 import { db } from "../../lib/db";
 import { addDays, instantAt, todayIn } from "../../lib/time";
-import { TURFTAP_NUMBER, WHATSAPP_TEMPLATES } from "../../ports/messaging-channel";
 import {
   call,
   createTenant,
-  messagesTo,
   resourceInput,
   type TestTenant,
   uniquePhone,
@@ -17,7 +14,6 @@ import {
 } from "../../test/fixtures";
 import { bookings } from "../bookings/bookings.tables";
 import * as bookingsService from "../bookings/bookings.service";
-import { sendOwnerWelcome } from "../staff/staff.jobs";
 import * as resourcesService from "../venues/resources.service";
 import * as venuesService from "../venues/venues.service";
 import * as tenantsService from "./tenants.service";
@@ -28,14 +24,6 @@ const MINUTES_PER_HOUR = 60;
 const MS_PER_HOUR = 60 * 60 * 1000;
 
 const newSlug = () => `kick-${crypto.randomUUID().slice(0, 8)}`;
-
-async function runQueuedWelcome(tenantId: number) {
-  const { rows } = await db().execute(
-    sql`select data from pgboss.job where name = 'owner-welcome' and (data->>'tenantId')::int = ${tenantId}`,
-  );
-  expect(rows).toHaveLength(1);
-  await sendOwnerWelcome(rows[0]!.data as { tenantId: number; staffId: number });
-}
 
 describe("PLA-01 create a tenant", () => {
   it("create_makesTheTenantWithThePhoneAsItsOwner", async () => {
@@ -51,25 +39,6 @@ describe("PLA-01 create a tenant", () => {
         active: true,
         role: "OWNER",
       }),
-    ]);
-  });
-
-  it("create_welcomesTheOwnerOnWhatsAppFromTheTurfTapNumberWithTheConsoleLink", async () => {
-    const ownerPhone = uniquePhone();
-    const tenant = await tenantsService.create({
-      slug: newSlug(),
-      name: "Kick Off Arena",
-      ownerPhone: `0${ownerPhone.slice("+94".length)}`,
-    });
-    await runQueuedWelcome(tenant.id);
-    expect(messagesTo(ownerPhone)).toEqual([
-      {
-        kind: "template",
-        from: TURFTAP_NUMBER,
-        to: ownerPhone,
-        template: WHATSAPP_TEMPLATES.ownerWelcome,
-        values: ["Kick Off Arena", config.consoleUrl],
-      },
     ]);
   });
 

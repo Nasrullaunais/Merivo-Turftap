@@ -16,7 +16,7 @@ As **Staff** at more than one tenant, I want to pick which tenant I'm working in
 
 ## SIG-03 Invite staff
 As an **Owner**, I want to add staff by phone number with a role, so that they can use the Staff Console.
-- Given a phone number and a role (Owner, Manager, Front Desk), when I add them, then they get a WhatsApp message with the console link.
+- Given a phone number and a role (Owner, Manager, Front Desk), when I add them, then I'm offered to send them a message with the console link from my own WhatsApp, or to copy it (D-51). TurfTap sends them nothing itself.
 - Given the person has never signed in, when they first sign in with that number, then they land in my tenant with that role.
 - Given the number is already staff in my tenant, when I add it again, then I'm told they're already staff.
 

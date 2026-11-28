@@ -58,7 +58,7 @@ Sign-in uses Auth0's passwordless SMS connection ([ADR 0008](../adr/0008-phone-l
 
 ## WhatsApp
 
-The API sends login codes, staff invites and customer messages through Meta's WhatsApp Cloud API. All of TurfTap's numbers sit in one WhatsApp Business Account, reached with one access token.
+The API sends login codes and customer messages through Meta's WhatsApp Cloud API. All of TurfTap's numbers sit in one WhatsApp Business Account, reached with one access token.
 
 1. In [Meta for Developers](https://developers.facebook.com/apps), create a **Business** app and add **WhatsApp**. Meta gives it a test number; a real number is added under **WhatsApp → API Setup**.
 2. In Business Settings, add a **System User** (Admin), assign it the app and the WhatsApp Business Account with full control, and generate a token with `whatsapp_business_messaging` and `whatsapp_business_management`. Pick "never expires".
@@ -84,7 +84,7 @@ The API sends login codes, staff invites and customer messages through Meta's Wh
 
 ## Platform Admin scripts
 
-In v1 a Platform Admin creates tenants (`bun run tenant:create <slug> <name> <owner phone>`), turns them off and on (`tenant:off`, `tenant:on <slug>`), lists them (`tenants:list`), makes a user a Platform Admin (`admin:add <phone>`) and links WhatsApp numbers (`whatsapp:link`, `whatsapp:unlink`) by running scripts on the server, against the production database and settings ([platform-admin.md](../spec/platform-admin.md)). The scripts go through the same services as the API, so the same rules apply. On the server they run inside the API image, as the `deploy` user (see [On the server](#releases)): `TURFTAP_VERSION=$(cat .version) docker compose run --rm migrate bun scripts/whatsapp-link.ts <arguments>` (the file is the command's name with `-` for `:`, such as `scripts/tenant-create.ts`). The new Owner's welcome is queued; the running API sends it.
+In v1 a Platform Admin creates tenants (`bun run tenant:create <slug> <name> <owner phone>`), turns them off and on (`tenant:off`, `tenant:on <slug>`), lists them (`tenants:list`), makes a user a Platform Admin (`admin:add <phone>`) and links WhatsApp numbers (`whatsapp:link`, `whatsapp:unlink`) by running scripts on the server, against the production database and settings ([platform-admin.md](../spec/platform-admin.md)). The scripts go through the same services as the API, so the same rules apply. On the server they run inside the API image, as the `deploy` user (see [On the server](#releases)): `TURFTAP_VERSION=$(cat .version) docker compose run --rm migrate bun scripts/whatsapp-link.ts <arguments>` (the file is the command's name with `-` for `:`, such as `scripts/tenant-create.ts`). `tenant:create` prints a WhatsApp link with the new Owner's sign-in message, to send them.
 
 ## Releases
 
