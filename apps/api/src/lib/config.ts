@@ -36,7 +36,9 @@ const Env = z.object({
 
   MESSAGING_PROVIDER: z.enum(["fake"]).default("fake"),
   SMS_PROVIDER: z.enum(["fake"]).default("fake"),
-  RECEIPT_READER: z.enum(["fake"]).default("fake"),
+  RECEIPT_READER: z.enum(["fake", "gemini"]).default("fake"),
+  GEMINI_API_KEY: z.string().optional(),
+  RECEIPT_READER_MODEL: z.string().default("gemini-3.8-flash"),
 });
 
 type Env = z.output<typeof Env>;
@@ -85,7 +87,7 @@ export function loadConfig(source: Record<string, string | undefined> = process.
     storage: storage(env),
     messaging: { kind: env.MESSAGING_PROVIDER },
     sms: { kind: env.SMS_PROVIDER },
-    receiptReader: { kind: env.RECEIPT_READER },
+    receiptReader: receiptReader(env),
   };
 }
 
@@ -118,6 +120,16 @@ function storage(env: Env) {
     bucket: s3.S3_BUCKET,
     accessKeyId: s3.S3_ACCESS_KEY_ID,
     secretAccessKey: s3.S3_SECRET_ACCESS_KEY,
+  };
+}
+
+function receiptReader(env: Env) {
+  if (env.RECEIPT_READER === "fake") return { kind: "fake" as const };
+  const gemini = required(env, ["GEMINI_API_KEY"], "RECEIPT_READER=gemini");
+  return {
+    kind: "gemini" as const,
+    apiKey: gemini.GEMINI_API_KEY,
+    model: env.RECEIPT_READER_MODEL,
   };
 }
 

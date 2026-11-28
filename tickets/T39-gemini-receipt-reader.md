@@ -1,6 +1,6 @@
 # T39 Gemini receipt reader adapter
 
-Status: todo · Stories: `PAY-03` · Depends on: T12
+Status: done · Stories: `PAY-03` · Depends on: T12
 
 ## Goal
 Receipts are read by Gemini in production, behind the existing `ReceiptReader` port.

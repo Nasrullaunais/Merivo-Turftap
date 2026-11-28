@@ -27,6 +27,12 @@ describe("config", () => {
     );
   });
 
+  it("loadConfig_refusesGeminiWithoutItsKey", () => {
+    expect(() => loadConfig({ ...base, RECEIPT_READER: "gemini" })).toThrow(
+      "GEMINI_API_KEY must be set when RECEIPT_READER=gemini",
+    );
+  });
+
   it("loadConfig_refusesFakeAdaptersInProduction", () => {
     expect(() => loadConfig({ ...base, NODE_ENV: "production" })).toThrow("Fake adapters");
   });
