@@ -1,9 +1,9 @@
 # T40 WhatsApp Cloud adapter
 
-Status: todo · Stories: `SIG-01`, `SIG-03`, `AST-07` · Depends on: T04
+Status: blocked (D-52) · Stories: `SIG-01`, `AST-07` · Depends on: T04
 
 ## Goal
-Login codes, staff invites and customer messages really go out on WhatsApp through Meta's Cloud API.
+Login codes and customer messages really go out on WhatsApp through Meta's Cloud API.
 
 ## Read first
 - `docs/architecture/adapters.md`, `docs/architecture/assistant.md` (templates), `apps/api/src/ports/messaging-channel.ts`.
@@ -17,3 +17,8 @@ Login codes, staff invites and customer messages really go out on WhatsApp throu
 
 ## Done when
 - A real login code arrives on your phone from a test number; `bun run check` passes without keys.
+
+## Where it stands
+- Built: the adapter, the shared contract test, `bun run whatsapp:templates` and the setup guide. The 11 customer templates are with Meta for review; staff invites and the Owner welcome are dropped (D-51, T50).
+- Blocked (D-52): Meta refuses `login_code` and blocks sending until Merivo passes Business Verification, which waits for Merivo's registration. Then: run `bun run whatsapp:templates`, send a real login code, and check which HTTP status codes Meta uses for its errors (the offline tests guess).
+- Not started: n8n on the server. It waits for D-52 too, since Meta blocks the Assistant's replies until then.

@@ -7,7 +7,7 @@
 | Service tests | `bun test` + real Postgres (Docker) | Business rules, transactions, the overlap rule, unique rules. The database is never mocked. |
 | Tenant isolation | `bun test` | For every module: tenant A can't read, list, change or delete tenant B's data |
 | Route tests | `bun test` + Hono's `app.request()` | Envelope, permissions per role, filters, PATCH clearing a field |
-| Port contract tests | `bun test` | Every adapter of a port passes the same suite (`ports/<port>.contract-test.ts`). The S3 adapter's run needs SeaweedFS and runs only when `TEST_S3_ENDPOINT` is set. The Gemini receipt reader's run calls Google with 3 made-up receipts and runs only when `TEST_GEMINI_API_KEY` is set. |
+| Port contract tests | `bun test` | Every adapter of a port passes the same suite (`ports/<port>.contract-test.ts`). The S3 adapter's run needs SeaweedFS and runs only when `TEST_S3_ENDPOINT` is set. The Gemini receipt reader's run calls Google with 3 made-up receipts and runs only when `TEST_GEMINI_API_KEY` is set. The WhatsApp adapter's run sends real messages and runs only when the `TEST_WHATSAPP_*` settings are set. |
 | Architecture tests | `archunit` (npm) under `bun test` and Vitest | The rules below |
 | Component tests | Vitest + Testing Library | Pages with a mocked API |
 | End-to-end | Playwright + axe | A few key journeys per app, phone width, accessibility |
