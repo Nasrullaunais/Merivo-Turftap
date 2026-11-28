@@ -4,12 +4,13 @@ import { createFakeMessagingChannel } from "./adapters/messaging-channel/fake/fa
 import { createFakeObjectStorage } from "./adapters/object-storage/fake/fake-object-storage";
 import { createS3ObjectStorage } from "./adapters/object-storage/s3/s3-object-storage";
 import { createFakeReceiptReader } from "./adapters/receipt-reader/fake/fake-receipt-reader";
+import { createGeminiReceiptReader } from "./adapters/receipt-reader/gemini/gemini-receipt-reader";
 import { createFakeSmsChannel } from "./adapters/sms-channel/fake/fake-sms-channel";
 import type { Config } from "./lib/config";
 import type { Ports } from "./ports";
 
 export function createPorts(config: Config): Ports {
-  const { auth, storage } = config;
+  const { auth, storage, receiptReader } = config;
   return {
     auth:
       auth.provider.kind === "auth0"
@@ -18,6 +19,9 @@ export function createPorts(config: Config): Ports {
     storage: storage.kind === "s3" ? createS3ObjectStorage(storage) : createFakeObjectStorage(),
     messaging: createFakeMessagingChannel(),
     sms: createFakeSmsChannel(),
-    receiptReader: createFakeReceiptReader(),
+    receiptReader:
+      receiptReader.kind === "gemini"
+        ? createGeminiReceiptReader(receiptReader)
+        : createFakeReceiptReader(),
   };
 }

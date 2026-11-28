@@ -70,7 +70,7 @@ Status: `todo`, `doing`, `done`, `blocked` (waiting on a decision or an outside 
 | [T37](T37-assistant-book-and-cancel.md) | Book and cancel through chat | AST-02, AST-04 | T36, T07 | done |
 | [T38](T38-assistant-receipts.md) | Send a receipt in chat | AST-03 | T37, T11, T23 | done |
 | **I. Real services and launch** |||||
-| [T39](T39-gemini-receipt-reader.md) | Gemini receipt reader adapter | PAY-03 | T12 | todo |
+| [T39](T39-gemini-receipt-reader.md) | Gemini receipt reader adapter | PAY-03 | T12 | done |
 | [T40](T40-whatsapp-cloud-adapter.md) | WhatsApp Cloud adapter | SIG-01, SIG-03, AST-07 | T04 | todo |
 | [T41](T41-sms-adapter.md) | SMS adapter | SIG-01 | | blocked (D-15) |
 | [T42](T42-auth0-in-frontends.md) | Auth0 sign-in in console and portal | SIG-01 | T29 | blocked (Auth0 tenant) |

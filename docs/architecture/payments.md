@@ -61,6 +61,7 @@ Each booking shows **paid** (its `ACCEPTED` payments added up, refunds included)
 - `dateRecent` (D-12): paid on or after the day the booking was made, and not after today, both in the venue's time zone.
 - `referenceNew`: no earlier payment in the tenant was read with the same reference. References are saved in upper case without spaces or dashes, so `ft 0042` and `FT-0042` match.
 - `duplicateOf`: the earliest earlier payment in the tenant, at any venue, with the same receipt image (`files.sha256`, D-13) or the same reference. It's a warning only.
+- `bank` is the bank that issued the receipt (where the money was paid from or deposited), in its short name, such as "Commercial Bank".
 - A reader that fails is the adapter's problem: the port never rejects, so it reads as `unreadable` and staff check by hand.
 - All of it is worked out once, when the job runs, and then saved. Two different images of one transfer read at the very same moment can miss each other's reference; the same image is always caught, because its hash is saved at upload.
 
